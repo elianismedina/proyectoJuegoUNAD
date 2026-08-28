@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: DroneUAV
+  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed5, type: 3}
+  m_MaximumLOD: -1
+  m_SyncedProperties: []
+  m_SerializedProperties:
+  - name: _AlphaCutoff
+    second: 0.5
+  - name: _Blend
+    second: 0
+  - name: _BumpScale
+    second: 1
+  - name: _ClearCoatMask
+    second: 0
+  - name: _ClearCoatSmoothness
+    second: 0.9
+  - name: _Cull
+    second: 2
+  - name: _Cutoff
+    second: 0.5
+  - name: _DetailAlbedoMapScale
+    second: 1
+  - name: _DetailNormalMapScale
+    second: 1
+  - name: _DstBlend
+    second: 0
+  - name: _EnvironmentalReflections
+    second: 1
+  - name: _Flip
+    second: 0
+  - name: _GlossMapScale
+    second: 1
+  - name: _Glossiness
+    second: 0
+  - name: _GlossyReflections
+    second: 0
+  - name: _Metallic
+    second: 0.5
+  - name: _Mode
+    second: 0
+  - name: _OcclusionStrength
+    second: 1
+  - name: _Parallax
+    second: 0.02
+  - name: _QueueOffset
+    second: 0
+  - name: _ReceiveShadows
+    second: 1
+  - name: _Smoothness
+    second: 0.7
+  - name: _SmoothnessTextureChannel
+    second: 0
+  - name: _SpecularHighlights
+    second: 1
+  - name: _SrcBlend
+    second: 1
+  - name: _Surface
+    second: 0
+  - name: _UseUIAlphaClip
+    second: 0
+  - name: _WorkflowMode
+    second: 1
+  m_Colors:
+  - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+  - _Color: {r: 1, g: 1, b: 1, a: 1}
+  - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+  - _SpecColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  - _SurfaceColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_BuildTextureStacks:
+  - m_Textures:
+    - _BaseMap: {fileID: 2800000, guid: 206d3bb67449c584a861566b3b820565, type: 3}
+    - _MainTex: {fileID: 2800000, guid: 206d3bb67449c584a861566b3b820565, type: 3}
