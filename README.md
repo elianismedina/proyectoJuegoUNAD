@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # proyectoJuegoUNAD
 
 ## Jhon
@@ -22,6 +23,10 @@ mecánicas, sistemas e interacciones del videojuego.
 **Ubicacion** Palmira valle
 **Edad** 31 Años
 **Mi rol** Game designer
+=======
+# proyectoJuegoUnad
+proyectoJuegoUNAD
+>>>>>>> bd2636bb19a37c84d9d5dfb740a3bb7b95a0bcf3
 
 ![Elianis Manuel Medina](/Elianis/ElianisProfilePic.png)
 
@@ -33,4 +38,10 @@ mecánicas, sistemas e interacciones del videojuego.
 🎮 **Proyecto actual:** Desarrollo de mi primer videojuego  
 
 ### 💡 Intereses
+<<<<<<< HEAD
 `Programación` • `Diseño de Niveles` • `Fotografía` • `Animación`
+=======
+`Programación` • `Diseño de Niveles` • `Fotografía` • `Animación`
+
+
+>>>>>>> bd2636bb19a37c84d9d5dfb740a3bb7b95a0bcf3
