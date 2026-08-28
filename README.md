@@ -1,4 +1,4 @@
-# proyectoJuegoUNAD
+# proyectoJuegoUnad
 proyectoJuegoUNAD
 
 ![Elianis Manuel Medina](/Elianis/ElianisProfilePic.png)
@@ -12,3 +12,5 @@ proyectoJuegoUNAD
 
 ### 💡 Intereses
 `Programación` • `Diseño de Niveles` • `Fotografía` • `Animación`
+
+
