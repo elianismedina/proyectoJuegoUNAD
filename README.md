@@ -1,4 +1,17 @@
-<<<<<<< HEAD
+
+![Elianis Manuel Medina](/Elianis/ElianisProfilePic.png)
+
+## **Elianis Manuel Medina**
+> **Level Designer** | Estudiante de Ingeniería Multimedia (UNAD)
+
+📍 **Ubicación:** Cali, Valle del Cauca  
+🎂 **Edad:** 39 años  
+🎮 **Proyecto actual:** Desarrollo de mi primer videojuego  
+
+### 💡 Intereses
+
+`Programación` • `Diseño de Niveles` • `Fotografía` • `Animación`
+
 # proyectoJuegoUNAD
 
 ## Jhon
@@ -23,25 +36,12 @@ mecánicas, sistemas e interacciones del videojuego.
 **Ubicacion** Palmira valle
 **Edad** 31 Años
 **Mi rol** Game designer
-=======
-# proyectoJuegoUnad
+
+# proyectoJuegoUNAD
 proyectoJuegoUNAD
->>>>>>> bd2636bb19a37c84d9d5dfb740a3bb7b95a0bcf3
-
-![Elianis Manuel Medina](/Elianis/ElianisProfilePic.png)
-
-## **Elianis Manuel Medina**
-> **Level Designer** | Estudiante de Ingeniería Multimedia (UNAD)
-
-📍 **Ubicación:** Cali, Valle del Cauca  
-🎂 **Edad:** 39 años  
-🎮 **Proyecto actual:** Desarrollo de mi primer videojuego  
-
-### 💡 Intereses
-<<<<<<< HEAD
-`Programación` • `Diseño de Niveles` • `Fotografía` • `Animación`
-=======
-`Programación` • `Diseño de Niveles` • `Fotografía` • `Animación`
-
-
->>>>>>> bd2636bb19a37c84d9d5dfb740a3bb7b95a0bcf3
+![Geordany Girado Arenas](../proyectoJuegoUNAD/Geordany%20Giraldo%20Arenas/Fotoperfil.jpeg)
+![Comidafavorita](../proyectoJuegoUNAD/Geordany%20Giraldo%20Arenas/Comidafavorita.avif)
+## **Geordany Giraldo Arenas**
+**Ubicacion** Palmira valle
+**Edad** 31 Años
+**Mi rol** Game designer
