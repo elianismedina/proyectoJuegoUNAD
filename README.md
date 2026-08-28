@@ -1,7 +1,8 @@
 
-![Elianis Manuel Medina](/Elianis/ElianisProfilePic.png)
 
 ## **Elianis Manuel Medina**
+
+<img src="proyectoJuegoUNAD/Elianis/ElianisProfilePic.png" alt="Foto de Jhon" width="300">
 > **Level Designer** | Estudiante de Ingeniería Multimedia (UNAD)
 
 📍 **Ubicación:** Cali, Valle del Cauca  
