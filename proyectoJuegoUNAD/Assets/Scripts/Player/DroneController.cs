@@ -6,11 +6,29 @@ public class DroneController : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 8f;
     [SerializeField] private float sprintSpeed = 12f;
-    [SerializeField] private float altitudeSpeed = 4f;
     [SerializeField] private float minAltitude = 1.5f;
     [SerializeField] private float maxAltitude = 15f;
     [SerializeField] private float rotationSpeed = 10f;
-    [SerializeField] private float velocityDamping = 0.95f;
+
+    [Header("Movement - Momentum")]
+    [SerializeField] private float acceleration = 20f;
+    [SerializeField] private float sprintAcceleration = 26f;
+    [SerializeField] private float deceleration = 10f;
+
+    [Header("Movement - Vertical Thrust")]
+    [SerializeField] private float maxClimbForce = 30f;
+    [SerializeField] private float maxDescendForce = 20f;
+    [SerializeField] private float verticalDamping = 4f;
+
+    [Header("Movement - Altitude Boundary")]
+    [SerializeField] private float altitudeBoundarySpring = 40f;
+    [SerializeField] private float altitudeBoundaryDamping = 8f;
+
+    [Header("Visual Tilt (cosmetic, DroneModel child only)")]
+    [SerializeField] private Transform droneModel;
+    [SerializeField] private float maxPitchAngle = 12f;
+    [SerializeField] private float maxRollAngle = 10f;
+    [SerializeField] private float tiltSmoothSpeed = 6f;
 
     [Header("Beam")]
     [SerializeField] private float beamRange = 100f;
@@ -48,6 +66,9 @@ public class DroneController : MonoBehaviour
         if (beamOrigin == null)
             beamOrigin = transform.Find("BeamOrigin");
 
+        if (droneModel == null)
+            droneModel = transform.Find("DroneModel");
+
         if (beamVFX == null)
             beamVFX = GetComponentInChildren<LineRenderer>();
 
@@ -59,7 +80,8 @@ public class DroneController : MonoBehaviour
     {
         HandleMovement();
         HandleRotation();
-        ClampAltitude();
+        HandleAltitudeBoundary();
+        HandleVisualTilt();
     }
 
     private void Update()
@@ -70,23 +92,33 @@ public class DroneController : MonoBehaviour
 
     private void HandleMovement()
     {
+        Vector3 currentHorizontal = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+        Vector3 newHorizontal;
+
         if (moveInput == Vector2.zero)
         {
             state = DroneState.Hovering;
-            rb.linearVelocity *= velocityDamping;
+            newHorizontal = Vector3.MoveTowards(currentHorizontal, Vector3.zero, deceleration * Time.fixedDeltaTime);
         }
         else
         {
             state = DroneState.Flying;
             Vector3 moveDirection = new Vector3(moveInput.x, 0, moveInput.y);
             moveDirection = transform.parent != null ? transform.parent.TransformDirection(moveDirection) : moveDirection;
+            moveDirection.Normalize();
 
-            float currentSpeed = isSprinting ? sprintSpeed : moveSpeed;
-            Vector3 targetVelocity = moveDirection.normalized * currentSpeed;
-            rb.linearVelocity = new Vector3(targetVelocity.x, rb.linearVelocity.y, targetVelocity.z);
+            float targetSpeed = isSprinting ? sprintSpeed : moveSpeed;
+            float accel = isSprinting ? sprintAcceleration : acceleration;
+            Vector3 targetVelocity = moveDirection * targetSpeed;
+            newHorizontal = Vector3.MoveTowards(currentHorizontal, targetVelocity, accel * Time.fixedDeltaTime);
         }
 
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y + altitudeInput * altitudeSpeed * Time.fixedDeltaTime, rb.linearVelocity.z);
+        rb.linearVelocity = new Vector3(newHorizontal.x, rb.linearVelocity.y, newHorizontal.z);
+
+        float hoverThrust = rb.mass * -Physics.gravity.y;
+        float playerThrust = altitudeInput >= 0f ? altitudeInput * maxClimbForce : altitudeInput * maxDescendForce;
+        float verticalDampingForce = -rb.linearVelocity.y * verticalDamping;
+        rb.AddForce(Vector3.up * (hoverThrust + playerThrust + verticalDampingForce));
     }
 
     private void HandleRotation()
@@ -102,14 +134,35 @@ public class DroneController : MonoBehaviour
         }
     }
 
-    private void ClampAltitude()
+    private void HandleAltitudeBoundary()
     {
-        Vector3 pos = transform.position;
-        pos.y = Mathf.Clamp(pos.y, minAltitude, maxAltitude);
-        transform.position = pos;
+        float y = transform.position.y;
+        float penetration = 0f;
 
-        if ((pos.y <= minAltitude && altitudeInput < 0) || (pos.y >= maxAltitude && altitudeInput > 0))
-            rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+        if (y > maxAltitude)
+            penetration = y - maxAltitude;
+        else if (y < minAltitude)
+            penetration = y - minAltitude;
+
+        if (penetration != 0f)
+        {
+            float springForce = -penetration * altitudeBoundarySpring;
+            float dampingForce = -rb.linearVelocity.y * altitudeBoundaryDamping;
+            rb.AddForce(Vector3.up * (springForce + dampingForce));
+        }
+    }
+
+    private void HandleVisualTilt()
+    {
+        if (droneModel == null) return;
+
+        Vector3 localVel = transform.InverseTransformDirection(rb.linearVelocity);
+        float referenceSpeed = isSprinting ? sprintSpeed : moveSpeed;
+        float pitchTarget = Mathf.Clamp(-localVel.z / referenceSpeed, -1f, 1f) * maxPitchAngle;
+        float rollTarget = Mathf.Clamp(-localVel.x / referenceSpeed, -1f, 1f) * maxRollAngle;
+
+        Quaternion targetTilt = Quaternion.Euler(pitchTarget, 0f, rollTarget);
+        droneModel.localRotation = Quaternion.Slerp(droneModel.localRotation, targetTilt, tiltSmoothSpeed * Time.fixedDeltaTime);
     }
 
     private void UpdateBeamEnergy()
