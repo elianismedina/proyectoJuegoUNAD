@@ -114,10 +114,30 @@ Not yet tested with a physical keyboard/gamepad (values were injected), and the 
 **Done when:** the camera tracks the player smoothly through all three zones with no mouse input.
 
 ### Phase F — Hazard and game hooks (M, aligns with ActionPlan Phases 3–4)
-- [ ] `Stumble()` and `SpeedMultiplier` API used by `RollingLog`, `FallingRock`, `MudZone`; add animator parameters/states `Slow` and `Stumble` (Mixamo clips, Humanoid).
-- [ ] `KillPlane` calls `GameManager` → `Lost`; controller disables input on `Lost`/`Won`/`Paused`.
-- [ ] `Victory` animation trigger on zone recovery / level win.
-- [ ] Footstep/landing SFX routed through `AudioManager` mixer groups.
+- [x] `Stumble()` and speed-modifier API (`AddSpeedModifier` / `RemoveSpeedModifier`) used by `RollingLog`, `FallingRock`, `MudZone`; animator parameters/states `Slow`, `Stumble`, `Victory` added in `Assets/Animation/PlayerAnimator.controller` (copy of the Starter Assets controller). **The clips are placeholders** from Starter Assets (`Slow` = Walk, `Stumble` = Run_N_Land, `Victory` = Jump); swap the three `motion` fields for Mixamo Humanoid clips later.
+- [x] `KillPlane` calls `GameManager` → `Lost`; the controller disables input on `Lost` / `Won` / `Paused` (and `PlayerPauseInput` toggles pause from the Pause action).
+- [x] `Victory` animation trigger on win (zone-recovery reaction comes with `ZoneController`).
+- [ ] Footstep/landing SFX routed through `AudioManager` mixer groups. *Deferred: `AudioManager` does not exist yet (ActionPlan Phase 6); the controller still plays the Starter Assets clips directly.*
+
+**Implementation notes (done):**
+- New scripts: `Gameplay/GameSession` (pure C#, tested), `GameManager`, `LevelConfig`, `KillPlane`; `Environment/PlayerHazard`, `RollingLog`, `FallingRock`, `FallingRockTrigger`, `MudZone`; `Player/PlayerPauseInput`. Scripts now compile into the `ForestGuardian` assembly.
+- Stumble: input locked 0.5 s, 5 m/s knockback away from the hazard, 3 m/s hop, then 1 s of immunity so overlapping hazards cannot chain-stumble. No damage.
+- Speed modifiers are a list, so overlapping mud zones multiply and always restore on exit.
+- Provisional test content in `Level01` (`Hazards_Provisional`): mud x 5–11, rolling log x 14–22, falling rock landing at x −8 armed by a trigger at x −12. Replace with the real level layout.
+
+**Tests:** 9 EditMode tests for `GameSession` pass (`Assets/Tests/EditMode`). Play-mode scripted checks, all passing:
+
+| Check | Result |
+|-------|--------|
+| Mud | multiplier 0.5, `Slow` true, animator in `Slow`, speed 3.0; on exit multiplier 1, back to locomotion |
+| Direct stumble | accepted; steering ignored while stumbling; second hit within 1 s rejected; accepted after immunity |
+| Falling rock | trigger arms it; rock lands on the player and stumbles it |
+| Animator | trigger → `Stumble` state → back to locomotion (≈ 0.6 s) |
+| Pause | `Paused`, `timeScale` 0, input off; resume restores all |
+| Kill plane | player below y = −10 → `Lost`, input off |
+| Win | 9/10 stays Playing; 10th → `Won`, input off, `Victory` state, later `Lose()` rejected |
+
+Not verified: the rolling log's collision (only mud/rock/direct hits were driven), the Esc key itself (`TogglePause` was called directly), and `GameManager.Restart()`.
 
 ### Phase G — Package slimming and tests (S)
 - [ ] After Phases C–E pass, delete unused package folders (`FirstPersonController`, `Mobile`, `Sample`, `Runtime/Settings`, `Editor/URPWizard`) — move/delete asset and `.meta` together, inside Unity.

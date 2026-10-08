@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using StarterAssets;
 using UnityEngine;
 
@@ -7,6 +8,8 @@ using UnityEngine;
 /// the character faces its travel direction, camera look is removed (Cinemachine handles the camera),
 /// and jumping gains coyote time and a jump buffer.
 /// The animation events <c>OnFootstep</c> and <c>OnLand</c> are forwarded by <see cref="PlayerAnimationEvents"/>.
+/// Hazards call <see cref="Stumble"/>; mud zones use <see cref="AddSpeedModifier"/>. Input is disabled
+/// automatically whenever the <see cref="GameManager"/> session is not in the Playing state.
 /// </summary>
 [RequireComponent(typeof(CharacterController), typeof(StarterAssetsInputs))]
 public class SideScrollerController : MonoBehaviour
@@ -48,16 +51,40 @@ public class SideScrollerController : MonoBehaviour
 
     public LayerMask GroundLayers = ~0;
 
+    [Header("Stumble")]
+    [Tooltip("Seconds the player cannot control the character after being hit.")]
+    public float StumbleDuration = 0.5f;
+
+    [Tooltip("Horizontal knockback speed in m/s, away from the hazard.")]
+    public float StumbleKnockbackSpeed = 5f;
+
+    [Tooltip("Small upward hop in m/s when hit on the ground.")]
+    public float StumbleHop = 3f;
+
+    [Tooltip("Seconds after a stumble during which further hits are ignored.")]
+    public float StumbleImmunity = 1f;
+
     [Header("Audio")]
     public AudioClip LandingAudioClip;
     public AudioClip[] FootstepAudioClips;
     [Range(0f, 1f)] public float FootstepAudioVolume = 0.5f;
 
-    /// <summary>Multiplier applied to <see cref="MoveSpeed"/>; used by mud zones (1 = normal).</summary>
-    public float SpeedMultiplier { get; set; } = 1f;
+    /// <summary>Product of all active speed modifiers applied to <see cref="MoveSpeed"/> (1 = normal).</summary>
+    public float SpeedMultiplier
+    {
+        get
+        {
+            float multiplier = 1f;
+            foreach (float modifier in _speedModifiers) multiplier *= modifier;
+            return multiplier;
+        }
+    }
 
     /// <summary>When false, player input is ignored (paused, won or lost).</summary>
     public bool InputEnabled { get; set; } = true;
+
+    /// <summary>True while the player is reeling from a hazard hit and cannot steer.</summary>
+    public bool IsStumbling => Time.time < _stumbleEndTime;
 
     private const float TerminalVelocity = 53f;
 
@@ -74,12 +101,20 @@ public class SideScrollerController : MonoBehaviour
     private float _lastGroundedTime = float.NegativeInfinity;
     private float _jumpBufferTimer;
     private float _fallTimeoutDelta;
+    private float _stumbleEndTime = float.NegativeInfinity;
+    private float _stumbleImmuneUntil = float.NegativeInfinity;
+
+    private readonly List<float> _speedModifiers = new List<float>();
+    private GameSession _session;
 
     private int _animIDSpeed;
     private int _animIDGrounded;
     private int _animIDJump;
     private int _animIDFreeFall;
     private int _animIDMotionSpeed;
+    private int _animIDSlow;
+    private int _animIDStumble;
+    private int _animIDVictory;
 
     private void Awake()
     {
@@ -93,6 +128,9 @@ public class SideScrollerController : MonoBehaviour
         _animIDJump = Animator.StringToHash("Jump");
         _animIDFreeFall = Animator.StringToHash("FreeFall");
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
+        _animIDSlow = Animator.StringToHash("Slow");
+        _animIDStumble = Animator.StringToHash("Stumble");
+        _animIDVictory = Animator.StringToHash("Victory");
     }
 
     private void Start()
@@ -100,6 +138,54 @@ public class SideScrollerController : MonoBehaviour
         _planeZ = transform.position.z;
         _fallTimeoutDelta = FallTimeout;
         transform.rotation = Quaternion.Euler(0f, _targetYaw, 0f);
+
+        // Follow the game state: input only while playing; celebrate on a win.
+        var manager = GameManager.Instance;
+        if (manager != null)
+        {
+            _session = manager.Session;
+            _session.StateChanged += OnGameStateChanged;
+            InputEnabled = _session.State == GameState.Playing;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_session != null) _session.StateChanged -= OnGameStateChanged;
+    }
+
+    private void OnGameStateChanged(GameState state)
+    {
+        InputEnabled = state == GameState.Playing;
+
+        if (state == GameState.Won && _hasAnimator)
+            _animator.SetTrigger(_animIDVictory);
+    }
+
+    /// <summary>Registers a speed multiplier (e.g. 0.5 in mud). Pair every call with <see cref="RemoveSpeedModifier"/>.</summary>
+    public void AddSpeedModifier(float multiplier) => _speedModifiers.Add(multiplier);
+
+    /// <summary>Removes one previously added speed multiplier.</summary>
+    public void RemoveSpeedModifier(float multiplier) => _speedModifiers.Remove(multiplier);
+
+    /// <summary>
+    /// Knocks the player back away from a hazard: brief loss of control, a small hop and the Stumble animation.
+    /// No damage is dealt (the game has no health). Returns false if input is disabled or the player is still immune.
+    /// </summary>
+    /// <param name="knockbackDirectionX">Sign of the world X direction to be pushed toward.</param>
+    public bool Stumble(float knockbackDirectionX)
+    {
+        if (!InputEnabled || Time.time < _stumbleImmuneUntil) return false;
+
+        _stumbleEndTime = Time.time + StumbleDuration;
+        _stumbleImmuneUntil = _stumbleEndTime + StumbleImmunity;
+
+        _velocityX = Mathf.Sign(knockbackDirectionX) * StumbleKnockbackSpeed;
+        if (Grounded) _verticalVelocity = StumbleHop;
+        _jumpBufferTimer = 0f;
+
+        if (_hasAnimator) _animator.SetTrigger(_animIDStumble);
+        return true;
     }
 
     private void Update()
@@ -175,7 +261,7 @@ public class SideScrollerController : MonoBehaviour
 
     private void Move()
     {
-        float inputX = InputEnabled ? _input.move.x : 0f;
+        float inputX = InputEnabled && !IsStumbling ? _input.move.x : 0f;
         float direction = Mathf.Abs(inputX) > InputDeadZone ? Mathf.Sign(inputX) : 0f;
 
         float targetVelocity = direction * MoveSpeed * SpeedMultiplier;
@@ -197,6 +283,7 @@ public class SideScrollerController : MonoBehaviour
         {
             _animator.SetFloat(_animIDSpeed, Mathf.Abs(_velocityX));
             _animator.SetFloat(_animIDMotionSpeed, 1f);
+            _animator.SetBool(_animIDSlow, SpeedMultiplier < 0.99f);
         }
     }
 
