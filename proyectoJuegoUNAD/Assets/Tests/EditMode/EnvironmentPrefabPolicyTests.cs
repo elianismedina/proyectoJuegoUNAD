@@ -79,4 +79,33 @@ public class EnvironmentPrefabPolicyTests
         foreach (var p in Load("Obstacles"))
             Assert.LessOrEqual(TopAboveGround(p), MaxObstacleHeight, p.name + " is too tall to jump over");
     }
+
+    [Test]
+    public void Obstacles_UseTheDarkMaterialNotTheSceneryOne()
+    {
+        // "Dark means avoid": obstacles must never share the scenery rocks' and stumps' look (GDD 8.6).
+        foreach (var p in Load("Obstacles"))
+            foreach (var r in p.GetComponentsInChildren<Renderer>(true))
+                foreach (var m in r.sharedMaterials)
+                    Assert.AreEqual("Obstacle_Atlas", m.name, p.name + " must use Obstacle_Atlas");
+    }
+
+    [Test]
+    public void Hazards_AreTriggersOnTheHazardLayer()
+    {
+        var guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Hazards" });
+        Assert.IsNotEmpty(guids);
+        int hazard = LayerMask.NameToLayer("Hazard");
+        foreach (var guid in guids)
+        {
+            var p = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+            var colliders = p.GetComponentsInChildren<Collider>(true);
+            Assert.IsNotEmpty(colliders, p.name + " needs a trigger collider");
+            foreach (var c in colliders)
+            {
+                Assert.IsTrue(c.isTrigger, p.name + "/" + c.name + " must be a trigger (hazards stumble or slow, they do not block)");
+                Assert.AreEqual(hazard, c.gameObject.layer, p.name + "/" + c.name + " must be on the Hazard layer");
+            }
+        }
+    }
 }

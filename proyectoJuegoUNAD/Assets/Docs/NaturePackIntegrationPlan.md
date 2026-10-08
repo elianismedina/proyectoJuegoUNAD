@@ -85,12 +85,16 @@ The side camera sits at z = −8 looking at z = 0 with FOV 45, so depth matters.
 - [x] **Tests:** `LevelLayoutPlayModeTests` (5): continuous flat lane over the whole course, colliders only on lane / barriers / obstacles, spawn on the lane near the start, camera confiner covers the course, and the obstacle count grows in every zone. Totals: 13 EditMode and 19 PlayMode, all passing.
 - **Open for later:** there is no goal object at the end of the course yet (the win condition is the waste target, GDD §5.3, built in the ActionPlan "collection loop" phase). Waste placement waits for the Blender models.
 
-### Phase D — Replace the provisional hazards with art (M)
-- [ ] `Hazards_Provisional` primitives become real prefabs under `Assets/Prefabs/Hazards/`. Keep the existing scripts (`RollingLog`, `FallingRock`, `FallingRockTrigger`, `MudZone`, `PlayerHazard`) unchanged: put the mesh on a `Visual` child and keep the gameplay collider on the root, sized by hand.
-- [ ] Static obstacles: rocks (scaled `Rock_*`), logs (`Stump_01` / stacked `Branch_01`).
-- [ ] `MudZone`: flattened ground tile with a new brown URP Lit material, visibly different from grass (GDD §9.1: "shader o material distinto").
-- [ ] Obstacles must read as obstacles: darker, higher contrast than scenery rocks, and a different silhouette (GDD §8.6 and the accessibility rules in §11).
-- **Done when:** every hazard type is placed with final art and still behaves as before (stumble, slow, fall).
+### Phase D — Replace the provisional hazards with art (M) — done
+- [x] **Hazard prefabs** in `Assets/Prefabs/Hazards/`; the gameplay scripts (`RollingLog`, `FallingRock`, `FallingRockTrigger`, `MudZone`, `PlayerHazard`) keep their behaviour and the art sits on `Visual` children:
+  - `RollingLog_Hazard`: `Branch_01` x5 turned 90° so its axis runs along Z and it rolls along X (the camera sees its end face, like a rolling barrel). Trigger sphere on the root.
+  - `FallingRock_Hazard`: a container with `Rock` (`Rock_04` x1.2 plus `FallingRock`), `WarningMarker` (the ground shadow) and `Trigger` (arms the rock, 4 m before it). The scripts' references are wired inside the prefab, so it can be dropped anywhere as a unit.
+  - `MudZone_Hazard`: a 6 x 3 m wet slab (`Mud_Wet`, dark brown, matte) across the lane with four pebbles on top, and a trigger box on the root.
+- [x] **Visual language, "dark means avoid":** a new `Obstacle_Atlas` material (the pack atlas tinted darker) is used by all five static obstacles and by the log and the falling rock, so they never read as scenery rocks and stumps. Waste will be the opposite: bright, saturated and never found in nature (phase F).
+- [x] **`Level01`:** `Hazards_Provisional` is replaced by a `Hazards` group with one of each prefab: mud at x = 70 and rolling log between x = 88 and 102 (Zone 2), falling rock at x = 130 (Zone 3). More can be dragged in from the prefabs. The old `Hazard_Mud`, `Hazard_Log`, `Hazard_Rock` and `Ground_Provisional` materials were deleted (nothing used them); `Hazard_Marker` is kept for the warning shadow.
+- [x] **Hardening:** `MudZone` now remembers the player it slowed, so the speed modifier cannot stack when Unity reports an enter without an exit (a test that toggled the `CharacterController` reproduced it: the speed stayed at 0.5 after leaving the mud).
+- [x] **Tests (first coverage of the hazards):** `HazardPlayModeTests` (PlayMode, 3): mud halves the speed and releases it on exit, the rolling log stumbles the player, and the falling rock goes warning, then drop, then disappear. `EnvironmentPrefabPolicyTests` (EditMode) gained two: obstacles use the dark material, and every hazard collider is a trigger on the `Hazard` layer. Totals: 15 EditMode and 22 PlayMode, all passing.
+- **Open for later:** the rolling log's cross-section is not perfectly round (the pack's branch has a nub), so it wobbles slightly as it spins; a clean cylinder log from Blender would fix it. Only one hazard of each type is placed; the real difficulty tuning (counts and timing) belongs to the playtests.
 
 ### Phase E — Polluted-to-recovered visual state (M)
 GDD §6.1.4, §8.6 and §9.1 ask the player to see a zone go from polluted to recovered.

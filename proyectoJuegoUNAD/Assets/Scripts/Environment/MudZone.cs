@@ -16,15 +16,35 @@ public class MudZone : MonoBehaviour
         GetComponent<Collider>().isTrigger = true;
     }
 
+    // The player currently slowed by this zone. Remembering it keeps the modifier from stacking when Unity
+    // reports an enter without a matching exit (for example after the CharacterController is toggled).
+    private SideScrollerController slowedPlayer;
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent(out SideScrollerController player))
-            player.AddSpeedModifier(speedMultiplier);
+        if (!other.TryGetComponent(out SideScrollerController player) || player == slowedPlayer) return;
+
+        slowedPlayer = player;
+        player.AddSpeedModifier(speedMultiplier);
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.TryGetComponent(out SideScrollerController player))
-            player.RemoveSpeedModifier(speedMultiplier);
+        if (!other.TryGetComponent(out SideScrollerController player) || player != slowedPlayer) return;
+
+        Release();
+    }
+
+    private void OnDisable()
+    {
+        Release();
+    }
+
+    private void Release()
+    {
+        if (slowedPlayer == null) return;
+
+        slowedPlayer.RemoveSpeedModifier(speedMultiplier);
+        slowedPlayer = null;
     }
 }
