@@ -47,5 +47,6 @@ There is no CLI build, lint, or test script. Everything runs through the Unity E
 
 - New scripts go under `Assets/Scripts/<Feature>/` (`Player`, `Environment`, `Gameplay`, `UI`, `Editor`), one responsibility per script.
 - Input goes through the Input System (`Assets/InputSystem_Actions.inputactions`), not the legacy `Input` class.
-- Commit `.meta` files together with their assets. Never commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `.vs/`, or generated `*.csproj`/`*.sln`.
+- **`.meta` files must ALWAYS be committed, in the same commit as their asset (or folder).** Each `.meta` holds the asset's GUID; if it is missing, every teammate's Unity generates a different GUID, scene/prefab references break, and merges corrupt the project. Never add `*.meta` to `.gitignore`, never delete a `.meta` by hand, and move/rename assets inside Unity (or move the asset and its `.meta` together). When creating files outside the Editor (scripts, docs), the `.meta` appears once Unity next focuses — commit it before pushing.
+- Never commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `.vs/`, or generated `*.csproj`/`*.sln`.
 - Active branch for this developer is `elianis-medina`; `main` is the PR target.
