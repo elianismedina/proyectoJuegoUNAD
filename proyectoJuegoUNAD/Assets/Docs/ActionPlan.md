@@ -81,7 +81,8 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 ### Phase 3 — Collection loop and win/lose (M)
 - [x] `Collectible` prefab with enlarged trigger, auto-collect, event to `GameManager`: `Scripts/Gameplay/Collectible.cs` and `Assets/Prefabs/Collectibles/` (base `Collectible` plus one variant per waste type, `Collectible_Bottle` … `Collectible_Battery`). The model bobs and spins on a `Visual` child; `Collectible.Collected` is the hook for VFX/SFX. Tests: `CollectiblePrefabPolicyTests` (EditMode, 3) and `CollectiblePlayModeTests` (PlayMode, 2).
 - [ ] HUD counter `Residuos: X/10` bound to `OnWasteCollected`.
-- [ ] Win and lose screens with Restart / Play again.
+- [x] Win and lose screens with Restart / Play again: `Scripts/UI/GameScreens.cs` and `Assets/Prefabs/UI/GameScreens.prefab` ("¡Bosque limpio!" / "¡Inténtalo de nuevo!", the button is preselected so Enter or Space restarts), plus a notice "Te faltan N residuos" when the goal is reached early. Placeholder font: the built-in `LegacyRuntime`; swap it in the art pass.
+- [x] Goal at the end of the course (decided 2026-10-08): winning needs the target waste **and** reaching `LevelGoal` (`Scripts/Gameplay/LevelGoal.cs`, prefab `Assets/Prefabs/Level/LevelGoal.prefab`, placeholder pole and flag at x = 166.5). Before this, the 10th item won on the spot and, with no win screen, the game looked frozen. `GameSession.ReachGoal()` holds the rule; tests: `GameSessionTests` (EditMode) and `GoalAndScreensPlayModeTests` (PlayMode, 5).
 - [x] Place the 10+ collectibles per the zone budget: 12 in `Level01` under the `Collectibles` root, 3 / 4 / 5 per zone (two spare over the target of 10). Three float above obstacles (x = 55, 113, 144; root y = 1.9) so they need a jump; the rest sit on the lane between obstacles and clear of the mud, the rolling log and the falling rock. Instead of an editor validator, `LevelCollectiblesPlayModeTests` (PlayMode, 5) checks the count against `LevelConfig.targetWaste`, the per-zone counts, lane and hazard clearance, jump reach, and that collecting them all wins.
 
 **Done when:** the full GDD core loop works end to end with placeholder art.
@@ -171,6 +172,7 @@ _(Fill in during Phase 0.)_
 
 - Waste sorting: out of scope for now (revisit after the core game ships) — ☑ confirmed
 - Target waste count: 10 — ☑ confirmed
+- Win condition: target waste plus reaching the goal at the end of the course (GDD §5.1–5.3 updated) — ☑ confirmed 2026-10-08
 - Waste types: eight (bottles, cans, paper, plastic bags, juice boxes, disposable cups, glass jars, batteries), all with the same behaviour; GDD §6.2, §8.4 and §13.1 updated — ☑ confirmed
 - Movement model: 3D look with side-scroller movement — ☑ confirmed
 - Rolling logs, falling rocks, mud: ☑ in scope (core, Phase 4–5)

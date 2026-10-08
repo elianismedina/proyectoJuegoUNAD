@@ -135,11 +135,11 @@ El jugador asume el papel del **Guardián del Bosque**, cuya tarea es recorrer e
 ## 4.3 Desarrollo
 Durante el recorrido, el jugador encuentra diferentes residuos y obstáculos que debe superar mediante el desplazamiento y los saltos. A medida que avanza por las tres zonas del nivel, debe recoger la cantidad necesaria de residuos para cumplir el objetivo.
 ## 4.4 Final
-Cuando el jugador alcanza la cantidad objetivo de residuos, el bosque se considera limpio y se muestra el mensaje **“¡Bosque limpio!”**. Si el personaje choca con un obstáculo y cae fuera del recorrido, se muestra **“¡Inténtalo de nuevo!”** y puede reiniciar el nivel.
+Cuando el jugador alcanza la cantidad objetivo de residuos y llega a la meta al final del recorrido, el bosque se considera limpio y se muestra el mensaje **“¡Bosque limpio!”**. Si el personaje choca con un obstáculo y cae fuera del recorrido, se muestra **“¡Inténtalo de nuevo!”** y puede reiniciar el nivel.
 
 # 5. Objetivo y reglas
 ## 5.1 Objetivo principal
-El objetivo del jugador es recorrer el bosque y **recoger 10 residuos** para completar la limpieza del espacio natural y finalizar exitosamente el nivel.
+El objetivo del jugador es recorrer el bosque, **recoger 10 residuos** y **llegar a la meta** al final del recorrido para completar la limpieza del espacio natural y finalizar exitosamente el nivel. Si llega a la meta con residuos pendientes, el juego le indica cuántos le faltan y puede volver a buscarlos.
 
 La cantidad de residuos será un parámetro ajustable, por lo que posteriormente podremos cambiar 10 por otra cantidad sin modificar toda la lógica del juego.
 
@@ -151,12 +151,13 @@ La cantidad de residuos será un parámetro ajustable, por lo que posteriormente
 | Recolección | El jugador entra en contacto con un residuo. | El residuo desaparece, el contador aumenta en 1 y se reproduce un sonido. | Cantidad objetivo |
 | Obstáculos | El jugador debe saltar o desplazarse para superarlos. | Si choca y cae fuera del recorrido, pierde. | Ubicación de obstáculos |
 | Progreso | El jugador continúa recorriendo las tres zonas y recogiendo residuos. | El HUD actualiza el contador, por ejemplo: **7/10**. | Cantidad de residuos |
-| Victoria | El contador alcanza la cantidad objetivo. | Se muestra **“ ¡Bosque limpio!”**. | Objetivo = 10 |
+| Victoria | El contador alcanza la cantidad objetivo y el jugador llega a la meta. | Se muestra **“ ¡Bosque limpio!”**. | Objetivo = 10 |
+| Meta sin completar | El jugador llega a la meta con menos residuos que el objetivo. | Se muestra **“Te faltan N residuos”** y el juego continúa. | Objetivo = 10 |
 | Derrota | El personaje cae fuera del recorrido después de un obstáculo. | Se muestra **“ ¡Inténtalo de nuevo!”** y puede reiniciar. | Diseño del recorrido |
 ## 5.3 Condiciones de victoria y derrota
 Victoria:
 
-residuosRecogidos >= objetivo                                 ¡Bosque limpio! 
+residuosRecogidos >= objetivo  Y  jugador llega a la meta        ¡Bosque limpio! 
 
 Derrota:
 
@@ -746,7 +747,7 @@ Cuando el jugador recoja un residuo:
 ## 10.5 Pantalla de victoria
 Cuando:
 
-residuosRecogidos >= objetivo
+residuosRecogidos >= objetivo y el jugador llega a la meta
 
 se mostrará:
 

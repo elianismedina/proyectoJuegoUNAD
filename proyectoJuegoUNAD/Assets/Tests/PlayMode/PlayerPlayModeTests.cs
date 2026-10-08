@@ -136,6 +136,7 @@ public class PlayerPlayModeTests
     {
         var session = GameManager.Instance.Session;
         for (int i = 0; i < session.TargetWaste; i++) GameManager.Instance.AddWaste();
+        GameManager.Instance.ReachGoal();
         yield return null;
 
         Assert.AreEqual(GameState.Won, session.State);

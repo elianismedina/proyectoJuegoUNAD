@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 /// <summary>
 /// Checks the waste placed under the <c>Collectibles</c> root of Level01: enough to reach the target, more of it
 /// in each zone (GDD §8.2), all on the lane and clear of hazards, the elevated ones reachable with a jump,
-/// and collecting all of it wins the level.
+/// and collecting all of it, then reaching the goal, wins the level.
 /// </summary>
 public class LevelCollectiblesPlayModeTests
 {
@@ -100,18 +100,24 @@ public class LevelCollectiblesPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator CollectingAllPlacedWaste_WinsTheLevel()
+    public IEnumerator CollectingAllPlacedWasteThenReachingTheGoal_WinsTheLevel()
     {
         var session = GameManager.Instance.Session;
         foreach (var c in items)
         {
-            if (session.State != GameState.Playing) break;
             Teleport(c.transform.position);
             yield return new WaitForSeconds(0.15f);
             Assert.IsTrue(c.IsCollected, c.name + " was not collected when the player stood on it.");
         }
 
-        Assert.AreEqual(GameState.Won, session.State, "Collecting the placed waste must win the level.");
-        Assert.AreEqual(session.TargetWaste, session.CollectedWaste);
+        Assert.AreEqual(items.Count, session.CollectedWaste);
+        Assert.AreEqual(GameState.Playing, session.State, "Collecting alone must not win; the goal is still ahead.");
+
+        var goal = Object.FindFirstObjectByType<LevelGoal>();
+        Assert.IsNotNull(goal, "Level01 needs a LevelGoal.");
+        Teleport(new Vector3(goal.transform.position.x, 0.1f, 0f));
+        yield return new WaitForSeconds(0.2f);
+
+        Assert.AreEqual(GameState.Won, session.State, "Reaching the goal with the waste collected must win the level.");
     }
 }
