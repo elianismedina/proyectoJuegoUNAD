@@ -139,10 +139,15 @@ Not yet tested with a physical keyboard/gamepad (values were injected), and the 
 
 Not verified: the rolling log's collision (only mud/rock/direct hits were driven), the Esc key itself (`TogglePause` was called directly), and `GameManager.Restart()`.
 
-### Phase G — Package slimming and tests (S)
-- [ ] After Phases C–E pass, delete unused package folders (`FirstPersonController`, `Mobile`, `Sample`, `Runtime/Settings`, `Editor/URPWizard`) — move/delete asset and `.meta` together, inside Unity.
-- [ ] PlayMode tests: player grounded on spawn; Space leaves ground; falling below the kill plane raises `Lost`; Z stays constant over 2 s of input.
-- [ ] Final check: clean build opens `MainMenu` → `Level01`, player controllable, no missing scripts or references.
+### Phase G — Package slimming and tests (S) — done
+- [x] Deleted every unused part of the package. A reference scan (assets, scenes, prefabs, ProjectSettings, asmdefs, import settings) found only 22 of 152 files in use, so everything else went: `FirstPersonController`, `Mobile`, `Sample`, `Runtime/Settings`, `Runtime/Common`, `SpaceRobotKyle`, the whole `Editor` folder (deploy menus and URP Wizard, which I had warned against running), the stock `ThirdPersonController.cs` and prefabs, the Armature materials/textures and the stock animator controller. `Assets/Starter Assets` went from 95 MB to 11 MB.
+- **Kept (referenced by the game):** `StarterAssets.inputactions`, `StarterAssetsInputs.cs`, `Unity.StarterAssets.asmdef` (referenced by name from `ForestGuardian.asmdef`), the 7 animation clips, `Armature.fbx` (the shared avatar the clips are set to copy from; deleting it breaks them), the footstep/landing WAVs, and `TutorialInfo/Scripts/Readme.cs` (used by `Assets/Readme.asset`).
+- [x] **Build Settings fixed:** they still listed the deleted `SampleScene`; now `MainMenu` (0) and `Level01` (1).
+- [x] PlayMode tests (`Assets/Tests/PlayMode`, 7 tests, all passing): grounded on spawn; Space leaves the ground and the player lands again; Z constant over 3 s of left/right input; X movement and facing (90° / 270°); falling below the kill plane raises `Lost` and disables input; pause freezes time and input; collecting the target wins.
+- **The tests caught a real bug:** the `GameManager` in `Level01` had no `LevelConfig` assigned (the setup step did not persist the reference) and silently fell back to the default 10 and y = −10. Fixed; the scene now references `LevelConfig_Level01`.
+- [x] Final check: no missing scripts and no broken object references in `MainMenu`, `Level01` or the Player prefab; a Windows x64 build of `MainMenu` + `Level01` succeeds (87 MB; slow only because the Unity AI inference package compiles many compute shaders), and the built player ran headless for 25 s with 0 errors or exceptions in its log. That smoke run only exercises `MainMenu`; `Level01` is covered by the PlayMode tests.
+- **Known leftovers, not caused by this work:** `PlayerAnimator.controller` keeps the stock `Fly` state, whose clip is not part of the package (unused, no transitions); `Assets/Readme.asset` points to a missing icon from the original template; and a few URP settings assets reference package-internal GUIDs that my scan could not resolve.
+- **Side effect to know about:** building rewrites some project settings automatically (URP global settings, volume profile, `ProjectSettings.asset`). I reverted those; only the intended `EditorBuildSettings.asset` change is committed.
 
 ## 5. Risks
 
