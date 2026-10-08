@@ -872,7 +872,8 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 
 | Recurso | Uso | Formato | Origen | Licencia |
 | --- | --- | --- | --- | --- |
-| Personaje | Personaje principal | FBX / Prefab | Por verificar | Por verificar |
+| Personaje ("Timmy") | Personaje principal | FBX / Prefab | Mixamo (Adobe), personaje "Timmy": https://www.mixamo.com/#/?page=2&type=Character | Términos de uso de Mixamo (por verificar y archivar la fecha de descarga) |
+| Controlador, animaciones y sonidos de pasos del personaje | Movimiento, animaciones Idle/Walk/Run/Jump y SFX de pasos/aterrizaje | C# / FBX / WAV | Unity Starter Assets (First Person + Third Person Character Controllers), en `Assets/Starter Assets` | Por verificar (licencia del paquete en la Asset Store / Unity) |
 | Árboles y vegetación | Entorno | FBX / Prefab | Por verificar | Por verificar |
 | Rocas y montañas | Entorno | FBX / Prefab | Por verificar | Por verificar |
 | Troncos | Obstáculos | FBX / Prefab | Por verificar | Por verificar |

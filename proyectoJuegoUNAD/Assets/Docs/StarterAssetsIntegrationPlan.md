@@ -49,7 +49,7 @@ Parent plan: `ActionPlan.md` (this replaces the custom Rigidbody movement planne
 - [x] Commit, in separate commits, with their `.meta` files: (1) `Packages/manifest.json` + `packages-lock.json` (Cinemachine), (2) `Assets/Starter Assets/`, (3) `Models/`, `Materials/`, `Level01.unity`, `Scripts/Player/`.
 - [x] **Do not run** `Tools > Starter Assets > Reset…`, the URP Wizard, or the deploy menus on the project (they instantiate prefabs / touch pipeline settings).
 - [x] Verify the console is clean after import: 0 errors; only CS0618 deprecation warnings inside the vendor `ThirdPersonStarterAssetsDeployMenu.cs` (ignored; file is slated for removal in Phase G).
-- [ ] Record the package origin and license in GDD §13.1 *(pending: needs the Asset Store license text/URL from the team)* (Unity Starter Assets, Asset Store/Unity license).
+- [~] Record the package origin and license in GDD §13.1: origins are now recorded (character: Mixamo "Timmy"; controller/animations/SFX: Unity Starter Assets). **The license column still says "por verificar"**: confirm the Mixamo terms and the Starter Assets license text, and archive them with the download date.
 
 ### Phase B — Make the model Humanoid (S)
 - [x] `Player.fbx` → Rig → Animation Type **Humanoid**, Avatar from this model (`PlayerAvatar`: valid, human).
