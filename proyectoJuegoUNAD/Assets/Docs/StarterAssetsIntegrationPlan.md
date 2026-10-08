@@ -60,21 +60,41 @@ Parent plan: `ActionPlan.md` (this replaces the custom Rigidbody movement planne
 **Done when:** the avatar is valid (green in the Avatar window) and the model plays a Starter Assets clip in a test Animator.
 
 ### Phase C — Player prefab (M)
-- [ ] Create `Assets/Prefabs/Player/Player.prefab`:
+- [x] Create `Assets/Prefabs/Player/Player.prefab`:
   - Root `Player` (tag `Player`): `CharacterController` (height ≈ 1.6, radius ≈ 0.3, center y = height/2, skin width 0.03, step offset 0.25), `PlayerInput` (actions = `StarterAssets.inputactions`, behaviour *Send Messages*), `StarterAssetsInputs`, `SideScrollerController`, `AudioSource`.
   - Child `Model` (our `Player.fbx`) with `Animator` → `StarterAssetsThirdPerson.controller` + our Avatar, root motion **off**.
   - Child `PlayerCameraRoot` at head height (Cinemachine follow target).
-- [ ] Remove the Rigidbody, capsule collider and old `PlayerController` from the scene object; delete `Scripts/Player/PlayerController.cs` and `Materials/PlayerNoFriction.asset` once unused.
-- [ ] Assign footsteps/landing clips to the controller, set `GroundLayers` to the ground layer (create layers `Ground`, `Hazard`, `Collectible`).
-- [ ] Replace the scene's `Player` with the prefab instance on the provisional ground.
+- [x] Removed the Rigidbody player from the scene; deleted `Scripts/Player/PlayerController.cs` and `Materials/PlayerNoFriction.asset`.
+- [x] Assign footsteps/landing clips to the controller, set `GroundLayers` to the ground layer (create layers `Ground`, `Hazard`, `Collectible`).
+- [x] Replace the scene's `Player` with the prefab instance on the provisional ground.
 
 **Done when:** the player stands on `Ground_Provisional`, idles, with no console errors.
 
+**Implementation notes (done):**
+- Prefab: `Assets/Prefabs/Player/Player.prefab`. `CharacterController` height 1.6 / radius 0.3 / center y 0.8 (feet at the origin); `PlayerCameraRoot` at y 1.3.
+- The `Animator` sits on the `Model` child, so a small `PlayerAnimationEvents` relay forwards the `OnFootstep` / `OnLand` animation events (Unity delivers them to the Animator's own GameObject) to the controller on the root.
+- Layers created: `Ground` (7), `Hazard` (8), `Collectible` (9). `Ground_Provisional` is on `Ground`; the controller's `GroundLayers` mask is `Ground` only.
+- `StarterAssetsInputs` is set to `cursorLocked = false` and `cursorInputForLook = false`.
+
 ### Phase D — Side-scroller adaptation (M)
-- [ ] Implement `SideScrollerController` per §3 items 1–6, 8 (copy of the stock script, trimmed).
-- [ ] Add `Pause` action to `StarterAssets.inputactions` (Esc / Start) — consumed by the future pause menu.
-- [ ] Tune: `MoveSpeed` ≈ 5, `JumpHeight` ≈ 1.5–1.8 (must clear the tallest static obstacle with margin), `Gravity` ≈ −20, `SpeedChangeRate`, rotation smooth time.
-- [ ] Verify animator parameters: `Speed`, `MotionSpeed`, `Grounded`, `Jump`, `FreeFall`; walk/run blend feels right at a single speed (consider using only the Run clip and dropping Walk from the blend).
+- [x] Implement `SideScrollerController` per §3 items 1–6, 8 (copy of the stock script, trimmed). Item 8 is exposed as `InputEnabled`; `GameManager` will drive it in Phase F.
+- [x] Add `Pause` action to `StarterAssets.inputactions` (Esc / Start) — consumed by the future pause menu.
+- [x] Tuned: `MoveSpeed` 6 (the blend tree reaches the full Run clip at 6), `JumpHeight` 1.7, `Gravity` −20, `SpeedChangeRate` 10, `RotationSmoothTime` 0.08, coyote 0.2 s, jump buffer 0.15 s. Re-check `JumpHeight` against real obstacle heights in Phase 4.
+- [x] Verified animator parameters in Play mode: `Speed`, `Grounded`, `Jump`, `FreeFall` (see results below). Walk/run blend untouched; at speed 6 the character plays the full Run clip.
+
+**Play-mode test results (scripted, input values injected into `StarterAssetsInputs`):**
+
+| Check | Result |
+|-------|--------|
+| Spawn settles on ground | y = 0.03, `Grounded` = true |
+| Jump press | `Jump` param true, `Grounded` false |
+| Jump apex | 1.68 m (target 1.7) |
+| Mid-air press | no double jump; lands and resets `Jump` / `FreeFall` |
+| Run left | yaw 270°, `Speed` = 6.00, **z = 0.000** |
+| Run right past the ground edge | z stays 0.00, `FreeFall` true, y decreases (kill plane is Phase F) |
+| Stop | `Speed` → 0.00 within 1 s |
+
+Not yet tested with a physical keyboard/gamepad (values were injected), and the `Pause` action has no consumer yet.
 
 **Done when:** A/D and ←/→ run along X, Space jumps with coyote time and buffer, the model faces travel direction, and Z never changes.
 
