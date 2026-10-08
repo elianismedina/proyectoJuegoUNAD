@@ -44,14 +44,24 @@ Audit of the imported folder (done with the Unity MCP and by unpacking the two `
 - [x] Verified with a scene capture (tree, bush, rock, stump, flowers, mushroom): textured, no magenta. `SimpleNaturePack_BG.mat` has no texture and keeps its grey colour (0.68). The two materials are the only vendor files modified.
 - **Done when:** every prefab renders correctly in `Level01`, and `git status` shows no loose `.meta` files.
 
-### Phase B — Prefab variants and collider policy (S)
-- [ ] Create `Assets/Prefabs/Environment/` with variants (never edit the vendor prefabs):
-  - `Scenery/*`: collider removed, so nothing can block the player or the camera.
-  - `Obstacle/*`: solid collider kept (`MeshCollider` on rocks, box on logs), scaled so the top is **at most about 1.2 m**, below the 1.7 m jump height. Layer `Hazard` only for things that stumble the player; plain solid blockers stay on `Ground`.
-  - `Ground/*`: visual tiles without collider.
-- [ ] Keep the walkable lane on explicit flat `BoxCollider`s (layer `Ground`). The ground tiles are bumpy, and a bumpy lane would break coyote time, the grounded check and the Z lock.
-- [ ] A `Docs`-level table of final scales per prefab, so level design stays consistent.
-- **Done when:** the PlayMode suite (7 tests) still passes with a scenery prefab placed along the lane.
+### Phase B — Prefab variants and collider policy (S) — done
+- [x] `Assets/Prefabs/Environment/` holds 29 prefab variants (the vendor prefabs are untouched):
+  - `Scenery/Scenery_*` (21): trees, bushes, grass, flowers, mushrooms, rocks, stump and branch at scale 1, **no colliders**, layer Default.
+  - `Terrain/Terrain_Ground_01–03` (3): the 30 m ground tiles, no colliders.
+  - `Obstacles/Obstacle_*` (5): solid colliders, layer `Ground`, scaled so the top stays under 1.2 m (player jump is 1.7 m).
+- [x] The walkable lane keeps its own flat colliders; the `Terrain_*` tiles are visual only (they are bumpy and 1.3–5.6 m thick).
+- [x] Tests that keep the policy from breaking: `EnvironmentPrefabPolicyTests` (EditMode, 4 tests: scenery and terrain have no colliders, obstacles are solid on `Ground`, obstacle top at most 1.2 m) and `EnvironmentPlayModeTests` (PlayMode, 7 cases: scenery in the lane does not block the player, a solid obstacle does, and each of the 5 obstacles can be jumped over). Totals now: 13 EditMode and 14 PlayMode tests, all passing.
+
+| Obstacle prefab | Source | Scale | Top above ground | Footprint X × Z (m) |
+|---|---|---|---|---|
+| `Obstacle_Rock_01` | `Rock_01` | x3 | 0.89 m | 2.6 × 2.6 |
+| `Obstacle_Rock_04` | `Rock_04` | x1 | 1.12 m | 1.1 × 1.0 |
+| `Obstacle_Rock_05` | `Rock_05` | x1 | 1.01 m | 2.9 × 2.2 |
+| `Obstacle_Stump_01` | `Stump_01` | x1.4 | 1.14 m | 0.9 × 0.8 |
+| `Obstacle_Log_01` | `Branch_01` | x5, rotated 90° on Y | 0.75 m | 0.75 × 4.1 (lies across the lane) |
+
+- Only `Rock_04/05` and the stump are decoration-sized at scale 1; `Rock_02` (0.17 m) and `Rock_03` (0.31 m) are pebbles and are scenery only. A part of each rock is buried (pivot below the surface), so the visible height is lower than the mesh height.
+- Wide obstacles (`Rock_01`, `Rock_05`) are jumpable but need a well-timed jump with no margin to spare at full run speed. Keep them for Zone 1–2, and use the narrow ones (`Rock_04`, stump) for tighter spots in Zone 3.
 
 ### Phase C — Level layout in three layers and three zones (L)
 The side camera sits at z = −8 looking at z = 0 with FOV 45, so depth matters.
