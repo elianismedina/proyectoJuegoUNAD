@@ -99,9 +99,17 @@ Not yet tested with a physical keyboard/gamepad (values were injected), and the 
 **Done when:** A/D and ←/→ run along X, Space jumps with coyote time and buffer, the model faces travel direction, and Z never changes.
 
 ### Phase E — Camera (S)
-- [ ] Add `CinemachineBrain` to `Main Camera`; create a `CinemachineCamera` (Follow = `PlayerCameraRoot`, Position Composer, fixed rotation ≈ (5°, 0°, 0°), distance ≈ 10–12, damping ≈ 0.3 s, dead zone for small jumps).
-- [ ] Confine camera to the level (Cinemachine Confiner, or clamp X to the course bounds) so it never shows beyond the ends.
-- [ ] Remove the temporary fixed camera position from the previous setup.
+- [x] Add `CinemachineBrain` to `Main Camera`; create a `CinemachineCamera` (Follow = `PlayerCameraRoot`, Position Composer, fixed rotation ≈ (5°, 0°, 0°), distance 8 (player ≈ 25% of screen height), damping ≈ 0.3 s, dead zone for small jumps).
+- [x] Confine camera to the level (Cinemachine Confiner, or clamp X to the course bounds) so it never shows beyond the ends.
+- [x] Remove the temporary fixed camera position from the previous setup.
+
+**Implementation notes (done):**
+- `Main Camera` has a `CinemachineBrain` (cut blend). `CM Side Camera`: `CinemachineCamera` (FOV 45) + `CinemachinePositionComposer` (distance 8, damping 0.5/0.3, screen position y −0.1, dead zone 0.06 × 0.25) + `CinemachineConfiner3D`. Fixed rotation (3°, 0, 0); no rotation control, no mouse look.
+- Confiner volume: scene object `CameraBounds` (trigger `BoxCollider`, size 40 × 5 × 4 at (0, 3.5, −8)) → camera position limited to x ±20, y 1–6. **Provisional values for the 60 m test ground (x ±30); resize them to the real course.** At 21:9 the view half-width is ~7.7 m at distance 8, so x ±20 is safe up to a 30 m half-length with margin.
+- The camera's start pose (0, 1.1, −8) is its settled pose, so there is no glide when the level starts.
+- The confiner's y floor (1.0) also stops the camera from following the player down when falling off the course.
+
+**Play-mode results:** at full run speed the camera lags ≈ 1 m (player viewport x 0.44–0.56); at both course ends it stops at x = ±20.00 with the player at viewport x 0.20 / 0.80 and always inside the frame (y 0.49–0.69 including a jump); camera z and pitch stay fixed.
 
 **Done when:** the camera tracks the player smoothly through all three zones with no mouse input.
 
