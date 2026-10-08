@@ -79,7 +79,7 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 **Done when:** a placeholder capsule can traverse all three zones and falling resets the level.
 
 ### Phase 3 — Collection loop and win/lose (M)
-- [ ] `Collectible` prefab (placeholder cube) with enlarged trigger, auto-collect, event to `GameManager`.
+- [x] `Collectible` prefab with enlarged trigger, auto-collect, event to `GameManager`: `Scripts/Gameplay/Collectible.cs` and `Assets/Prefabs/Collectibles/` (base `Collectible` plus one variant per waste type, `Collectible_Bottle` … `Collectible_Battery`). The model bobs and spins on a `Visual` child; `Collectible.Collected` is the hook for VFX/SFX. Tests: `CollectiblePrefabPolicyTests` (EditMode, 3) and `CollectiblePlayModeTests` (PlayMode, 2).
 - [ ] HUD counter `Residuos: X/10` bound to `OnWasteCollected`.
 - [ ] Win and lose screens with Restart / Play again.
 - [ ] Place the 10+ collectibles per the zone budget (e.g. 3 / 3 / 4) via a `LevelConfig`-driven validator that warns if placed count < target.
