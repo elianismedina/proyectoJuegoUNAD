@@ -29,7 +29,7 @@ Audit of the imported folder (done with the Unity MCP and by unpacking the two `
 | Rolling log (dynamic) | Partly | `Branch_01` scaled (visual only; `RollingLog` script is kept) |
 | Falling rock | Yes | `Rock_04/05` scaled (visual only; `FallingRock` script is kept) |
 | Mud zone | Material only | Brown URP Lit material on a flattened ground tile |
-| **Mountains** | **No** | Gap — see section 3 |
+| Mountains | Partly | `Terrain_Ground_02` (a 5.6 m hill) stretched wide and high (done in phase C; fog comes in phase F) |
 | **Fences** | **No** | Gap — see section 3 |
 | **Bottles, cans, papers** | **No** | Gap — see section 3 |
 | Recovery element (new vegetation) | Yes | Flowers / grass / bushes that grow in (Phase E) |
@@ -63,21 +63,27 @@ Audit of the imported folder (done with the Unity MCP and by unpacking the two `
 - Only `Rock_04/05` and the stump are decoration-sized at scale 1; `Rock_02` (0.17 m) and `Rock_03` (0.31 m) are pebbles and are scenery only. A part of each rock is buried (pivot below the surface), so the visible height is lower than the mesh height.
 - Wide obstacles (`Rock_01`, `Rock_05`) are jumpable but need a well-timed jump with no margin to spare at full run speed. Keep them for Zone 1–2, and use the narrow ones (`Rock_04`, stump) for tighter spots in Zone 3.
 
-### Phase C — Level layout in three layers and three zones (L)
+### Phase C — Level layout in three layers and three zones (L) — done
 The side camera sits at z = −8 looking at z = 0 with FOV 45, so depth matters.
 
 | Layer | Z range | Content | Colliders |
 |-------|---------|---------|-----------|
-| Gameplay lane | −1 to +1 | Path, obstacles, waste | Yes |
-| Midground | +3 to +10 | Trees, bushes, rocks, mushrooms | No |
-| Background | +12 to +40 | Large trees, scaled rocks as mountains, fog | No |
-| Foreground | −3 to −5 | Only low grass and flowers | No (must never hide the lane) |
+| Gameplay lane | −1.5 to +1.5 | Path, obstacles, waste | Yes |
+| Midground | +3.2 to +11 | Trees, bushes, rocks | No |
+| Background | +13 to +45 | Large trees (x1.6–2.6) | No |
+| Mountains | about +92 | `Terrain_Ground_02` stretched x1.8 wide and x2.2 high | No |
+| Foreground | −4.6 to −2.4 | Only grass, flowers, mushrooms, pebbles | No |
 
-- [ ] Replace `Ground_Provisional` with the real lane and three zone sections, sized to the real course (and resize `CameraBounds` to the course plus 2 m at each end).
-- [ ] Zone dressing per GDD §8.2: **Zone 1** open, clean and sparse (few obstacles, wide spaces); **Zone 2** denser vegetation and more rocks; **Zone 3** crowded, obstacles close together.
-- [ ] Editor tool `Scripts/Editor/SceneryScatter.cs` (own Editor-only asmdef): seeded random scatter inside a zone volume, so layouts are reproducible and reviewable. Static flags set for batching.
-- [ ] Organise hierarchy as `Environment/Zone1|2|3/{Lane,Midground,Background}`.
-- **Done when:** a full play-through from start to goal shows a forest on every frame, no empty void at either end, and the lane readable at a glance.
+- [x] **Course:** 180 m of lane, x from −12 to 168, in three contiguous 60 m sections: Zone 1 Learning (−12 to 48), Zone 2 Development (48 to 108), Zone 3 Challenge (108 to 168). The player spawns at x = −8. Invisible barriers close both ends so nobody can walk off the course.
+- [x] **Lane:** flat, 3 m deep (the player's Z is locked, and the first 6 m version covered half of the screen), 4 m thick so no void shows under its edge, layer `Ground`, material `Lane_Path`. `Ground_Provisional` is gone.
+- [x] **Terrain:** rows of the pack's hill tiles in front of and behind the lane, two end caps so there is ground at both ends, a row of mountains, and a flat `BaseGround` slab (`Terrain_Base` material) under everything. The slab is needed because the hill tiles are open surfaces without skirts: the seams between them showed the grey sky-ground through.
+- [x] **Zone dressing (GDD §8.2):** static obstacles 3 / 4 / 7 per zone (gaps between obstacles shrink from 12 m in Zone 1 to 5–6 m in Zone 3), and scenery density rising per zone (midground trees per metre 0.25 / 0.33 / 0.42, bushes 0.35 / 0.40 / 0.50, background trees 0.20 / 0.25 / 0.32). The first 26 m of Zone 1 are completely clear (spawn area).
+- [x] **Tool:** `Scripts/Editor/LevelEnvironmentBuilder.cs` (own Editor-only asmdef `ForestGuardian.Editor`), menu **Forest Guardian > Level > Build Level01 Environment**. Seeded, so the layout is reproducible; it rebuilds the `Environment` root from the tables at the top of the file, drops scenery on the hills with a raycast (temporary mesh colliders, removed afterwards), marks everything batching-static, places the player spawn, and resizes `CameraBounds` to the course plus 2 m at each end. **Running it again discards hand edits under `Environment`.**
+- [x] **Hierarchy:** `Environment/{Lane, Terrain, Zone1_Learning, Zone2_Development, Zone3_Challenge}`, each zone with `Obstacles`, `Midground`, `Background`, `Foreground`.
+- [x] **Provisional hazards relocated** to their zones (the art swap is still phase D): mud at x = 70 and the rolling log between x = 88 and 102 (Zone 2), the falling-rock trigger at x = 126 and the rock at x = 130 (Zone 3).
+- [x] **Camera check:** rendered the game camera at the start, the middle of each zone and the end: forest on every frame, no void at either end, lane readable. About 800 renderers; LODs on trees and bushes keep the cost down (tris counted with every LOD: about 190 k).
+- [x] **Tests:** `LevelLayoutPlayModeTests` (5): continuous flat lane over the whole course, colliders only on lane / barriers / obstacles, spawn on the lane near the start, camera confiner covers the course, and the obstacle count grows in every zone. Totals: 13 EditMode and 19 PlayMode, all passing.
+- **Open for later:** there is no goal object at the end of the course yet (the win condition is the waste target, GDD §5.3, built in the ActionPlan "collection loop" phase). Waste placement waits for the Blender models.
 
 ### Phase D — Replace the provisional hazards with art (M)
 - [ ] `Hazards_Provisional` primitives become real prefabs under `Assets/Prefabs/Hazards/`. Keep the existing scripts (`RollingLog`, `FallingRock`, `FallingRockTrigger`, `MudZone`, `PlayerHazard`) unchanged: put the mesh on a `Visual` child and keep the gameplay collider on the root, sized by hand.
@@ -112,7 +118,7 @@ GDD §6.1.4, §8.6 and §9.1 ask the player to see a zone go from polluted to re
 |---------|-----|------------------------------|
 | Bottles, cans, papers | §8.4 (core to the game) | (a) Model them in Blender (simple low-poly shapes, no licence risk); (b) Kenney / Quaternius / Poly Pizza, checking the licence; (c) temporary primitives with a coloured material until art arrives |
 | Fences | §8.3 | Kenney Nature Kit (CC0) or build from `Branch_01` rails on `Stump_01` posts |
-| Mountains | §8.1 | Large scaled `Rock_*` in the background behind fog; or a cone-shaped low-poly mesh |
+| Mountains | §8.1 | Solved in phase C with the stretched `Terrain_Ground_02` hill tile; revisit only if they look too soft once the lighting pass (phase F) is done |
 | Rolling log mesh | §9.1 | `Branch_01` scaled up, or a simple cylinder log from Blender |
 
 Decision: waste is modelled in Blender by Elianis, later; until then the collectibles can use coloured primitives. Recommendation for the rest: waste modelled in Blender (smallest, and it keeps the "same shape language" as the pack); fences from `Branch_01`/`Stump_01` first; mountains from scaled rocks under fog.
