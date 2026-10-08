@@ -20,18 +20,16 @@ Older notes referring to `proyecto Juego UNAD/` are stale; that directory no lon
 
 ## Game Design / Code Architecture
 
-Two designs coexist in history, so check which one a task targets:
+The game is **"Guardianes del Bosque"**: an educational 3D low-poly side-scroller (the drone game "Smog Buster" was removed). One level, three zones; the player runs and jumps, auto-collects waste (target 10), and must avoid hazards. The GDD is `proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md`; the roadmap is `Docs/ActionPlan.md` and the controller work is in `Docs/StarterAssetsIntegrationPlan.md`. Scenes: `Assets/Scenes/MainMenu.unity`, `Level01.unity`.
 
-- **Committed code (HEAD): "Smog Buster" drone game.** Under `proyectoJuegoUNAD/Assets/Scripts/`:
-  - `Player/DroneController.cs` — Rigidbody-based drone (Input System; momentum, vertical thrust, altitude-boundary spring, cosmetic tilt on a `DroneModel` child, a beam with energy, planting cooldown, `DroneState` enum). Expects child objects named `DroneModel` and `BeamOrigin`.
-  - `Player/CameraFollow.cs`, `Player/DroneHUD.cs`
-  - `Environment/SmogZone.cs`, `Environment/PlantingZone.cs` — zones the drone clears/plants in.
-  - `Gameplay/GameManager.cs` — singleton; counts zones via `FindObjectsByType` in `Start`, zones call `NotifySmogCleared` / `NotifyTreePlanted`, drives the TextMeshPro HUD and win panel.
-  - `Editor/SceneSetup.cs` — menu **Smog Buster > Setup Scene** builds layers, ground, UI canvas, GameManager and placeholder zones. Run it instead of hand-building scenes.
-  - Art: `Assets/Models/UAV2_Fbx` (drone), `Assets/POLYGON city pack` (third-party city prefabs/scene), `Assets/Materials`.
-- **Newer direction (untracked in working tree): "Guardianes del Bosque"** — educational 3D low-poly forest platformer about waste sorting (identify → collect → classify → recycle → restore), for ages 10–14. The GDD is `proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md`; new scenes `Assets/Scenes/MainMenu.unity` and `Level01.unity`.
+Code lives in `proyectoJuegoUNAD/Assets/Scripts/` and compiles into the **`ForestGuardian` assembly** (`ForestGuardian.asmdef`, references `Unity.StarterAssets` and `Unity.InputSystem`). Editor-only scripts must go in their own asmdef limited to the Editor platform; tests live in `Assets/Tests/EditMode` (pure logic, e.g. `GameSession`) and `Assets/Tests/PlayMode` (loads `Level01` and drives the player). Build Settings scene order: `MainMenu`, `Level01`.
 
-**Working-tree caveat:** at the time of writing, the working tree has ~2,200 tracked files deleted on disk (the drone scripts, models, and city pack) while `HEAD` still contains them, plus untracked Level01/MainMenu/Docs. Run `git status` before assuming a file exists, and do not `git add -A`/commit blindly. Recover deleted files with `git show HEAD:<path>` or `git restore <path>`.
+- **Player:** `Player/SideScrollerController.cs` is a trimmed copy of the Starter Assets `ThirdPersonController` (`CharacterController`, X-axis only, Z locked, coyote time and jump buffer). It exposes `Stumble(dirX)`, `AddSpeedModifier` / `RemoveSpeedModifier`, and `InputEnabled`, and disables its own input whenever the game session is not Playing. `PlayerAnimationEvents` relays footstep/land animation events from the `Model` child. Prefab: `Assets/Prefabs/Player/Player.prefab`; animator: `Assets/Animation/PlayerAnimator.controller` (Starter Assets controller plus `Slow`, `Stumble`, `Victory`, currently placeholder clips). `Assets/Starter Assets/` is the trimmed Unity Asset Store package "First Person + Third Person | Character Controllers" (Unity Companion License): only what the game uses was kept (`StarterAssetsInputs`, `StarterAssets.inputactions` with our added `Pause` action, the Idle/Walk/Run/Jump clips plus `Armature.fbx`, which is their shared avatar, and the footstep/landing sounds). Do not re-import the full package and do not run its menus.
+- **Game state:** `Gameplay/GameSession.cs` is pure C# (Playing / Paused / Won / Lost, waste counter, events) and is the unit-tested core; `GameManager` is the scene singleton that owns it, applies `Time.timeScale` on pause and restarts the scene. `LevelConfig` (ScriptableObject, `Assets/Config/`) holds the target waste and the kill-plane Y. `KillPlane` ends the game when the player falls below that Y.
+- **Hazards (`Environment/`):** `PlayerHazard` (trigger that stumbles the player), `RollingLog`, `FallingRock` + `FallingRockTrigger` (shadow warning, then drop), `MudZone` (speed modifier). Layers: `Ground`, `Hazard`, `Collectible`.
+- **Camera:** Cinemachine 3 `CM Side Camera` in `Level01`, confined by the scene object `CameraBounds` (sized for the provisional 60 m test ground; resize it to the real course).
+- **Input:** the player uses `StarterAssets.inputactions` through `PlayerInput` (Send Messages): Move (A/D, arrows), Jump (Space), Pause (Esc). `InputSystem_Actions.inputactions` is a leftover and unused.
+- **Status:** collectibles, HUD, win/lose screens and audio are not built yet (see `ActionPlan.md`). `Level01` currently has provisional test content: `Ground_Provisional` and `Hazards_Provisional`.
 
 ## Commands
 
@@ -40,7 +38,7 @@ There is no CLI build, lint, or test script. Everything runs through the Unity E
 - **Open:** Unity Hub → add `proyectoJuegoUNAD/` → Unity 6000.5.6f1.
 - **Play:** Play button in the Editor.
 - **Build:** File > Build Profiles (Build Settings).
-- **Tests:** Window > General > Test Runner (Test Framework package; no tests written yet). Headless, if needed: `Unity.exe -batchmode -projectPath proyectoJuegoUNAD -runTests -testPlatform EditMode -quit`.
+- **Tests:** Window > General > Test Runner (Test Framework package; EditMode tests for `GameSession`, PlayMode tests for the player and game state). Headless, if needed: `Unity.exe -batchmode -projectPath proyectoJuegoUNAD -runTests -testPlatform EditMode -quit`.
 - **Unity MCP** (`mcp__unity-mcp__*`) is configured and can read console logs, run editor commands, and capture the scene/camera — useful for verifying changes without leaving the CLI.
 
 ## Conventions
