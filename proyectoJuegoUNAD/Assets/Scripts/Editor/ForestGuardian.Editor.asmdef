@@ -2,7 +2,9 @@
     "name": "ForestGuardian.Editor",
     "rootNamespace": "",
     "references": [
-        "ForestGuardian"
+        "ForestGuardian",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [
         "Editor"

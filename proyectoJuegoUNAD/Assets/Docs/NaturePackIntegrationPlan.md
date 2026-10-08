@@ -104,11 +104,24 @@ GDD §6.1.4, §8.6 and §9.1 ask the player to see a zone go from polluted to re
 - [ ] Not building a water shader or custom Shader Graph (scope, GDD §12.3). If wanted later, treat it as stretch.
 - **Done when:** collecting waste visibly recovers the forest; EditMode tests cover the progress rule; the win state shows a fully green forest.
 
-### Phase F — Lighting, atmosphere and readability (S–M)
-- [ ] Directional light, ambient colour, skybox / fog colour tuned in `Level01`. Create a **new** `Level01` volume profile instead of editing `Assets/Settings/DefaultVolumeProfile.asset`: Unity rewrites the shared defaults during builds and those edits kept leaking into commits before.
-- [ ] Contrast rule (GDD §8.6): nature uses greens and browns; waste uses saturated colours that never appear in nature (blue, white, yellow, red). Obstacles and waste must also be distinguishable without colour (shape, bobbing, a sparkle on waste), per WCAG 1.4.1 in GDD §11.3.
-- [ ] Check the lane against the camera at the resolutions the game targets.
-- **Done when:** a first-time viewer can tell apart scenery, obstacles and waste in a still screenshot.
+### Phase F — Lighting, atmosphere and readability (S–M) — done
+- [x] **Tool:** `Scripts/Editor/LevelAtmosphereSetup.cs`, menu **Forest Guardian > Level > Apply Level01 Atmosphere**. Constants at the top, safe to run repeatedly (it updates, never deletes). The Editor asmdef now references the URP runtime assemblies.
+- [x] **Sun:** warm (1, 0.95, 0.84), intensity 1.1, soft shadows at strength 0.85 (below 1 so shaded faces stay readable), yaw 330 so it comes from the camera side: lane faces are lit and shadows fall behind the player.
+- [x] **Sky and ambient:** a `Level01_Sky` procedural skybox with a neutral tint (a blue tint made the shader paint a yellow band on the horizon; the tint is the scattering complement), and a trilight ambient gradient so the lighting does not depend on the sky.
+- [x] **Fog:** linear, from 24 m to 150 m, in the same pale blue as the horizon. The camera is about 8 m from the lane, so the player, obstacles and hazards are never hazed; the far trees fade a little and the mountains dissolve into the sky, which gives the depth the scene was missing.
+- [x] **Post-processing:** the main camera now renders post-processing with SMAA (the URP asset has MSAA off). A global volume, `Level01 Volume`, uses the new asset `Assets/Config/Level01_VolumeProfile.asset`: neutral tonemapping, contrast +8, saturation +10, bloom threshold 1 / intensity 0.15, vignette 0.15. **No** motion blur, film grain, chromatic aberration or lens distortion (GDD §11). The shared `Assets/Settings/DefaultVolumeProfile.asset` is untouched.
+- [x] **Camera check** at the start and in the middle of each zone: gameplay objects crisp, background softly hazed, horizon without colour bands, lane readable. The measurement was visual only; no contrast ratios were computed.
+- [x] **Tests:** `LevelAtmospherePlayModeTests` (PlayMode, 4): fog on and starting past the lane, the level uses its own volume profile with post-processing on, no disorienting effects in the profile, and the sun casts shadows. Totals: 15 EditMode and 26 PlayMode, all passing.
+
+**Palette rule for waste (to apply when the Blender models arrive).** The rule in GDD §8.6 is "nature in greens and browns, waste clearly different". The pack does not fully respect that: it has saturated accents of its own, namely **red and orange mushroom caps, blue flowers and pink or red flowers**. So the waste palette must avoid red, orange, pink and blue, and use:
+
+| Waste | Base colour | Why it stands out |
+|---|---|---|
+| Bottles | Clear cyan-white, slightly translucent | Light and cool; no flower is cyan-white |
+| Cans | Silver / bright yellow | Metallic or yellow; nothing in the pack is yellow |
+| Paper | Pure white | Brightest thing on screen against green and brown |
+
+Colour alone is not enough (WCAG 1.4.1, GDD §11.3), so every collectible also gets a cue that does not depend on hue: a gentle bob and spin, an emissive rim that triggers the bloom (threshold 1), and a larger size than any flower or mushroom. Obstacles and hazards stay dark (`Obstacle_Atlas`), so the whole language is: dark means avoid, bright and moving means collect.
 
 ### Phase G — Licences, GDD inventory and QA (S)
 - [x] GDD §13.1 rows (trees and vegetation, rocks, part of logs) filled with the Asset Store name, publisher, link and licence. Mountains stay "Por verificar". Still to do: read the EULA terms on redistribution, because the package now lives in a public-facing team repo.
