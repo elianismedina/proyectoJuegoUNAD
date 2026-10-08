@@ -5,7 +5,7 @@ Source: `GuardianesdelBosqueGDD.md`. Engine: Unity 6 (6000.5.6f1), URP, Input Sy
 
 ## 0. Scope summary
 
-One level, three zones (Learning → Development → Challenge), one playable character (the Forest Guardian). The player runs, jumps and auto-collects waste (bottles, cans, paper) to reach a configurable target (default 10). Win: target reached. Lose: falling off the course. Pause menu: Continue / Restart / Quit. 3D low-poly, no health, lives, timer, combat, inventory or waste sorting.
+One level, three zones (Learning → Development → Challenge), one playable character (the Forest Guardian). The player runs, jumps and auto-collects waste (eight types: bottles, cans, paper, plastic bags, juice boxes, disposable cups, glass jars, batteries) to reach a configurable target (default 10). Win: target reached. Lose: falling off the course. Pause menu: Continue / Restart / Quit. 3D low-poly, no health, lives, timer, combat, inventory or waste sorting.
 
 ## 1. GDD conflicts to resolve before building
 
@@ -41,7 +41,7 @@ Key design points:
 
 - **`LevelConfig` ScriptableObject:** `targetWaste` (10), per-zone waste counts, kill-plane Y, coyote time (0.2 s), pickup radius. Everything the GDD calls "adjustable" lives here.
 - **`GameManager`** (state machine: `Playing`, `Paused`, `Won`, `Lost`): owns the collected count, raises C# events (`OnWasteCollected`, `OnZoneRecovered`, `OnWon`, `OnLost`). UI, audio and zones subscribe; no direct references from gameplay to UI.
-- **`Collectible`:** trigger collider (oversized for accessibility) → notifies `GameManager` → plays VFX/SFX → disables itself. One prefab base with three art variants (bottle, can, paper) and identical behaviour.
+- **`Collectible`:** trigger collider (oversized for accessibility) → notifies `GameManager` → plays VFX/SFX → disables itself. One prefab base with eight art variants (bottle, can, paper, bag, juice box, cup, jar, battery) and identical behaviour.
 - **`ZoneController`:** knows its waste count; on completion fires `OnZoneRecovered` and swaps contaminated visuals for recovered ones (simple object toggles, per GDD §6.1.4).
 - **`PlayerController`:** `Rigidbody` or `CharacterController` (pick one in Phase 2 and stay with it), Input System actions `Move` and `Jump`, coyote-time and jump-buffer, animator parameters `Speed`, `IsGrounded`.
 - **Input:** extend `Assets/InputSystem_Actions.inputactions` with A/D, ←/→, Space, Pause (Esc). Keep the action map rebindable from day one so remapping is cheap later.
@@ -103,7 +103,8 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 ### Phase 5 — Art pass: character, environment, UI (L)
 - [ ] Source and register assets (Kenney, Mixamo, Asset Store, OpenGameArt). **Fill the license table in GDD §13.1 as each asset is added** — do not defer.
 - [ ] Character with Idle / Run / Jump / Victory / Slow / Stumble animations and an Animator Controller (parameters from Phase 2).
-- [ ] Trees, vegetation, rocks, mountains, fences, logs; bottle/can/paper models; recovered-zone props (new vegetation, clean water).
+- [ ] Trees, vegetation, rocks, mountains, fences, logs; recovered-zone props (new vegetation, clean water).
+- [x] Waste models: the team's own low-poly models in Blender (`Coleccionables.blend`, collection `Residuos`): `Waste_Bottle`, `Waste_Can`, `Waste_Paper`, `Waste_Bag`, `Waste_JuiceBox`, `Waste_Cup`, `Waste_Jar`, `Waste_Battery`. Each has a body material and an emissive `Rim` material for the bloom, flat shading and a centred pivot. Still to do: export to FBX (leave out the hidden default `Cube`) and set the emission again in Unity, since FBX import usually drops it.
 - [ ] URP lighting, low-poly materials, fog/tint that shifts from polluted to clean per zone.
 - [ ] HUD icons, pause icon, win/lose panels; legible sans-serif font (e.g. Atkinson Hyperlegible, check license); contrast ≥ 4.5:1.
 
@@ -170,5 +171,6 @@ _(Fill in during Phase 0.)_
 
 - Waste sorting: out of scope for now (revisit after the core game ships) — ☑ confirmed
 - Target waste count: 10 — ☑ confirmed
+- Waste types: eight (bottles, cans, paper, plastic bags, juice boxes, disposable cups, glass jars, batteries), all with the same behaviour; GDD §6.2, §8.4 and §13.1 updated — ☑ confirmed
 - Movement model: 3D look with side-scroller movement — ☑ confirmed
 - Rolling logs, falling rocks, mud: ☑ in scope (core, Phase 4–5)
