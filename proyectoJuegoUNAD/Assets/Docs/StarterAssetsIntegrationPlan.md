@@ -45,17 +45,17 @@ Parent plan: `ActionPlan.md` (this replaces the custom Rigidbody movement planne
 ## 4. Phases
 
 ### Phase A — Repository safety and cleanup (S)
-- [ ] Create a branch (`feature/starter-assets-player`) from `main`.
-- [ ] Commit, in separate commits, with their `.meta` files: (1) `Packages/manifest.json` + `packages-lock.json` (Cinemachine), (2) `Assets/Starter Assets/`, (3) `Models/`, `Materials/`, `Level01.unity`, `Scripts/Player/`.
-- [ ] **Do not run** `Tools > Starter Assets > Reset…`, the URP Wizard, or the deploy menus on the project (they instantiate prefabs / touch pipeline settings).
-- [ ] Verify the console is clean after import (Cinemachine 3 API compatibility, `Unity.StarterAssets` asmdef compiles).
-- [ ] Record the package origin and license in GDD §13.1 (Unity Starter Assets, Asset Store/Unity license).
+- [x] Create a branch (`feature/starter-assets-player`) (branched from `elianis-medina`).
+- [x] Commit, in separate commits, with their `.meta` files: (1) `Packages/manifest.json` + `packages-lock.json` (Cinemachine), (2) `Assets/Starter Assets/`, (3) `Models/`, `Materials/`, `Level01.unity`, `Scripts/Player/`.
+- [x] **Do not run** `Tools > Starter Assets > Reset…`, the URP Wizard, or the deploy menus on the project (they instantiate prefabs / touch pipeline settings).
+- [x] Verify the console is clean after import: 0 errors; only CS0618 deprecation warnings inside the vendor `ThirdPersonStarterAssetsDeployMenu.cs` (ignored; file is slated for removal in Phase G).
+- [ ] Record the package origin and license in GDD §13.1 *(pending: needs the Asset Store license text/URL from the team)* (Unity Starter Assets, Asset Store/Unity license).
 
 ### Phase B — Make the model Humanoid (S)
-- [ ] `Player.fbx` → Rig → Animation Type **Humanoid**, Avatar from this model; open *Configure* and confirm every required bone maps (Mixamo rigs usually auto-map; fix Neck/Chest if not).
-- [ ] Re-import and check the bind pose in the Avatar editor (the current mesh is stuck in a crouched run pose; the Humanoid T-pose enforcement should correct it).
-- [ ] Assign a real material/texture (currently plain white `Ch09_body`) or set a base colour.
-- [ ] Delete or ignore the model's lone embedded clip (`mixamo.com`).
+- [x] `Player.fbx` → Rig → Animation Type **Humanoid**, Avatar from this model (`PlayerAvatar`: valid, human).
+- [x] Verified retargeting: Starter Assets `Stand--Idle` and `Locomotion--Run_N` render correctly on the model. (Bind pose is still the crouched run pose, but it is overridden by any animator clip.)
+- [~] Material extracted to `Assets/Materials/Player_Body.mat` (editable, URP Lit, FBX remapped to it). **Still plain white: the FBX ships no texture.** Needs a texture or a base colour chosen by the art owner.
+- [x] The embedded `mixamo.com` clip is ignored (the Player prefab will use the Starter Assets animator).
 
 **Done when:** the avatar is valid (green in the Avatar window) and the model plays a Starter Assets clip in a test Animator.
 
