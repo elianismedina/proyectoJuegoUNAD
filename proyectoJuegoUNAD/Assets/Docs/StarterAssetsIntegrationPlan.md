@@ -54,7 +54,7 @@ Parent plan: `ActionPlan.md` (this replaces the custom Rigidbody movement planne
 ### Phase B — Make the model Humanoid (S)
 - [x] `Player.fbx` → Rig → Animation Type **Humanoid**, Avatar from this model (`PlayerAvatar`: valid, human).
 - [x] Verified retargeting: Starter Assets `Stand--Idle` and `Locomotion--Run_N` render correctly on the model. (Bind pose is still the crouched run pose, but it is overridden by any animator clip.)
-- [~] Material extracted to `Assets/Materials/Player_Body.mat` (editable, URP Lit, FBX remapped to it). **Still plain white: the FBX ships no texture.** Needs a texture or a base colour chosen by the art owner.
+- [x] Material extracted to `Assets/Materials/Player_Body.mat` (URP Lit, FBX remapped to it). The FBX embeds 4 textures (Diffuse, Normal, Specular, Glossiness) that Unity had not linked; they were extracted to `Assets/Textures/Player/` and the Diffuse (base map) and Normal (as a normal map) are assigned. Specular/Glossiness are unused (URP Lit metallic workflow: metallic 0, smoothness 0.25).
 - [x] The embedded `mixamo.com` clip is ignored (the Player prefab will use the Starter Assets animator).
 
 **Done when:** the avatar is valid (green in the Avatar window) and the model plays a Starter Assets clip in a test Animator.
