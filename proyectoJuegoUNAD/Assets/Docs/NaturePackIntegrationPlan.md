@@ -37,11 +37,11 @@ Audit of the imported folder (done with the Unity MCP and by unpacking the two `
 
 ## 2. Phases
 
-### Phase A — Import hygiene and URP conversion (S)
-- [ ] Commit the raw import first (assets + every `.meta`, as the project rule requires) so every teammate gets the same GUIDs before anything is changed.
-- [ ] Switch `SimpleNaturePack_Texture_01.mat` and `SimpleNaturePack_BG.mat` to `Universal Render Pipeline/Lit`: atlas into `_BaseMap`, smoothness 0, specular highlights off. Edit the materials in place (do not move the folder) so the GUIDs stay valid.
+### Phase A — Import hygiene and URP conversion (S) — done
+- [x] Commit the raw import first (assets + every `.meta`, as the project rule requires) so every teammate gets the same GUIDs before anything is changed.
+- [x] Switch `SimpleNaturePack_Texture_01.mat` and `SimpleNaturePack_BG.mat` to `Universal Render Pipeline/Lit`: atlas into `_BaseMap`, smoothness 0, specular highlights off. Edit the materials in place (do not move the folder) so the GUIDs stay valid.
 - [x] Deleted the two `.unitypackage` files and the `Scenes` folder (demo scenes and lighting settings) with their `.meta` files, before the first commit so they never enter history. They were not in Build Settings. The folder went from 3.0 MB to 1.2 MB (106 files).
-- [ ] Verify with a scene capture that no prefab is magenta.
+- [x] Verified with a scene capture (tree, bush, rock, stump, flowers, mushroom): textured, no magenta. `SimpleNaturePack_BG.mat` has no texture and keeps its grey colour (0.68). The two materials are the only vendor files modified.
 - **Done when:** every prefab renders correctly in `Level01`, and `git status` shows no loose `.meta` files.
 
 ### Phase B — Prefab variants and collider policy (S)
