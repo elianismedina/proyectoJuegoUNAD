@@ -129,7 +129,7 @@ El diseño utilizará controles sencillos, textos legibles, contraste adecuado y
 
 # 4. Narrativa
 ## 4.1 Contexto
-Un bosque que antes se encontraba en buenas condiciones ha comenzado a acumular residuos debido a la falta de cuidado de las personas que lo visitan. Botellas, latas y papeles se encuentran dispersos por diferentes zonas del bosque.
+Un bosque que antes se encontraba en buenas condiciones ha comenzado a acumular residuos debido a la falta de cuidado de las personas que lo visitan. Botellas, latas, papeles, bolsas plásticas, vasos desechables y otros residuos se encuentran dispersos por diferentes zonas del bosque.
 ## 4.2 Rol del jugador
 El jugador asume el papel del **Guardián del Bosque**, cuya tarea es recorrer el entorno y recoger los residuos para contribuir a recuperar la limpieza del espacio natural.
 ## 4.3 Desarrollo
@@ -244,13 +244,23 @@ No necesitamos hacer una transformación gráfica extremadamente compleja. Inclu
 ## 6.2 ¿Qué pasa si el jugador no recoge un residuo?
 No habrá clasificación incorrecta de residuos
 
-Los tres tipos:
+Los ocho tipos:
 
 - Botellas. 
 
 - Latas. 
 
 - Papeles. 
+
+- Bolsas plásticas. 
+
+- Cajas de jugo (Tetra Pak). 
+
+- Vasos desechables. 
+
+- Frascos de vidrio. 
+
+- Pilas. 
 
 tienen el mismo comportamiento.
 
@@ -507,13 +517,23 @@ Su función no es causar daño mediante un sistema de salud, sino interrumpir el
 
 Si el jugador no supera un obstáculo y cae fuera del recorrido, se activa la condición de derrota.
 ## 8.4 Distribución de residuos
-Se utilizarán tres tipos de residuos y se clasificaran de la siguiente manera:
+Se utilizarán ocho tipos de residuos y se clasificaran de la siguiente manera:
 
 - Botellas. 
 
 - Latas. 
 
 - Papeles. 
+
+- Bolsas plásticas. 
+
+- Cajas de jugo (Tetra Pak). 
+
+- Vasos desechables. 
+
+- Frascos de vidrio. 
+
+- Pilas. 
 
 Todos tienen **el mismo comportamiento programado**:
 
@@ -553,6 +573,18 @@ Se buscará que exista una diferencia visual clara entre:
 
 - Papeles 
 
+- Bolsas plásticas 
+
+- Cajas de jugo 
+
+- Vasos desechables 
+
+- Frascos de vidrio 
+
+- Pilas 
+
+Los residuos usan colores claros y saturados que no aparecen en la naturaleza del nivel (blanco, cian claro, amarillo y plateado) y evitan el rojo, el naranja, el rosado, el azul y el verde, porque las flores, los hongos y la vegetación ya los usan. Además brillan un poco, flotan y giran, para que se distingan sin depender solo del color.
+
 **Obstáculos**
 
 - Troncos 
@@ -581,6 +613,11 @@ Esta sección define **qué recursos necesitamos para construir el videojuego** 
 | Botellas | Residuos recolectables | FBX / Prefab |
 | Latas | Residuos recolectables | FBX / Prefab |
 | Papeles | Residuos recolectables | FBX / Prefab |
+| Bolsas plásticas | Residuos recolectables | FBX / Prefab |
+| Cajas de jugo | Residuos recolectables | FBX / Prefab |
+| Vasos desechables | Residuos recolectables | FBX / Prefab |
+| Frascos de vidrio | Residuos recolectables | FBX / Prefab |
+| Pilas | Residuos recolectables | FBX / Prefab |
 | Elemento de recuperación de zona (vegetación nueva, agua limpia) | Representar visualmente que una zona pasó de contaminda a recuperada | FBX / Prefab |
 | Icono de residuos | Identificación del contador | PNG / SVG |
 | Indicador de contaminación | Mostrar el avance de la limpieza (barra o medidor) | PNG / SVG |
@@ -796,7 +833,7 @@ Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inve
 
 - **3 acciones principales:** correr, saltar y recoger. 
 
-- **3 tipos de residuos:** botellas, latas y papeles. 
+- **8 tipos de residuos:** botellas, latas, papeles, bolsas plásticas, cajas de jugo, vasos desechables, frascos de vidrio y pilas. 
 
 - **3 tipos de obstáculos:** troncos, rocas y cercas. 
 
@@ -879,9 +916,14 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Montañas | Entorno | FBX / Prefab | Colinas del paquete "Low-Poly Simple Nature Pack" (JustCreate), pieza `Ground_02` escalada; ver enlace en la fila de árboles | Standard Unity Asset Store EULA (Extension Asset) |
 | Troncos | Obstáculos | FBX / Prefab | Parcial: tocón y rama del paquete "Low-Poly Simple Nature Pack" (JustCreate), ver enlace en la fila de árboles; el tronco rodante se decide después | Standard Unity Asset Store EULA (Extension Asset) (solo las piezas del paquete) |
 | Cercas | Obstáculos | FBX / Prefab | Por verificar | Por verificar |
-| Botellas | Residuos | FBX / Prefab | Por verificar | Por verificar |
-| Latas | Residuos | FBX / Prefab | Por verificar | Por verificar |
-| Papeles | Residuos | FBX / Prefab | Por verificar | Por verificar |
+| Botellas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Bottle`) | Propio (creado por el equipo) |
+| Latas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Can`) | Propio (creado por el equipo) |
+| Papeles | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Paper`) | Propio (creado por el equipo) |
+| Bolsas plásticas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Bag`) | Propio (creado por el equipo) |
+| Cajas de jugo | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_JuiceBox`) | Propio (creado por el equipo) |
+| Vasos desechables | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Cup`) | Propio (creado por el equipo) |
+| Frascos de vidrio | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Jar`) | Propio (creado por el equipo) |
+| Pilas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Battery`) | Propio (creado por el equipo) |
 | Iconos del HUD | Interfaz | PNG / SVG | Por verificar | Por verificar |
 | Sonidos | Efectos y ambiente | WAV / OGG | Por verificar | Por verificar |
 ## 13.2 Criterios para seleccionar recursos
