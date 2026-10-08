@@ -42,7 +42,7 @@
                     "id": "852140f2-7766-474d-8707-702459ba45f3",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "Hold",
+                    "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
                 },
@@ -90,7 +90,7 @@
                     "name": "Sprint",
                     "type": "Button",
                     "id": "641cd816-40e6-41b4-8c3d-04687c349290",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false,
@@ -505,15 +505,37 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "b6596447-ad9b-43f9-bbfd-adf10a7a3b7a",
-                    "path": "-<Keyboard>/q +<Keyboard>/e",
+                    "name": "1D Axis",
+                    "id": "462486f3-882a-4c03-a745-fc85cde421fe",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Altitude",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "4e02d7d5-4c9d-4cf0-aba5-5fab25470fcc",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Altitude",
                     "isComposite": false,
-                    "isPartOfComposite": false
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "1c47050c-6dfc-45c6-af43-cc7171a3f0ba",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Altitude",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         },

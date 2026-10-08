@@ -4,104 +4,48 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**proyectoJuegoUNAD** is a video game development project created as part of a multimedia engineering degree at UNAD (Universidad Nacional Abierta y a Distancia). It is the developer's first game project, with interests in level design, programming, photography, and animation.
+**proyectoJuegoUNAD** is a Unity 6 game project for a multimedia engineering degree at UNAD (Universidad Nacional Abierta y a Distancia). It is a team repo: `README.md` holds per-member profiles (Elianis Manuel Medina – Level Designer; Jhon – Game Programmer; Geordany Giraldo Arenas), with their photos in `Elianis/`, `Jhon/`, `Geordany Giraldo Arenas/`. Docs and UI text are in Spanish.
 
-- **Engine:** Unity 6 (version 6000.5.6f1)
-- **Language:** C#
-- **Project Lead:** Elianis Manuel Medina (Level Designer, Cali, Valle del Cauca)
+## Repository Layout (read this first — it is non-obvious)
 
-## Repository Structure
+The git root contains **more than one Unity project**, and the real game is *not* at the root:
 
-```
-proyectoJuegoUNAD/
-├── proyecto Juego UNAD/          # Main Unity project directory
-│   ├── Assets/                   # Game assets and scripts
-│   │   ├── Scenes/              # Game scenes
-│   │   ├── Scripts/             # C# scripts (organized by functionality)
-│   │   └── TutorialInfo/        # Tutorial and readme assets
-│   ├── Packages/                # Package manifest for dependencies
-│   ├── ProjectSettings/         # Unity project configuration
-│   ├── Assembly-CSharp.csproj   # Main C# project file
-│   └── Assembly-CSharp-Editor.csproj
-├── Elianis/                      # Developer's personal workspace
-├── README.md                     # Project introduction
-└── .git/                         # Git repository
-```
+| Path | What it is |
+|------|------------|
+| `proyectoJuegoUNAD/` | **The active game project.** Open this folder in Unity Hub. Editor 6000.5.6f1, URP 17.5.0, Input System 1.20.0. |
+| `Assets/`, `Packages/`, `ProjectSettings/` (repo root) | A second, near-empty Unity project (single `Assets/Proyecto.unity`, editor 6000.4.7f1). Not the game. |
+| `Library/`, `Logs/`, `UserSettings/` (repo root) | Unity cache dirs. **Roughly 765 `Library/` files are committed to git** despite `.gitignore` — don't edit them, and avoid adding more. |
 
-**Note:** The git repository root is at the top level; the actual Unity project is in the `proyecto Juego UNAD/` subdirectory.
+Older notes referring to `proyecto Juego UNAD/` are stale; that directory no longer exists.
 
-## Getting Started
+## Game Design / Code Architecture
 
-### Opening the Project in Unity
+Two designs coexist in history, so check which one a task targets:
 
-1. Install Unity version 6.0.5 or later (currently 6000.5.6f1)
-2. Open Unity Hub and add the project: Point to `proyecto Juego UNAD/` directory
-3. Open the project in Unity 6
+- **Committed code (HEAD): "Smog Buster" drone game.** Under `proyectoJuegoUNAD/Assets/Scripts/`:
+  - `Player/DroneController.cs` — Rigidbody-based drone (Input System; momentum, vertical thrust, altitude-boundary spring, cosmetic tilt on a `DroneModel` child, a beam with energy, planting cooldown, `DroneState` enum). Expects child objects named `DroneModel` and `BeamOrigin`.
+  - `Player/CameraFollow.cs`, `Player/DroneHUD.cs`
+  - `Environment/SmogZone.cs`, `Environment/PlantingZone.cs` — zones the drone clears/plants in.
+  - `Gameplay/GameManager.cs` — singleton; counts zones via `FindObjectsByType` in `Start`, zones call `NotifySmogCleared` / `NotifyTreePlanted`, drives the TextMeshPro HUD and win panel.
+  - `Editor/SceneSetup.cs` — menu **Smog Buster > Setup Scene** builds layers, ground, UI canvas, GameManager and placeholder zones. Run it instead of hand-building scenes.
+  - Art: `Assets/Models/UAV2_Fbx` (drone), `Assets/POLYGON city pack` (third-party city prefabs/scene), `Assets/Materials`.
+- **Newer direction (untracked in working tree): "Guardianes del Bosque"** — educational 3D low-poly forest platformer about waste sorting (identify → collect → classify → recycle → restore), for ages 10–14. The GDD is `proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md`; new scenes `Assets/Scenes/MainMenu.unity` and `Level01.unity`.
 
-### Project Organization
+**Working-tree caveat:** at the time of writing, the working tree has ~2,200 tracked files deleted on disk (the drone scripts, models, and city pack) while `HEAD` still contains them, plus untracked Level01/MainMenu/Docs. Run `git status` before assuming a file exists, and do not `git add -A`/commit blindly. Recover deleted files with `git show HEAD:<path>` or `git restore <path>`.
 
-The project follows standard Unity conventions:
-- **Assets/Scenes/** — Game scenes (currently SampleScene.unity)
-- **Assets/Scripts/** — C# gameplay scripts (will be organized as development progresses)
-- **Assets/TutorialInfo/** — Tutorial content and Readme asset
-- **ProjectSettings/** — Unity configuration (graphics, physics, input mappings, etc.)
-- **Packages/manifest.json** — Lists all dependencies
+## Commands
 
-### Key Dependencies
+There is no CLI build, lint, or test script. Everything runs through the Unity Editor:
 
-- **Universal Render Pipeline (URP)** — Modern rendering system (v17.5.0)
-- **Input System** — Modern input handling (v1.20.0)
-- **Visual Scripting** — Visual programming support (v1.9.11)
-- **Timeline** — Animation and cutscene support (v1.8.12)
-- **AI Navigation** — Pathfinding and NPC movement (v2.0.14)
-- **Test Framework** — Unit testing (v1.7.0)
+- **Open:** Unity Hub → add `proyectoJuegoUNAD/` → Unity 6000.5.6f1.
+- **Play:** Play button in the Editor.
+- **Build:** File > Build Profiles (Build Settings).
+- **Tests:** Window > General > Test Runner (Test Framework package; no tests written yet). Headless, if needed: `Unity.exe -batchmode -projectPath proyectoJuegoUNAD -runTests -testPlatform EditMode -quit`.
+- **Unity MCP** (`mcp__unity-mcp__*`) is configured and can read console logs, run editor commands, and capture the scene/camera — useful for verifying changes without leaving the CLI.
 
-## Development Workflow
+## Conventions
 
-### C# Scripts
-
-All game logic resides in C# scripts under `Assets/Scripts/`. When adding new scripts:
-- Organize by feature or system (e.g., `Player/`, `Enemies/`, `UI/`, `Gameplay/`)
-- Each script should have a single responsibility
-- Use meaningful class and method names
-
-### Scene Management
-
-- Primary scene: `Assets/Scenes/SampleScene.unity`
-- Create new scenes as needed for different levels or game states
-- Configure scene load order in **Project Settings > Editor > Scene Load Order**
-
-### Building & Testing
-
-- **Play in Editor:** Press Play in Unity Editor (Ctrl+P or Cmd+P)
-- **Build:** File > Build and Run (or Game > Build Settings > Build)
-- **Test Framework:** Run tests via Window > General > Test Runner
-
-## Input System Configuration
-
-Input mappings are defined in `Assets/InputSystem_Actions.inputactions`. This modern Input System supports:
-- Keyboard, mouse, and gamepad input
-- Rebindable controls
-- Context-sensitive input handling
-
-## Known Patterns & Architecture
-
-- The project is in early stage; architecture will evolve as gameplay mechanics are developed
-- Use the tutorial assets in TutorialInfo as reference for Readme and project documentation
-- Visual Scripting is available for rapid prototyping of game logic if needed
-
-## .gitignore Notes
-
-The `.gitignore` file excludes:
-- Build artifacts and temporary Unity folders (`Library/`, `Temp/`, `Logs/`, `Obj/`, `Builds/`)
-- IDE and editor caches (`.vs/`, `*.csproj`, `*.sln`, `*.suo`, `*.user`)
-- Platform-specific binaries (`.apk`, `.aab`, `.app`)
-- Generated files (crashes, addressables, visual scripting generated code)
-
-Commit only:
-- `Assets/` (scripts, scenes, prefabs, sprites, sounds, etc.)
-- `ProjectSettings/` (project configuration)
-- `Packages/manifest.json` (dependencies)
-- Source files (*.cs, *.unity, *.prefab, etc.)
-
-Do NOT commit: Library, Temp, Logs, Obj, Build, .vs, or user-specific files.
+- New scripts go under `Assets/Scripts/<Feature>/` (`Player`, `Environment`, `Gameplay`, `UI`, `Editor`), one responsibility per script.
+- Input goes through the Input System (`Assets/InputSystem_Actions.inputactions`), not the legacy `Input` class.
+- Commit `.meta` files together with their assets. Never commit `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `.vs/`, or generated `*.csproj`/`*.sln`.
+- Active branch for this developer is `elianis-medina`; `main` is the PR target.
