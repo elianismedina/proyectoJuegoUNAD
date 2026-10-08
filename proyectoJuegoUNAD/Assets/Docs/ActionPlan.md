@@ -82,7 +82,7 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 - [x] `Collectible` prefab with enlarged trigger, auto-collect, event to `GameManager`: `Scripts/Gameplay/Collectible.cs` and `Assets/Prefabs/Collectibles/` (base `Collectible` plus one variant per waste type, `Collectible_Bottle` … `Collectible_Battery`). The model bobs and spins on a `Visual` child; `Collectible.Collected` is the hook for VFX/SFX. Tests: `CollectiblePrefabPolicyTests` (EditMode, 3) and `CollectiblePlayModeTests` (PlayMode, 2).
 - [ ] HUD counter `Residuos: X/10` bound to `OnWasteCollected`.
 - [ ] Win and lose screens with Restart / Play again.
-- [ ] Place the 10+ collectibles per the zone budget (e.g. 3 / 3 / 4) via a `LevelConfig`-driven validator that warns if placed count < target.
+- [x] Place the 10+ collectibles per the zone budget: 12 in `Level01` under the `Collectibles` root, 3 / 4 / 5 per zone (two spare over the target of 10). Three float above obstacles (x = 55, 113, 144; root y = 1.9) so they need a jump; the rest sit on the lane between obstacles and clear of the mud, the rolling log and the falling rock. Instead of an editor validator, `LevelCollectiblesPlayModeTests` (PlayMode, 5) checks the count against `LevelConfig.targetWaste`, the per-zone counts, lane and hazard clearance, jump reach, and that collecting them all wins.
 
 **Done when:** the full GDD core loop works end to end with placeholder art.
 
