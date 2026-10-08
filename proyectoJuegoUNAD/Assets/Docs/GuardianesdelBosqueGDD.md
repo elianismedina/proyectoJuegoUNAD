@@ -874,9 +874,10 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | --- | --- | --- | --- | --- |
 | Personaje ("Timmy") | Personaje principal | FBX / Prefab | Mixamo (Adobe), personaje "Timmy": https://www.mixamo.com/#/?page=2&type=Character | Términos de uso de Mixamo (por verificar y archivar la fecha de descarga) |
 | Controlador, animaciones y sonidos de pasos del personaje | Movimiento, animaciones Idle/Walk/Run/Jump y SFX de pasos/aterrizaje | C# / FBX / WAV | Unity Asset Store: "First Person + Third Person \| Character Controllers" (Unity Starter Assets), en `Assets/Starter Assets`: https://assetstore.unity.com/packages/3d/characters/first-person-third-person-character-controllers-196526 | Unity Companion License (según la página del asset: los recursos pueden reutilizarse en proyectos propios; revisar la licencia completa para los términos de uso y redistribución) |
-| Árboles y vegetación | Entorno | FBX / Prefab | Por verificar | Por verificar |
-| Rocas y montañas | Entorno | FBX / Prefab | Por verificar | Por verificar |
-| Troncos | Obstáculos | FBX / Prefab | Por verificar | Por verificar |
+| Árboles y vegetación | Entorno | FBX / Prefab | Unity Asset Store: "Low-Poly Simple Nature Pack" (JustCreate), v1.24, en `Assets/SimpleNaturePack`: https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153 | Standard Unity Asset Store EULA (Extension Asset) |
+| Rocas (y suelo) | Entorno | FBX / Prefab | Unity Asset Store: "Low-Poly Simple Nature Pack" (JustCreate), v1.24, en `Assets/SimpleNaturePack`: https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153 | Standard Unity Asset Store EULA (Extension Asset) |
+| Montañas | Entorno | FBX / Prefab | Por verificar (no incluidas en el paquete) | Por verificar |
+| Troncos | Obstáculos | FBX / Prefab | Parcial: tocón y rama del paquete "Low-Poly Simple Nature Pack" (JustCreate), ver enlace en la fila de árboles; el tronco rodante se decide después | Standard Unity Asset Store EULA (Extension Asset) (solo las piezas del paquete) |
 | Cercas | Obstáculos | FBX / Prefab | Por verificar | Por verificar |
 | Botellas | Residuos | FBX / Prefab | Por verificar | Por verificar |
 | Latas | Residuos | FBX / Prefab | Por verificar | Por verificar |
