@@ -33,15 +33,55 @@ public class GameSessionTests
     }
 
     [Test]
-    public void CollectingTarget_WinsTheGame()
+    public void CollectingTarget_AloneDoesNotWin()
     {
         var session = new GameSession(2);
 
         session.AddWaste();
-        Assert.AreEqual(GameState.Playing, session.State);
-
         session.AddWaste();
+
+        Assert.IsTrue(session.HasEnoughWaste);
+        Assert.AreEqual(0, session.MissingWaste);
+        Assert.AreEqual(GameState.Playing, session.State, "Winning also needs the goal at the end of the course.");
+    }
+
+    [Test]
+    public void ReachGoal_WithEnoughWaste_WinsTheGame()
+    {
+        var session = new GameSession(2);
+        session.AddWaste();
+        session.AddWaste();
+
+        Assert.IsTrue(session.ReachGoal());
         Assert.AreEqual(GameState.Won, session.State);
+    }
+
+    [Test]
+    public void ReachGoal_WithWasteMissing_ReportsHowManyAndKeepsPlaying()
+    {
+        var session = new GameSession(10);
+        for (int i = 0; i < 7; i++) session.AddWaste();
+        int reported = -1;
+        session.GoalReachedWithMissingWaste += missing => reported = missing;
+
+        Assert.IsFalse(session.ReachGoal());
+
+        Assert.AreEqual(3, reported);
+        Assert.AreEqual(GameState.Playing, session.State);
+    }
+
+    [Test]
+    public void ReachGoal_WhenNotPlaying_IsIgnored()
+    {
+        var session = new GameSession(1);
+        session.AddWaste();
+        session.Pause();
+        bool raised = false;
+        session.GoalReachedWithMissingWaste += _ => raised = true;
+
+        Assert.IsFalse(session.ReachGoal());
+        Assert.AreEqual(GameState.Paused, session.State);
+        Assert.IsFalse(raised);
     }
 
     [Test]
@@ -49,6 +89,7 @@ public class GameSessionTests
     {
         var session = new GameSession(1);
         session.AddWaste();
+        session.ReachGoal();
 
         bool accepted = session.AddWaste();
 
@@ -74,6 +115,7 @@ public class GameSessionTests
     {
         var won = new GameSession(1);
         won.AddWaste();
+        won.ReachGoal();
         Assert.IsFalse(won.Lose());
         Assert.IsFalse(won.Pause());
         Assert.AreEqual(GameState.Won, won.State);

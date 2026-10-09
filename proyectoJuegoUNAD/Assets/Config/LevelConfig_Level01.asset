@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: LevelConfig_Level01
   m_EditorClassIdentifier: ForestGuardian::LevelConfig
   targetWaste: 10
-  killPlaneY: -10
+  killPlaneY: -2

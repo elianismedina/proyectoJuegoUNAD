@@ -20,7 +20,7 @@ public class EnvironmentPlayModeTests
 
     private GameObject player;
     private StarterAssetsInputs inputs;
-    private SideScrollerController controller;
+    private PlayerController controller;
     private CharacterController characterController;
     private GameObject spawned;
 
@@ -31,9 +31,10 @@ public class EnvironmentPlayModeTests
         yield return null;
 
         player = GameObject.FindGameObjectWithTag("Player");
-        controller = player.GetComponent<SideScrollerController>();
+        controller = player.GetComponent<PlayerController>();
         inputs = player.GetComponent<StarterAssetsInputs>();
         characterController = player.GetComponent<CharacterController>();
+        PlayerTestRig.FaceCourse(player);
 
         characterController.enabled = false;
         player.transform.position = new Vector3(-3f, 0.1f, 0f);
@@ -75,7 +76,7 @@ public class EnvironmentPlayModeTests
         }
         spawned = root;
 
-        inputs.move = Vector2.right;
+        inputs.move = Vector2.up;
         yield return new WaitForSeconds(1f);
 
         Assert.Greater(player.transform.position.x, 0f, "Scenery has no colliders, so the player must run straight through it.");
@@ -86,7 +87,7 @@ public class EnvironmentPlayModeTests
     {
         Spawn("Obstacles/Obstacle_Rock_04", new Vector3(-1f, 0f, 0f));
 
-        inputs.move = Vector2.right;
+        inputs.move = Vector2.up;
         yield return new WaitForSeconds(1.5f);
 
         Assert.Less(player.transform.position.x, -1f, "A solid obstacle must stop a player who does not jump.");
@@ -103,7 +104,7 @@ public class EnvironmentPlayModeTests
         float end = Time.time + 4f;
         while (Time.time < end)
         {
-            inputs.move = Vector2.right;
+            inputs.move = Vector2.up;
             // Take off about 1 m before the obstacle's near edge, like a player would.
             float gap = bounds.min.x - (player.transform.position.x + radius);
             if (controller.Grounded && gap < 1f && player.transform.position.x < bounds.max.x)

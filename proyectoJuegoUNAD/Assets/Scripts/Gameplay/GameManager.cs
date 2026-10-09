@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
     }
 
     public void AddWaste() => Session.AddWaste();
+    public void ReachGoal() => Session.ReachGoal();
     public void Win() => Session.Win();
     public void Lose() => Session.Lose();
 
