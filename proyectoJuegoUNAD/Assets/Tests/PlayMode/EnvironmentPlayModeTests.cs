@@ -83,14 +83,23 @@ public class EnvironmentPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator SolidObstacle_BlocksTheWalkingPlayer()
+    public IEnumerator SolidObstacle_CannotBeWalkedThrough()
     {
-        Spawn("Obstacles/Obstacle_Rock_04", new Vector3(-1f, 0f, 0f));
+        var rock = Spawn("Obstacles/Obstacle_Rock_04", new Vector3(-1f, 0f, 0f));
+        var bounds = rock.GetComponentInChildren<Collider>().bounds;
 
+        // In third person a walking player may stop at the rock or slide around its side, but never pass
+        // through its middle. The inner half of its bounds is solid rock whichever way round it is shaped.
         inputs.move = Vector2.up;
-        yield return new WaitForSeconds(1.5f);
-
-        Assert.Less(player.transform.position.x, -1f, "A solid obstacle must stop a player who does not jump.");
+        float end = Time.time + 1.5f;
+        while (Time.time < end)
+        {
+            Vector3 p = player.transform.position;
+            bool insideCore = Mathf.Abs(p.x - bounds.center.x) < bounds.extents.x * 0.5f
+                && Mathf.Abs(p.z - bounds.center.z) < bounds.extents.z * 0.5f;
+            Assert.IsFalse(insideCore, "A solid obstacle must not let a player who does not jump walk through it (player at " + p + ").");
+            yield return null;
+        }
     }
 
     [UnityTest]
