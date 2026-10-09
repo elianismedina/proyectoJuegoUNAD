@@ -41659,6 +41659,59 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7373144466044160669, guid: 24bb60280327fd2498f05472b2bb6914, type: 3}
   m_PrefabInstance: {fileID: 6242266228624202237}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1789100001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1789100003}
+  - component: {fileID: 1789100002}
+  m_Layer: 0
+  m_Name: LevelAudio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1789100002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1789100001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d23aff8399e4f96b2e878cba2f88f5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ForestGuardian::LevelAudio
+  ambientClips:
+  - {fileID: 8300000, guid: 685c5e1b964286649bb20eca2a4c8389, type: 3}
+  - {fileID: 8300000, guid: 7ce9571d7e0f9b64dbb7bf30f55e3f33, type: 3}
+  ambientVolume: 0.5
+  crossfadeDuration: 2
+  pausedVolumeScale: 0.4
+  pickupClip: {fileID: 8300000, guid: 9f463ca2dddd60b4aad9e563bec0461a, type: 3}
+  pickupVolume: 0.8
+  pickupPitchVariation: 0.06
+--- !u!4 &1789100003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1789100001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -41677,3 +41730,4 @@ SceneRoots:
   - {fileID: 1051714540}
   - {fileID: 1163687004}
   - {fileID: 676649849}
+  - {fileID: 1789100003}
