@@ -5,6 +5,7 @@ using UnityEngine.UI;
 /// <summary>
 /// End-of-game screens from GDD §5.3: "¡Bosque limpio!" on a win and "¡Inténtalo de nuevo!" on a loss, each with a
 /// button that restarts the level, plus a short notice when the player reaches the goal with waste still missing.
+/// Also the pause menu from GDD §6.6 (Esc): "Continuar" resumes and "Reiniciar" restarts the level.
 /// Listens to the <see cref="GameSession"/> owned by the <see cref="GameManager"/>; holds no game rules itself.
 /// </summary>
 public class GameScreens : MonoBehaviour
@@ -15,6 +16,10 @@ public class GameScreens : MonoBehaviour
 
     [SerializeField] private GameObject losePanel;
     [SerializeField] private Button loseRestartButton;
+
+    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private Button pauseContinueButton;
+    [SerializeField] private Button pauseRestartButton;
 
     [SerializeField] private GameObject missingNotice;
     [SerializeField] private Text missingText;
@@ -27,6 +32,7 @@ public class GameScreens : MonoBehaviour
 
     public bool WinShown => winPanel.activeSelf;
     public bool LoseShown => losePanel.activeSelf;
+    public bool PauseShown => pausePanel.activeSelf;
     public bool NoticeShown => missingNotice.activeSelf;
     public string NoticeText => missingText.text;
 
@@ -34,9 +40,12 @@ public class GameScreens : MonoBehaviour
     {
         winPanel.SetActive(false);
         losePanel.SetActive(false);
+        pausePanel.SetActive(false);
         missingNotice.SetActive(false);
         winRestartButton.onClick.AddListener(Restart);
         loseRestartButton.onClick.AddListener(Restart);
+        pauseContinueButton.onClick.AddListener(Continue);
+        pauseRestartButton.onClick.AddListener(Restart);
     }
 
     private void Start()
@@ -63,6 +72,13 @@ public class GameScreens : MonoBehaviour
 
     private void OnStateChanged(GameState state)
     {
+        if (state == GameState.Paused)
+        {
+            Show(pausePanel, pauseContinueButton);
+            return;
+        }
+
+        pausePanel.SetActive(false);
         if (state == GameState.Won)
         {
             missingNotice.SetActive(false);
@@ -90,6 +106,11 @@ public class GameScreens : MonoBehaviour
         panel.SetActive(true);
         // Select the button so Enter / Space / gamepad confirm restart without a mouse.
         if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(focus.gameObject);
+    }
+
+    private static void Continue()
+    {
+        if (GameManager.Instance != null) GameManager.Instance.Resume();
     }
 
     private static void Restart()

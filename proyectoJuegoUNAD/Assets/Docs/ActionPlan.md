@@ -97,7 +97,8 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 - [ ] Extend the jump-clearance validator to cover hazard timing gaps.
 - [ ] Zone difficulty pass: Zone 1 wide and gentle, Zone 2 mixed, Zone 3 dense with elevated collectibles.
 - [ ] `ZoneController`: recovery event, unlocks the next segment (gate removed) and toggles contaminated → recovered visuals.
-- [ ] Pause menu (Continue / Restart / Quit), `Time.timeScale` handling, Esc and on-screen button.
+- [x] Pause menu (GDD §6.6): Esc pauses (`Time.timeScale` = 0) and shows `PausePanel` in `Assets/Prefabs/UI/GameScreens.prefab` with "Continuar" (preselected) and "Reiniciar"; Esc again or Continuar resumes, and the cursor is released while paused. Tests: `GoalAndScreensPlayModeTests` (3 pause tests).
+- [ ] "Salir" in the pause menu, once the `MainMenu` scene exists, and an on-screen pause button (the cursor is locked while playing, so it needs a gamepad/touch use case first).
 
 **Done when:** each zone is completable and the pause menu works at any moment, including after win/lose.
 

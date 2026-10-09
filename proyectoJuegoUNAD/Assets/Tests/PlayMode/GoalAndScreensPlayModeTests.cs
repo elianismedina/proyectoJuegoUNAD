@@ -3,11 +3,12 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 /// <summary>
 /// The goal at the end of Level01 and the end-of-game screens: reaching the goal early shows how much waste is
 /// missing and keeps the game going, reaching it with enough waste shows "¡Bosque limpio!", and falling shows
-/// "¡Inténtalo de nuevo!".
+/// "¡Inténtalo de nuevo!". Esc opens the pause menu, whose buttons resume or restart.
 /// </summary>
 public class GoalAndScreensPlayModeTests
 {
@@ -107,6 +108,60 @@ public class GoalAndScreensPlayModeTests
         Assert.AreEqual(GameState.Won, session.State);
         Assert.IsTrue(screens.WinShown, "¡Bosque limpio! must show on a win.");
         Assert.IsFalse(screens.LoseShown);
+    }
+
+    private Button PauseButton(string name)
+    {
+        var button = screens.transform.Find("PausePanel/Box/" + name);
+        Assert.IsNotNull(button, "The pause menu needs a " + name + ".");
+        return button.GetComponent<Button>();
+    }
+
+    [UnityTest]
+    public IEnumerator Pause_ShowsTheMenuAndContinueResumes()
+    {
+        Assert.IsFalse(screens.PauseShown, "The pause menu must start hidden.");
+
+        GameManager.Instance.TogglePause(); // Same as pressing Esc.
+        yield return null;
+        Assert.IsTrue(screens.PauseShown, "Pausing must show the pause menu.");
+        Assert.IsFalse(screens.WinShown);
+        Assert.IsFalse(screens.LoseShown);
+
+        PauseButton("ContinueButton").onClick.Invoke();
+        yield return null;
+        Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State);
+        Assert.AreEqual(1f, Time.timeScale);
+        Assert.IsFalse(screens.PauseShown, "Continuing must hide the pause menu.");
+        Assert.IsTrue(controller.InputEnabled);
+    }
+
+    [UnityTest]
+    public IEnumerator Pause_EscAgainAlsoClosesTheMenu()
+    {
+        GameManager.Instance.TogglePause();
+        yield return null;
+        GameManager.Instance.TogglePause();
+        yield return null;
+
+        Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State);
+        Assert.IsFalse(screens.PauseShown);
+    }
+
+    [UnityTest]
+    public IEnumerator Pause_RestartStartsTheLevelAgain()
+    {
+        GameManager.Instance.Session.AddWaste();
+        GameManager.Instance.TogglePause();
+        yield return null;
+
+        PauseButton("RestartButton").onClick.Invoke();
+        yield return null; // The scene reloads.
+        yield return null;
+
+        Assert.AreEqual(1f, Time.timeScale, "Restarting from the pause menu must unfreeze time.");
+        Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State);
+        Assert.AreEqual(0, GameManager.Instance.Session.CollectedWaste, "Restart must start a fresh session.");
     }
 
     [UnityTest]

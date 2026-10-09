@@ -48,6 +48,9 @@ public class GameManager : MonoBehaviour
         if (!Session.Pause()) Session.Resume();
     }
 
+    /// <summary>Leaves the pause (the pause menu's "Continuar"); does nothing unless paused.</summary>
+    public void Resume() => Session.Resume();
+
     /// <summary>Reloads the active scene, which starts a fresh session.</summary>
     public void Restart()
     {
