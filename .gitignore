@@ -104,3 +104,13 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+
+# Unity generated files in nested project
+/proyecto Juego UNAD/Library/
+/proyecto Juego UNAD/Temp/
+/proyecto Juego UNAD/Obj/
+/proyecto Juego UNAD/Logs/
+/proyecto Juego UNAD/UserSettings/
+
+desktop.ini
