@@ -5,7 +5,8 @@ using UnityEngine.UI;
 /// <summary>
 /// End-of-game screens from GDD §5.3: "¡Bosque limpio!" on a win and "¡Inténtalo de nuevo!" on a loss, each with a
 /// button that restarts the level, plus a short notice when the player reaches the goal with waste still missing.
-/// Also the pause menu from GDD §6.6 (Esc): "Continuar" resumes and "Reiniciar" restarts the level.
+/// Also the pause menu from GDD §6.6 (Esc): "Continuar" resumes, "Reiniciar" restarts the level and "Salir" goes back
+/// to the main menu (GDD §10.3).
 /// Listens to the <see cref="GameSession"/> owned by the <see cref="GameManager"/>; holds no game rules itself.
 /// </summary>
 public class GameScreens : MonoBehaviour
@@ -20,6 +21,7 @@ public class GameScreens : MonoBehaviour
     [SerializeField] private GameObject pausePanel;
     [SerializeField] private Button pauseContinueButton;
     [SerializeField] private Button pauseRestartButton;
+    [SerializeField] private Button pauseQuitButton;
 
     [SerializeField] private GameObject missingNotice;
     [SerializeField] private Text missingText;
@@ -46,6 +48,7 @@ public class GameScreens : MonoBehaviour
         loseRestartButton.onClick.AddListener(Restart);
         pauseContinueButton.onClick.AddListener(Continue);
         pauseRestartButton.onClick.AddListener(Restart);
+        pauseQuitButton.onClick.AddListener(QuitToMenu);
     }
 
     private void Start()
@@ -111,6 +114,11 @@ public class GameScreens : MonoBehaviour
     private static void Continue()
     {
         if (GameManager.Instance != null) GameManager.Instance.Resume();
+    }
+
+    private static void QuitToMenu()
+    {
+        if (GameManager.Instance != null) GameManager.Instance.QuitToMenu();
     }
 
     private static void Restart()
