@@ -18,7 +18,7 @@ public class GoalAndScreensPlayModeTests
 
     private GameObject player;
     private CharacterController characterController;
-    private SideScrollerController controller;
+    private PlayerController controller;
     private LevelGoal goal;
     private GameScreens screens;
 
@@ -30,7 +30,7 @@ public class GoalAndScreensPlayModeTests
 
         player = GameObject.FindGameObjectWithTag("Player");
         characterController = player.GetComponent<CharacterController>();
-        controller = player.GetComponent<SideScrollerController>();
+        controller = player.GetComponent<PlayerController>();
         goal = Object.FindFirstObjectByType<LevelGoal>();
         screens = Object.FindFirstObjectByType<GameScreens>();
         Assert.IsNotNull(goal, "Level01 needs a LevelGoal.");

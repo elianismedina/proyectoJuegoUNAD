@@ -7,14 +7,15 @@ using UnityEngine.TestTools;
 
 /// <summary>
 /// Loads Level01 and drives the player through <see cref="StarterAssetsInputs"/> (the same values
-/// PlayerInput writes from the keyboard), so no physical input device is needed.
+/// PlayerInput writes from the keyboard), so no physical input device is needed. Movement is relative to the
+/// camera, so the tests pin it to a known reference with <see cref="PlayerTestRig.FaceCourse"/>.
 /// </summary>
 public class PlayerPlayModeTests
 {
     private const string LevelScene = "Level01";
 
     private GameObject player;
-    private SideScrollerController controller;
+    private PlayerController controller;
     private StarterAssetsInputs inputs;
     private CharacterController characterController;
 
@@ -26,7 +27,7 @@ public class PlayerPlayModeTests
 
         player = GameObject.FindGameObjectWithTag("Player");
         Assert.IsNotNull(player, "Level01 needs a GameObject tagged Player.");
-        controller = player.GetComponent<SideScrollerController>();
+        controller = player.GetComponent<PlayerController>();
         inputs = player.GetComponent<StarterAssetsInputs>();
         characterController = player.GetComponent<CharacterController>();
 
@@ -76,32 +77,83 @@ public class PlayerPlayModeTests
         Assert.IsTrue(controller.Grounded, "Player should land again.");
     }
 
+    // The lane is only 3 m deep (z from -1.5 to 1.5), so sideways runs are kept short to stay on it.
+    private const float SideRunSeconds = 0.25f;
+
     [UnityTest]
-    public IEnumerator Running_KeepsZConstant()
+    public IEnumerator ForwardInput_MovesAlongTheCameraForwardAndFacesIt()
     {
-        float z = player.transform.position.z;
-        inputs.move = Vector2.right;
-        yield return new WaitForSeconds(1f);
-        inputs.move = Vector2.left;
-        yield return new WaitForSeconds(2f);
+        var reference = PlayerTestRig.FaceCourse(player); // Camera looking toward +X.
+        Vector3 start = player.transform.position;
+
+        inputs.move = Vector2.up;
+        yield return new WaitForSeconds(0.5f);
         inputs.move = Vector2.zero;
 
-        Assert.AreEqual(z, player.transform.position.z, 0.01f, "Z must stay on the course plane.");
+        Vector3 moved = player.transform.position - start;
+        Assert.Greater(moved.x, 1f, "Forward input should move along the camera's forward (+X here).");
+        Assert.AreEqual(0f, moved.z, 0.1f, "Forward input must not drift sideways.");
+        Assert.AreEqual(reference.eulerAngles.y, player.transform.eulerAngles.y, 5f, "Player should face where it runs.");
     }
 
     [UnityTest]
-    public IEnumerator Running_MovesAlongXAndFacesTravelDirection()
+    public IEnumerator SideInput_MovesAlongTheCameraRightAndFacesIt()
     {
-        float startX = player.transform.position.x;
-        inputs.move = Vector2.right;
-        yield return new WaitForSeconds(0.5f);
-        Assert.Greater(player.transform.position.x, startX + 1f, "Right input should move toward +X.");
-        Assert.AreEqual(90f, player.transform.eulerAngles.y, 5f, "Player should face +X.");
+        PlayerTestRig.FaceCourse(player); // Camera looking toward +X, so its right is -Z.
+        Vector3 start = player.transform.position;
 
-        inputs.move = Vector2.left;
-        yield return new WaitForSeconds(0.6f);
+        inputs.move = Vector2.right;
+        yield return new WaitForSeconds(SideRunSeconds);
         inputs.move = Vector2.zero;
-        Assert.AreEqual(270f, player.transform.eulerAngles.y, 5f, "Player should face -X.");
+        yield return new WaitForSeconds(0.3f); // Let the turn finish.
+
+        Vector3 moved = player.transform.position - start;
+        Assert.Less(moved.z, -0.5f, "Right input should move along the camera's right (-Z here).");
+        Assert.AreEqual(0f, moved.x, 0.15f, "Right input must not move forward.");
+        Assert.AreEqual(180f, player.transform.eulerAngles.y, 5f, "Player should face -Z.");
+    }
+
+    [UnityTest]
+    public IEnumerator Movement_FollowsTheCameraWhenItTurns()
+    {
+        var reference = PlayerTestRig.FaceCourse(player);
+        reference.rotation = Quaternion.Euler(0f, 0f, 0f); // Camera now looks toward +Z.
+        Vector3 start = player.transform.position;
+
+        inputs.move = Vector2.up;
+        yield return new WaitForSeconds(SideRunSeconds);
+        inputs.move = Vector2.zero;
+
+        Vector3 moved = player.transform.position - start;
+        Assert.Greater(moved.z, 0.5f, "Forward input should follow the camera's new forward (+Z).");
+        Assert.AreEqual(0f, moved.x, 0.15f);
+    }
+
+    [UnityTest]
+    public IEnumerator ReleasingInput_StopsThePlayer()
+    {
+        PlayerTestRig.FaceCourse(player);
+        inputs.move = Vector2.up;
+        yield return new WaitForSeconds(0.4f);
+        inputs.move = Vector2.zero;
+        yield return new WaitForSeconds(0.6f);
+
+        Assert.Less(controller.HorizontalVelocity.magnitude, 0.05f, "The player should come to a stop without input.");
+    }
+
+    [UnityTest]
+    public IEnumerator Stumble_PushesThePlayerAlongTheGivenDirection()
+    {
+        Vector3 start = player.transform.position;
+
+        Assert.IsTrue(controller.Stumble(new Vector3(0f, 5f, -1f)), "A first hit must stumble the player.");
+        Assert.IsTrue(controller.IsStumbling);
+        yield return new WaitForSeconds(0.3f);
+
+        Vector3 moved = player.transform.position - start;
+        Assert.Less(moved.z, -0.2f, "The knockback should follow the hit direction on the ground plane (-Z).");
+        Assert.AreEqual(0f, moved.x, 0.05f);
+        Assert.IsFalse(controller.Stumble(Vector3.back), "Hits during the immunity window are ignored.");
     }
 
     [UnityTest]

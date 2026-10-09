@@ -14,7 +14,7 @@ public class HazardPlayModeTests
     private const string LevelScene = "Level01";
 
     private GameObject player;
-    private SideScrollerController controller;
+    private PlayerController controller;
     private StarterAssetsInputs inputs;
     private CharacterController characterController;
 
@@ -25,9 +25,10 @@ public class HazardPlayModeTests
         yield return null;
 
         player = GameObject.FindGameObjectWithTag("Player");
-        controller = player.GetComponent<SideScrollerController>();
+        controller = player.GetComponent<PlayerController>();
         inputs = player.GetComponent<StarterAssetsInputs>();
         characterController = player.GetComponent<CharacterController>();
+        PlayerTestRig.FaceCourse(player);
         Teleport(new Vector3(-3f, 0.1f, 0f));
         yield return new WaitForSeconds(0.5f);
     }
@@ -58,7 +59,7 @@ public class HazardPlayModeTests
 
         // Walk out of the right edge.
         Teleport(new Vector3(box.max.x - 0.5f, 0.1f, 0f));
-        inputs.move = Vector2.right;
+        inputs.move = Vector2.up; // Forward, toward +X and out of the mud.
         yield return new WaitForSeconds(1f);
         Assert.AreEqual(1f, controller.SpeedMultiplier, 0.01f, "Speed must return to normal after leaving the mud (player x=" + player.transform.position.x + ", mud max x=" + box.max.x + ").");
     }

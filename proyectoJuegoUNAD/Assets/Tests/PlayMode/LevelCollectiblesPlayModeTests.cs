@@ -20,7 +20,7 @@ public class LevelCollectiblesPlayModeTests
 
     private GameObject player;
     private CharacterController characterController;
-    private SideScrollerController controller;
+    private PlayerController controller;
     private List<Collectible> items;
 
     [UnitySetUp]
@@ -31,7 +31,7 @@ public class LevelCollectiblesPlayModeTests
 
         player = GameObject.FindGameObjectWithTag("Player");
         characterController = player.GetComponent<CharacterController>();
-        controller = player.GetComponent<SideScrollerController>();
+        controller = player.GetComponent<PlayerController>();
         items = new List<Collectible>(Object.FindObjectsByType<Collectible>(FindObjectsSortMode.None));
         items.Sort((a, b) => a.transform.position.x.CompareTo(b.transform.position.x));
     }
