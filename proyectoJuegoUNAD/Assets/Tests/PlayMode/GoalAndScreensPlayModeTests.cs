@@ -8,7 +8,7 @@ using UnityEngine.UI;
 /// <summary>
 /// The goal at the end of Level01 and the end-of-game screens: reaching the goal early shows how much waste is
 /// missing and keeps the game going, reaching it with enough waste shows "¡Bosque limpio!", and falling shows
-/// "¡Inténtalo de nuevo!". Esc opens the pause menu, whose buttons resume or restart.
+/// "¡Inténtalo de nuevo!". Esc opens the pause menu, whose buttons resume, restart or go back to the main menu.
 /// </summary>
 public class GoalAndScreensPlayModeTests
 {
@@ -162,6 +162,21 @@ public class GoalAndScreensPlayModeTests
         Assert.AreEqual(1f, Time.timeScale, "Restarting from the pause menu must unfreeze time.");
         Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State);
         Assert.AreEqual(0, GameManager.Instance.Session.CollectedWaste, "Restart must start a fresh session.");
+    }
+
+    [UnityTest]
+    public IEnumerator Pause_QuitGoesBackToTheMainMenu()
+    {
+        GameManager.Instance.TogglePause();
+        yield return null;
+
+        PauseButton("QuitButton").onClick.Invoke();
+        yield return null; // The menu scene loads.
+        yield return null;
+
+        Assert.AreEqual(MainMenu.SceneName, SceneManager.GetActiveScene().name);
+        Assert.AreEqual(1f, Time.timeScale, "Leaving from the pause menu must unfreeze time.");
+        Assert.IsNotNull(Object.FindFirstObjectByType<MainMenu>(), "The MainMenu scene needs the menu (Forest Guardian > UI > Build Main Menu).");
     }
 
     [UnityTest]

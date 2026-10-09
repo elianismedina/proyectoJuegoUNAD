@@ -58,6 +58,13 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
+    /// <summary>Leaves the level for the title screen (the pause menu's "Salir").</summary>
+    public void QuitToMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(MainMenu.SceneName);
+    }
+
     private void OnStateChanged(GameState state)
     {
         Time.timeScale = state == GameState.Paused ? 0f : 1f;

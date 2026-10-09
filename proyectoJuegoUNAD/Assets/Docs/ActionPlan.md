@@ -98,7 +98,8 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 - [ ] Zone difficulty pass: Zone 1 wide and gentle, Zone 2 mixed, Zone 3 dense with elevated collectibles.
 - [ ] `ZoneController`: recovery event, unlocks the next segment (gate removed) and toggles contaminated → recovered visuals.
 - [x] Pause menu (GDD §6.6): Esc pauses (`Time.timeScale` = 0) and shows `PausePanel` in `Assets/Prefabs/UI/GameScreens.prefab` with "Continuar" (preselected) and "Reiniciar"; Esc again or Continuar resumes, and the cursor is released while paused. Tests: `GoalAndScreensPlayModeTests` (3 pause tests).
-- [ ] "Salir" in the pause menu, once the `MainMenu` scene exists, and an on-screen pause button (the cursor is locked while playing, so it needs a gamepad/touch use case first).
+- [x] "Salir" in the pause menu (GDD §10.3): `GameManager.QuitToMenu()` restores time and loads `MainMenu`. Test: `GoalAndScreensPlayModeTests.Pause_QuitGoesBackToTheMainMenu`.
+- [ ] An on-screen pause button (the cursor is locked while playing, so it needs a gamepad/touch use case first).
 
 **Done when:** each zone is completable and the pause menu works at any moment, including after win/lose.
 
@@ -137,7 +138,7 @@ Stretch (cut first if schedule slips):
 - [ ] Dynamic music layers.
 
 ### Phase 8 — Main menu, polish, QA, delivery (M)
-- [ ] `MainMenu` scene: Play / Quit, scene loading with Build Settings order (`MainMenu`, `Level01`).
+- [x] `MainMenu` scene: title, one-line goal, controls, "Jugar" (preselected, loads `Level01`) / "Salir". Built by *Forest Guardian > UI > Build Main Menu* (`Scripts/Editor/MainMenuBuilder.cs`), logic in `Scripts/UI/MainMenu.cs`. Tests: `MainMenuPlayModeTests`.
 - [ ] Playtests with 3+ people close to the target age range; log issues in GitHub Issues.
 - [ ] Balance: waste positions, jump distances, camera framing.
 - [ ] Profile on target PC spec; keep draw calls low (static batching, GPU instancing on low-poly assets).
