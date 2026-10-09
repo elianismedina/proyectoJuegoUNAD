@@ -53,7 +53,7 @@ public class Collectible : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (IsCollected || !other.TryGetComponent(out SideScrollerController _)) return;
+        if (IsCollected || !other.TryGetComponent(out PlayerController _)) return;
         if (GameManager.Instance == null || !GameManager.Instance.Session.AddWaste()) return;
 
         IsCollected = true;

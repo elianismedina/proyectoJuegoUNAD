@@ -13,7 +13,7 @@ public class FallingRockTrigger : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (rock != null && other.TryGetComponent(out SideScrollerController _))
+        if (rock != null && other.TryGetComponent(out PlayerController _))
             rock.Arm();
     }
 }

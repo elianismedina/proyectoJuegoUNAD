@@ -27,6 +27,7 @@ public class CollectiblePlayModeTests
         player = GameObject.FindGameObjectWithTag("Player");
         inputs = player.GetComponent<StarterAssetsInputs>();
         characterController = player.GetComponent<CharacterController>();
+        PlayerTestRig.FaceCourse(player);
         Teleport(new Vector3(-3f, 0.1f, 0f));
         yield return new WaitForSeconds(0.5f);
     }
@@ -67,7 +68,7 @@ public class CollectiblePlayModeTests
 
         try
         {
-            inputs.move = Vector2.right;
+            inputs.move = Vector2.up; // Forward, toward +X.
             float end = Time.time + 3f;
             while (Time.time < end && !item.IsCollected) yield return null;
             inputs.move = Vector2.zero;

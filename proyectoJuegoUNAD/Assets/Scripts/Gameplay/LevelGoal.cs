@@ -14,7 +14,7 @@ public class LevelGoal : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.TryGetComponent(out SideScrollerController _)) return;
+        if (!other.TryGetComponent(out PlayerController _)) return;
         if (GameManager.Instance != null) GameManager.Instance.ReachGoal();
     }
 }
