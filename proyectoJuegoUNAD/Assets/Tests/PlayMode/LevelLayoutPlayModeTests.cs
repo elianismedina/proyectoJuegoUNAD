@@ -38,11 +38,23 @@ public class LevelLayoutPlayModeTests
         return true;
     }
 
+    private const float StreamEdgeMargin = 0.15f;
+
+    private bool NearStreamEdge(float s)
+    {
+        foreach (var span in trail.StreamSpans)
+            if (Mathf.Abs(s - span.x) < StreamEdgeMargin || Mathf.Abs(s - span.y) < StreamEdgeMargin) return true;
+        return false;
+    }
+
     [Test]
     public void Trail_HasGroundEverywhereExceptTheStreams()
     {
         for (float s = 0.5f; s < trail.Length; s += 0.5f)
         {
+            // The stream's bank edge sits exactly on the span's ends; a ray there can graze it either way.
+            if (NearStreamEdge(s)) continue;
+
             bool hasGround = GroundHeight(trail.PointAt(s), out float height);
             if (trail.IsOverStream(s))
             {
