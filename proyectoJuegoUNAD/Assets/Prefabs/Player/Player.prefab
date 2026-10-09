@@ -45,6 +45,7 @@ GameObject:
   - component: {fileID: 5235887823418096909}
   - component: {fileID: 6236654408347516562}
   - component: {fileID: 1699900674428772608}
+  - component: {fileID: 4718203946551027713}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -199,6 +200,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d14cabd402bfde4ab79cf228b5bc83b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ForestGuardian::PlayerPauseInput
+--- !u!114 &4718203946551027713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8567398681946096750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f987b1de00c4a4d8d960f55455a0ed8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ForestGuardian::JumpShadow
+  material: {fileID: 2100000, guid: dbee13cd72464b118d76376e17a04f38, type: 2}
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  radius: 0.4
+  fadeHeight: 3
+  minScale: 0.5
+  maxDistance: 12
 --- !u!1001 &8312595525070347377
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -35,6 +35,7 @@ Phases 2–4 are written but have not been run in the Editor yet: open `Level01`
 - [x] The playable area is a 12 m corridor around the trail plus five clearings (always on the outer side of a bend); invisible walls (`PlayAreaBounds`) behind a line of trees keep the player inside, and the corridor narrows to the path at the goal so it cannot be walked around. Trees inside the corridor get a `Trunk` capsule collider; the scenery prefabs stay collider-free.
 - [x] Vertical variety: three earth banks across the corridor (0.8, 1.0 and 1.2 m), and from Zone 2 on, three streams across the trail (2.0, 2.2 and 2.5 m). Falling in loses (kill plane raised to y = −2).
 - [ ] Camera Deoccluder so trees between the camera and the player do not hide them.
+- [x] `JumpShadow` on the player: a disc straight below them on the ground, smaller the higher they are and hidden over a stream, so jumps can be judged in 3D (the sun's shadow falls at an angle).
 
 ### Phase 3 — Waste off the trail (M)
 - [x] 12 waste items (target 10, two spare), placed by the builder: two lie on the path in Zone 1 to teach collecting; the rest are high in clearings (jump), on a rock ledge, low over the three streams, in the rolling log's run, beside the falling rock and high on the last bank.

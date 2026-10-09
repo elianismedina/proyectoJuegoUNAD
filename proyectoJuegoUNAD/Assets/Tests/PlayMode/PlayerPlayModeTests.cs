@@ -77,6 +77,40 @@ public class PlayerPlayModeTests
         Assert.IsTrue(controller.Grounded, "Player should land again.");
     }
 
+    [UnityTest]
+    public IEnumerator JumpShadow_StaysOnTheGroundBelowThePlayerAndShrinksInTheAir()
+    {
+        var jumpShadow = player.GetComponent<JumpShadow>();
+        Assert.IsNotNull(jumpShadow, "The player prefab needs a JumpShadow so landings can be judged in 3D.");
+        Assert.IsTrue(jumpShadow.IsVisible, "The shadow should show while standing on the ground.");
+
+        float groundY = jumpShadow.Shadow.position.y;
+        float groundSize = jumpShadow.Shadow.lossyScale.x;
+        Assert.Less(Mathf.Abs(groundY - player.transform.position.y), 0.1f, "On the ground the shadow sits at the feet.");
+
+        inputs.jump = true;
+        yield return new WaitForSeconds(0.35f); // Close to the top of the jump.
+
+        Vector3 offset = jumpShadow.Shadow.position - player.transform.position;
+        Assert.Greater(player.transform.position.y - groundY, 1f, "The player should be well up in the air.");
+        Assert.Less(new Vector2(offset.x, offset.z).magnitude, 0.05f, "The shadow should be straight below the player.");
+        Assert.Less(Mathf.Abs(jumpShadow.Shadow.position.y - groundY), 0.05f, "The shadow should stay on the ground.");
+        Assert.Less(jumpShadow.Shadow.lossyScale.x, groundSize, "The shadow should shrink as the player rises.");
+    }
+
+    [UnityTest]
+    public IEnumerator JumpShadow_DisappearsOverAStream()
+    {
+        var trail = Object.FindFirstObjectByType<ForestTrail>();
+        Assert.IsNotNull(trail, "Level01 needs the forest trail.");
+        var span = trail.StreamSpans[0];
+
+        Teleport(trail.PointAt((span.x + span.y) / 2f) + Vector3.up * 1.5f);
+        yield return null; // One LateUpdate.
+
+        Assert.IsFalse(player.GetComponent<JumpShadow>().IsVisible, "With no ground below, there should be no shadow.");
+    }
+
     // Sideways runs are kept short so the player stays on the flat start of the trail.
     private const float SideRunSeconds = 0.25f;
 
