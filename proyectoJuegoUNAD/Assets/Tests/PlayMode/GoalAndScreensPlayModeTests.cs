@@ -13,9 +13,6 @@ public class GoalAndScreensPlayModeTests
 {
     private const string LevelScene = "Level01";
 
-    // Must match LevelEnvironmentBuilder.
-    private const float CourseEnd = 168f;
-
     private GameObject player;
     private CharacterController characterController;
     private PlayerController controller;
@@ -46,19 +43,34 @@ public class GoalAndScreensPlayModeTests
 
     private IEnumerator WalkIntoTheGoal()
     {
-        Teleport(new Vector3(goal.transform.position.x, 0.1f, 0f));
+        Teleport(goal.transform.position + Vector3.up * 0.1f);
         yield return new WaitForSeconds(0.2f);
     }
 
     [Test]
-    public void Goal_IsATriggerAtTheEndOfTheCourse()
+    public void Goal_IsATriggerAtTheEndOfTheTrailThatCannotBeWalkedAround()
     {
-        var bounds = goal.GetComponent<Collider>().bounds;
+        var trail = Object.FindFirstObjectByType<ForestTrail>();
+        Assert.IsNotNull(trail, "Level01 needs the forest trail.");
         Assert.IsTrue(goal.GetComponent<Collider>().isTrigger);
-        Assert.That(bounds.max.x, Is.GreaterThan(CourseEnd - 1f), "The goal must reach the end of the lane.");
-        Assert.That(bounds.min.x, Is.GreaterThan(CourseEnd - 8f), "The goal must sit at the end of the course.");
+
+        float goalS = trail.Project(goal.transform.position, out float lateral);
+        Assert.Greater(goalS, trail.Length - 8f, "The goal must sit at the end of the trail.");
+        Assert.Less(Mathf.Abs(lateral), 0.5f, "The goal must sit on the path.");
+
+        // Across the goal, the walls on both sides must be closer than the trigger's edges plus a player's width.
+        var bounds = goal.GetComponent<BoxCollider>();
+        float halfDepth = bounds.size.z * goal.transform.lossyScale.z / 2f;
+        Vector3 origin = goal.transform.position + Vector3.up * 1f;
+        foreach (int side in new[] { -1, 1 })
+        {
+            Assert.IsTrue(Physics.Raycast(origin, goal.transform.forward * side, out var hit, 10f, ~0, QueryTriggerInteraction.Ignore),
+                "No wall beside the goal.");
+            Assert.Less(hit.distance, halfDepth + 0.6f, "There is room to walk around the goal.");
+        }
+
         foreach (var c in Object.FindObjectsByType<Collectible>(FindObjectsSortMode.None))
-            Assert.Less(c.transform.position.x, bounds.min.x, c.name + " lies past the goal.");
+            Assert.Less(trail.Project(c.transform.position, out _), goalS, c.name + " lies past the goal.");
     }
 
     [Test]

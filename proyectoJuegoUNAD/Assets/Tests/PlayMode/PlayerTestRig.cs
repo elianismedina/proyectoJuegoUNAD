@@ -12,9 +12,20 @@ public static class PlayerTestRig
     /// </summary>
     public static Transform FaceCourse(GameObject player)
     {
-        var reference = new GameObject("TestMovementReference").transform;
-        reference.rotation = Quaternion.Euler(0f, 90f, 0f);
-        player.GetComponent<PlayerController>().MovementReference = reference;
+        return Face(player, Vector3.right);
+    }
+
+    /// <summary>Makes "forward" input move the player along <paramref name="direction"/> (only its ground-plane part counts).</summary>
+    public static Transform Face(GameObject player, Vector3 direction)
+    {
+        var controller = player.GetComponent<PlayerController>();
+        var reference = controller.MovementReference;
+        if (reference == null || reference.name != "TestMovementReference")
+            reference = new GameObject("TestMovementReference").transform;
+
+        direction.y = 0f;
+        reference.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+        controller.MovementReference = reference;
         return reference;
     }
 }

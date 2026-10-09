@@ -9,5 +9,5 @@ public class LevelConfig : ScriptableObject
     public int targetWaste = 10;
 
     [Tooltip("World Y below which the player counts as having fallen off the course.")]
-    public float killPlaneY = -10f;
+    public float killPlaneY = -2f;
 }

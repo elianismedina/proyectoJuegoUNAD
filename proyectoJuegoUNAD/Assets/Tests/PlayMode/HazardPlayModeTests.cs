@@ -7,7 +7,7 @@ using UnityEngine.TestTools;
 
 /// <summary>
 /// Drives the hazards placed in Level01 (mud, rolling log, falling rock) and checks their gameplay effect.
-/// Positions are read from the scene, so moving a hazard does not break the tests.
+/// Positions and directions are read from the scene, so moving or turning a hazard does not break the tests.
 /// </summary>
 public class HazardPlayModeTests
 {
@@ -51,17 +51,22 @@ public class HazardPlayModeTests
     {
         var mud = Object.FindFirstObjectByType<MudZone>();
         Assert.IsNotNull(mud, "Level01 needs a MudZone.");
-        var box = mud.GetComponent<BoxCollider>().bounds;
+        var box = mud.GetComponent<BoxCollider>();
+        Vector3 center = mud.transform.TransformPoint(box.center);
+        Vector3 along = mud.transform.right; // The mud is laid along the trail.
+        float halfLength = box.size.x * mud.transform.lossyScale.x / 2f;
 
-        Teleport(new Vector3(box.center.x, 0.1f, 0f));
+        Teleport(new Vector3(center.x, mud.transform.position.y + 0.1f, center.z));
         yield return new WaitForSeconds(0.3f);
         Assert.AreEqual(0.5f, controller.SpeedMultiplier, 0.01f, "Mud should halve the speed.");
 
-        // Walk out of the right edge.
-        Teleport(new Vector3(box.max.x - 0.5f, 0.1f, 0f));
-        inputs.move = Vector2.up; // Forward, toward +X and out of the mud.
+        // Walk out of the far edge, along the trail.
+        Vector3 nearEdge = center + along * (halfLength - 0.5f);
+        Teleport(new Vector3(nearEdge.x, mud.transform.position.y + 0.1f, nearEdge.z));
+        PlayerTestRig.Face(player, along);
+        inputs.move = Vector2.up;
         yield return new WaitForSeconds(1f);
-        Assert.AreEqual(1f, controller.SpeedMultiplier, 0.01f, "Speed must return to normal after leaving the mud (player x=" + player.transform.position.x + ", mud max x=" + box.max.x + ").");
+        Assert.AreEqual(1f, controller.SpeedMultiplier, 0.01f, "Speed must return to normal after leaving the mud (player at " + player.transform.position + ").");
     }
 
     [UnityTest]
@@ -70,7 +75,7 @@ public class HazardPlayModeTests
         var log = Object.FindFirstObjectByType<RollingLog>();
         Assert.IsNotNull(log, "Level01 needs a RollingLog.");
 
-        Teleport(new Vector3(log.transform.position.x, 0.1f, 0f));
+        Teleport(log.transform.position - Vector3.up * 0.4f); // The log's centre is 0.5 m above the ground.
         bool stumbled = false;
         float end = Time.time + 0.6f;
         while (Time.time < end && !stumbled)
@@ -98,9 +103,10 @@ public class HazardPlayModeTests
         Assert.IsFalse(marker.gameObject.activeSelf, "The warning starts hidden.");
 
         // Step into the trigger, then leave straight away so the rock does not hit the player.
-        Teleport(new Vector3(trigger.position.x, 0.1f, 0f));
+        Vector3 ground = new Vector3(trigger.position.x, container.position.y + 0.1f, trigger.position.z);
+        Teleport(ground);
         yield return new WaitForSeconds(0.2f);
-        Teleport(new Vector3(trigger.position.x - 12f, 0.1f, 0f));
+        Teleport(ground + container.forward * 4.5f); // Step aside, off the path (local Z is the trail's left).
 
         yield return new WaitForSeconds(0.2f);
         Assert.IsTrue(marker.gameObject.activeSelf, "The ground warning must show before the rock falls.");

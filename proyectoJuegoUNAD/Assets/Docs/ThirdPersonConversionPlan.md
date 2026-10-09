@@ -28,24 +28,27 @@ The camera recenters behind the player on its own after a short pause, so a play
 - [x] PlayMode tests: movement follows the camera's forward and right, the player faces its travel direction, moves on both axes.
 
 ### Phase 2 — Forest trail level (L)
-- [ ] `ForestTrailBuilder` (replaces `LevelEnvironmentBuilder`): a winding trail from a table of waypoints, about 4 m wide and 250 m long, flush with the forest floor (no raised slab), split into the same three zones (Learning, Development, Challenge).
-- [ ] The playable area is the trail plus side clearings; dense trees and rocks with trunk colliders, and invisible walls behind them, keep the player inside. Scenery that can be touched gets colliders (this replaces the "scenery never collides" rule of the side-scroller).
-- [ ] Vertical variety: low banks and rock steps (≤ 1.2 m, jumpable), and from Zone 2 on, streams and ravines that cross the trail (≤ 2.5 m, jumpable with coyote time). Falling in loses (kill plane raised to y = -3).
+
+Phases 2–4 are written but have not been run in the Editor yet: open `Level01`, run the builder, then the camera setup, save, and run the tests. The builder creates `Assets/Generated/` (two meshes) and `Assets/Materials/Stream_Water.mat`; commit them with their `.meta` files.
+
+- [x] `LevelEnvironmentBuilder` rewritten (same menu, *Forest Guardian > Level > Build Level01 Environment*): a winding trail from a table of waypoints (Catmull-Rom), a 4 m dirt path about 281 m long, flush with a generated forest-floor mesh (no raised slab), split into the same three zones by trail distance. The first 30 m still run along +X from x = −12, so the start matches the old course. A `ForestTrail` component stores the centre line for tests and runtime code.
+- [x] The playable area is a 12 m corridor around the trail plus five clearings (always on the outer side of a bend); invisible walls (`PlayAreaBounds`) behind a line of trees keep the player inside, and the corridor narrows to the path at the goal so it cannot be walked around. Trees inside the corridor get a `Trunk` capsule collider; the scenery prefabs stay collider-free.
+- [x] Vertical variety: three earth banks across the corridor (0.8, 1.0 and 1.2 m), and from Zone 2 on, three streams across the trail (2.0, 2.2 and 2.5 m). Falling in loses (kill plane raised to y = −2).
 - [ ] Camera Deoccluder so trees between the camera and the player do not hide them.
 
 ### Phase 3 — Waste off the trail (M)
-- [ ] 12 waste items (target 10, two spare): at most 3 lie on the trail (Zone 1, to teach collecting). The rest are in side clearings, on top of rocks and stumps, across a stream, beside the rolling log and under the falling rock.
+- [x] 12 waste items (target 10, two spare), placed by the builder: two lie on the path in Zone 1 to teach collecting; the rest are high in clearings (jump), on a rock ledge, low over the three streams, in the rolling log's run, beside the falling rock and high on the last bank.
 - [ ] Navigation hint (GDD §11.5): a subtle footprint trail or sparkle pointing to the nearest waste still missing, so detours never leave a child lost.
-- [ ] Tests: count per zone, reachability (height from the surface below), at most 3 "on the trail at foot height", collecting all and reaching the goal wins.
+- [x] Tests: count per zone, inside the play area, reachability from the surface below, at most two "free on the path" and only in Zone 1, collecting all and reaching the goal wins.
 
 ### Phase 4 — Hazards on the trail (M)
-- [ ] `RollingLog` rolls between two points in any direction (down a slope across the trail), not only along X.
-- [ ] Mud patches on the trail and in clearings; the falling rock guards a waste item.
-- [ ] Hazard tests updated to the trail positions.
+- [x] `RollingLog` rolls along its own local X (`travel` metres centred on where it is placed), so it can run along or across the trail.
+- [x] Mud across the path (can be walked around: a choice between time and a detour); the falling rock guards a waste item.
+- [x] Hazard tests read positions and directions from the scene.
 
 ### Phase 5 — Docs and cleanup (S)
 - [ ] GDD §6 (controls, core loop), §8 (level structure) and `ActionPlan.md` decision 6 updated; `CLAUDE.md` updated.
-- [ ] Remove `LevelEnvironmentBuilder`, `CameraBounds` and the side-view tests once the trail level replaces them.
+- [ ] Remove `CameraBounds` (only the old side view used it) once the camera setup has been run on `Level01`.
 
 ## Risks
 

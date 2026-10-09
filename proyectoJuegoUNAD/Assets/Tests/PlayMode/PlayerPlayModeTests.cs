@@ -77,7 +77,7 @@ public class PlayerPlayModeTests
         Assert.IsTrue(controller.Grounded, "Player should land again.");
     }
 
-    // The lane is only 3 m deep (z from -1.5 to 1.5), so sideways runs are kept short to stay on it.
+    // Sideways runs are kept short so the player stays on the flat start of the trail.
     private const float SideRunSeconds = 0.25f;
 
     [UnityTest]
