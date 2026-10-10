@@ -18,7 +18,7 @@ The GDD contradicts itself in several places. Decide these first; the plan assum
 | 3 | Win target: 15 (§1) vs 10 (§5). | §1 vs §5.1 | **10**, as a serialized parameter. |
 | 4 | "Pollution indicator" bar (§9.3, §10) vs HUD with only counter + pause (§10.2, §12.1). | §9.3 vs §12.1 | Per-zone progress bar is **optional**; ship counter + pause first. |
 | 5 | Accessibility extras (color-blind filters, remappable keys, text-to-speech, adaptive music) are large. | §9.2, §11 | Split: coyote time, large pickup radius, contrast, redundant feedback are **core**; remapping is **should-have**; color-blind filters and TTS are **stretch**. |
-| 6 | Movement is described as horizontal (A/D, ←/→) in a 3D low-poly world. | §6 | **Confirmed:** 2.5D side-scroller — 3D art, movement on a single axis, side camera. |
+| 6 | Movement is described as horizontal (A/D, ←/→) in a 3D low-poly world. | §6 | **Superseded:** first built as a 2.5D side-scroller, then converted to **third person** (camera-relative movement on X and Z, Cinemachine orbit camera; see `ThirdPersonConversionPlan.md`). GDD §6 updated. |
 | 7 | "Falls off the course after hitting an obstacle" is vague. | §4.4, §5.2 | Lose = player Y below a kill-plane threshold. Obstacles only block; they never damage. |
 | 8 | Existing repo code is a different game ("Smog Buster" drone). | repo | Treat as reference only; do not reuse `DroneController`. Remove or archive it once Guardianes is on `main`. |
 
@@ -63,18 +63,18 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 **Done when:** `git status` is clean and `main` opens in Unity without errors.
 
 ### Phase 1 — Project skeleton (S)
-- [ ] Create the folder structure above and the assembly definition(s) if desired.
-- [ ] `LevelConfig` asset with default values; `GameManager` with the state machine and events; EditMode tests for it.
-- [ ] Spanish UI strings table.
-- [ ] Input actions: Move, Jump, Pause.
+- [x] Create the folder structure above and the assembly definition(s) if desired: `Scripts/<Feature>/`, `ForestGuardian.asmdef`, editor-only `ForestGuardian.Editor.asmdef`.
+- [x] `LevelConfig` asset with default values; `GameManager` with the state machine and events; EditMode tests for it (the state machine is the pure C# `GameSession`, tested in `GameSessionTests`).
+- [ ] Spanish UI strings table. (Not done: the Spanish texts live in `GameScreens.prefab`, `GameScreens.cs`, `WasteCounter.cs` and `MainMenuBuilder.cs`.)
+- [x] Input actions: Move, Jump, Pause (`StarterAssets.inputactions`, with Look for the camera).
 
 **Done when:** tests pass; `GameManager` can be driven from a test and reports win/lose correctly.
 
 ### Phase 2 — Greybox level and player movement (M)
-- [ ] Greybox `Level01` with three zones using primitives/ProBuilder; fixed side camera path.
-- [ ] `PlayerController`: run, jump, ground check, coyote time (0.2 s), jump buffer; tune feel in a dedicated test strip.
-- [ ] `SideScrollCamera` follow with smoothing and bounds.
-- [ ] Kill-plane → `OnLost` → restart.
+- [x] Greybox `Level01` with three zones: replaced by the forest trail built by `LevelEnvironmentBuilder` (about 281 m, zones by trail distance).
+- [x] `PlayerController`: run, jump, ground check, coyote time (0.2 s), jump buffer (0.15 s), plus a jump shadow (`JumpShadow`). Tests: `PlayerPlayModeTests`.
+- [x] `SideScrollCamera` follow with smoothing and bounds: replaced by the Cinemachine third-person camera `CM Player Camera` (*Forest Guardian > Player > Set Up Third Person Camera*).
+- [x] Kill-plane → `OnLost` → restart (`KillPlane`, y = −2, so falling into a stream loses).
 
 **Done when:** a placeholder capsule can traverse all three zones and falling resets the level.
 
@@ -82,21 +82,21 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 - [x] `Collectible` prefab with enlarged trigger, auto-collect, event to `GameManager`: `Scripts/Gameplay/Collectible.cs` and `Assets/Prefabs/Collectibles/` (base `Collectible` plus one variant per waste type, `Collectible_Bottle` … `Collectible_Battery`). The model bobs and spins on a `Visual` child; `Collectible.Collected` is the hook for VFX/SFX. Tests: `CollectiblePrefabPolicyTests` (EditMode, 3) and `CollectiblePlayModeTests` (PlayMode, 2).
 - [x] HUD counter `Residuos: X/10`: `Scripts/UI/WasteCounter.cs` on a `WasteCounter` child of `Assets/Prefabs/UI/GameScreens.prefab` (top-left, drawn under the win/lose panels). It listens to `GameSession.WasteCollected`, so the target comes from `LevelConfig.targetWaste`; spare items keep counting (e.g. 11/10). Tests: `WasteCounterTests` (EditMode, 6) and `WasteCounterPlayModeTests` (PlayMode, 2).
 - [x] Win and lose screens with Restart / Play again: `Scripts/UI/GameScreens.cs` and `Assets/Prefabs/UI/GameScreens.prefab` ("¡Bosque limpio!" / "¡Inténtalo de nuevo!", the button is preselected so Enter or Space restarts), plus a notice "Te faltan N residuos" when the goal is reached early. Placeholder font: the built-in `LegacyRuntime`; swap it in the art pass.
-- [x] Goal at the end of the course (decided 2026-10-08): winning needs the target waste **and** reaching `LevelGoal` (`Scripts/Gameplay/LevelGoal.cs`, prefab `Assets/Prefabs/Level/LevelGoal.prefab`, placeholder pole and flag at x = 166.5). Before this, the 10th item won on the spot and, with no win screen, the game looked frozen. `GameSession.ReachGoal()` holds the rule; tests: `GameSessionTests` (EditMode) and `GoalAndScreensPlayModeTests` (PlayMode, 5).
-- [x] Place the 10+ collectibles per the zone budget: 12 in `Level01` under the `Collectibles` root, 3 / 4 / 5 per zone (two spare over the target of 10). Three float above obstacles (x = 55, 113, 144; root y = 1.9) so they need a jump; the rest sit on the lane between obstacles and clear of the mud, the rolling log and the falling rock. Instead of an editor validator, `LevelCollectiblesPlayModeTests` (PlayMode, 5) checks the count against `LevelConfig.targetWaste`, the per-zone counts, lane and hazard clearance, jump reach, and that collecting them all wins.
+- [x] Goal at the end of the course (decided 2026-10-08): winning needs the target waste **and** reaching `LevelGoal` (`Scripts/Gameplay/LevelGoal.cs`, prefab `Assets/Prefabs/Level/LevelGoal.prefab`, placeholder pole and flag; `LevelEnvironmentBuilder` now places it 4 m before the end of the trail). Before this, the 10th item won on the spot and, with no win screen, the game looked frozen. `GameSession.ReachGoal()` holds the rule; tests: `GameSessionTests` (EditMode) and `GoalAndScreensPlayModeTests` (PlayMode, 5).
+- [x] Place the 10+ collectibles per the zone budget: 12 in `Level01` under the `Collectibles` root, 3 / 4 / 5 per zone (two spare over the target of 10), now placed by `LevelEnvironmentBuilder` along the trail. Only two lie free on the path (Zone 1); the rest are up high in a clearing, on a ledge, over a stream or next to a hazard. Instead of an editor validator, `LevelCollectiblesPlayModeTests` (PlayMode, 5) checks the count against `LevelConfig.targetWaste`, the per-zone counts, lane and hazard clearance, jump reach, and that collecting them all wins.
 
 **Done when:** the full GDD core loop works end to end with placeholder art.
 
 ### Phase 4 — Obstacles, hazards, zones, pause (L)
-- [ ] Static obstacle prefabs: log, rock, fence with correct colliders; jump-height validation (an editor script that checks every obstacle is clearable at max jump height).
-- [ ] Dynamic hazards (all single-axis, deterministic and telegraphed so they stay fair for ages 10–14):
+- [ ] Static obstacle prefabs: log, rock, fence with correct colliders; jump-height validation (an editor script that checks every obstacle is clearable at max jump height). Logs, stumps and rocks are done in `Prefabs/Environment/Obstacles/`, and `EnvironmentPrefabPolicyTests` keeps them ≤ 1.2 m; the fence is still missing.
+- [x] Dynamic hazards (all single-axis, deterministic and telegraphed so they stay fair for ages 10–14): prefabs in `Prefabs/Hazards/`, tests in `HazardPlayModeTests`.
   - `RollingLog`: rolls along the course on a fixed path/speed; contact triggers `Stumble` (brief knockback, no damage) and is lethal only if it pushes the player off the course.
   - `FallingRock`: spawns from a marked trigger with a ground-shadow warning before impact; same `Stumble` rule.
   - `MudZone`: trigger volume that multiplies move speed (config value, e.g. 0.5) and sets the `Slow` animator state while inside; restores speed on exit.
   - Tunable parameters live in `LevelConfig` or per-prefab serialized fields; hazards pause with `Time.timeScale`.
 - [ ] Extend the jump-clearance validator to cover hazard timing gaps.
-- [ ] Zone difficulty pass: Zone 1 wide and gentle, Zone 2 mixed, Zone 3 dense with elevated collectibles.
-- [ ] `ZoneController`: recovery event, unlocks the next segment (gate removed) and toggles contaminated → recovered visuals.
+- [x] Zone difficulty pass: Zone 1 wide and gentle, Zone 2 mixed, Zone 3 dense with elevated collectibles (`LevelEnvironmentBuilder` tables: 3 / 4 / 5 obstacles, streams only from Zone 2).
+- [ ] `ZoneController`: recovery event, unlocks the next segment (gate removed) and toggles contaminated → recovered visuals. Not on `main` yet.
 - [x] Pause menu (GDD §6.6): Esc pauses (`Time.timeScale` = 0) and shows `PausePanel` in `Assets/Prefabs/UI/GameScreens.prefab` with "Continuar" (preselected) and "Reiniciar"; Esc again or Continuar resumes, and the cursor is released while paused. Tests: `GoalAndScreensPlayModeTests` (3 pause tests).
 - [x] "Salir" in the pause menu (GDD §10.3): `GameManager.QuitToMenu()` restores time and loads `MainMenu`. Test: `GoalAndScreensPlayModeTests.Pause_QuitGoesBackToTheMainMenu`.
 - [ ] An on-screen pause button (the cursor is locked while playing, so it needs a gamepad/touch use case first).
@@ -107,16 +107,16 @@ Each phase ends with something playable and a commit. Estimates are relative eff
 - [ ] Source and register assets (Kenney, Mixamo, Asset Store, OpenGameArt). **Fill the license table in GDD §13.1 as each asset is added** — do not defer.
 - [ ] Character with Idle / Run / Jump / Victory / Slow / Stumble animations and an Animator Controller (parameters from Phase 2).
 - [ ] Trees, vegetation, rocks, mountains, fences, logs; recovered-zone props (new vegetation, clean water).
-- [x] Waste models: the team's own low-poly models in Blender (`Coleccionables.blend`, collection `Residuos`): `Waste_Bottle`, `Waste_Can`, `Waste_Paper`, `Waste_Bag`, `Waste_JuiceBox`, `Waste_Cup`, `Waste_Jar`, `Waste_Battery`. Each has a body material and an emissive `Rim` material for the bloom, flat shading and a centred pivot. Still to do: export to FBX (leave out the hidden default `Cube`) and set the emission again in Unity, since FBX import usually drops it.
-- [ ] URP lighting, low-poly materials, fog/tint that shifts from polluted to clean per zone.
+- [x] Waste models: the team's own low-poly models in Blender (`Coleccionables.blend`, collection `Residuos`): `Waste_Bottle`, `Waste_Can`, `Waste_Paper`, `Waste_Bag`, `Waste_JuiceBox`, `Waste_Cup`, `Waste_Jar`, `Waste_Battery`. Each has a body material and an emissive `Rim` material for the bloom, flat shading and a centred pivot. Exported to `Assets/Models/Waste/` with URP materials in `Assets/Materials/Waste/` (the `*_Rim` materials emit above the bloom threshold).
+- [ ] URP lighting, low-poly materials, fog/tint that shifts from polluted to clean per zone. Lighting, fog and the `Level01 Volume` are done (*Forest Guardian > Level > Apply Level01 Atmosphere*); the polluted-to-clean shift is not.
 - [ ] HUD icons, pause icon, win/lose panels; legible sans-serif font (e.g. Atkinson Hyperlegible, check license); contrast ≥ 4.5:1.
 
 **Done when:** the level looks consistent, and polluted vs recovered state reads at a glance.
 
 ### Phase 6 — Audio and feedback (M)
 - [ ] `AudioManager` (mixer groups: Music, Ambience, SFX, UI; volume saved in `PlayerPrefs`).
-- [ ] SFX: footsteps, jump, land, collect, zone-recovery stinger, UI click, pause.
-- [ ] Ambience: polluted vs clean loops crossfaded by zone state.
+- [ ] SFX: footsteps, jump, land, collect, zone-recovery stinger, UI click, pause. Done: footsteps and landing (Starter Assets) and collect (`LevelAudio`).
+- [ ] Ambience: polluted vs clean loops crossfaded by zone state. Done: two forest loops crossfaded by `LevelAudio`, lowered while paused; the polluted/clean switch waits for `ZoneController`.
 - [ ] Music: base loop first; the string and wind layers are optional (stems enabled as waste is collected).
 - [ ] Collection VFX (particle burst + `+1` pop on HUD). Every cue has a visual twin and vice versa (GDD §11.3).
 
@@ -176,5 +176,5 @@ _(Fill in during Phase 0.)_
 - Target waste count: 10 — ☑ confirmed
 - Win condition: target waste plus reaching the goal at the end of the course (GDD §5.1–5.3 updated) — ☑ confirmed 2026-10-08
 - Waste types: eight (bottles, cans, paper, plastic bags, juice boxes, disposable cups, glass jars, batteries), all with the same behaviour; GDD §6.2, §8.4 and §13.1 updated — ☑ confirmed
-- Movement model: 3D look with side-scroller movement — ☑ confirmed
+- Movement model: 3D look with side-scroller movement — superseded by third person (camera-relative movement, Cinemachine orbit camera)
 - Rolling logs, falling rocks, mud: ☑ in scope (core, Phase 4–5)
