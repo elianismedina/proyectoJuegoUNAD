@@ -101,11 +101,42 @@ public class EnvironmentPrefabPolicyTests
             var p = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
             var colliders = p.GetComponentsInChildren<Collider>(true);
             Assert.IsNotEmpty(colliders, p.name + " needs a trigger collider");
+            Assert.IsTrue(System.Array.Exists(colliders, c => c.isTrigger), p.name + " needs a trigger collider");
+
+            // Only the rolling log's own solid body may block: the log is solid, mud and the rock's warning area are not.
+            var log = p.GetComponent<RollingLog>();
             foreach (var c in colliders)
             {
-                Assert.IsTrue(c.isTrigger, p.name + "/" + c.name + " must be a trigger (hazards stumble or slow, they do not block)");
+                bool logBody = log != null && c.transform.parent == p.transform && c.name == "Body";
+                if (!logBody)
+                    Assert.IsTrue(c.isTrigger, p.name + "/" + c.name + " must be a trigger (hazards stumble or slow, they do not block)");
                 Assert.AreEqual(hazard, c.gameObject.layer, p.name + "/" + c.name + " must be on the Hazard layer");
             }
         }
+    }
+
+    [Test]
+    public void RollingLog_HasASolidBodyInsideItsStumbleTrigger()
+    {
+        var p = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Hazards/RollingLog_Hazard.prefab");
+        Assert.IsNotNull(p);
+        var body = p.transform.Find("Body")?.GetComponent<CapsuleCollider>();
+        Assert.IsNotNull(body, "RollingLog_Hazard needs a solid capsule child named Body.");
+        Assert.IsFalse(body.isTrigger, "The log body must be solid so the player cannot walk through it.");
+
+        var trigger = p.GetComponent<CapsuleCollider>();
+        Assert.IsNotNull(trigger, "RollingLog_Hazard needs a capsule trigger on its root.");
+        Assert.IsTrue(trigger.isTrigger);
+        Assert.AreEqual(trigger.direction, body.direction, "Trigger and body must lie along the same axis.");
+        Assert.Greater(trigger.radius, body.radius, "The trigger must reach past the body, or the player is blocked before stumbling.");
+        Assert.Greater(trigger.height, body.height, "The trigger must reach past both ends of the body.");
+
+        // The body must cover the whole visible log, not just its middle.
+        var renderer = p.GetComponentInChildren<MeshRenderer>();
+        var mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+        Vector3 size = renderer.transform.TransformVector(mesh.bounds.size);
+        float logLength = Mathf.Abs(size.z);
+        Assert.AreEqual(2, body.direction, "The log lies along its local Z.");
+        Assert.GreaterOrEqual(body.height, logLength - 0.1f, "The body must cover the length of the log (" + logLength + " m).");
     }
 }

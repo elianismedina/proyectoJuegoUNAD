@@ -16,8 +16,11 @@ public class PlayerHazard : MonoBehaviour
     {
         if (!other.TryGetComponent(out PlayerController player)) return;
 
-        // Push the player straight away from the hazard (Stumble keeps only the ground-plane part).
-        Vector3 away = player.transform.position - transform.position;
+        // Push the player straight away from the nearest part of the hazard (Stumble keeps only the
+        // ground-plane part), so hitting the end of a long log does not throw the player along it.
+        Vector3 position = player.transform.position;
+        Vector3 away = position - GetComponent<Collider>().ClosestPoint(position);
+        if (away.sqrMagnitude < 0.0001f) away = position - transform.position;
         player.Stumble(away);
     }
 }
