@@ -1,21 +1,27 @@
-
-# Unity generated folders
+# Unity: carpetas generadas y caché
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
+[Bb]uild/
+[Bb]uilds/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
-
-# Unity cache and generated files
 [Mm]emoryCaptures/
 [Rr]ecordings/
+.utm/
+*.log
 
-# IDE files
+# Archivos de Blender
+*.blend1
+*.blend1.meta
+
+# Archivos de IDE y Visual Studio
 .vs/
 .vscode/
 .idea/
 *.csproj
 *.sln
+*.slnx
 *.suo
 *.user
 *.userprefs
@@ -26,8 +32,60 @@
 *.mdb
 *.opendb
 *.VC.db
+ExportedObj/
+.consulo/
+*.tmp
+*.user
 
-# Operating system files
+# JetBrains Rider
+/Assets/Plugins/Editor/JetBrains*
+*.DotSettings.user
+
+# Archivos de Unity generados
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+mono_crash.*
+
+# Compilaciones
+*.apk
+*.aab
+*.unitypackage
+*.unitypackage.meta
+*.app
+
+# Crashlytics
+crashlytics-build.properties
+
+# Pruebas automáticas
+InitTestScene*.unity*
+
+# Addressables
+/ServerData
+/[Aa]ssets/StreamingAssets/aa*
+/[Aa]ssets/AddressableAssetsData/link.xml*
+/[Aa]ssets/Addressables_Temp*
+/[Aa]ssets/AddressableAssetsData/*/*.bin*
+
+# Visual Scripting
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
+
+# Escenas generadas por pruebas
+/[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# Caché de dependencias de escenas
+/[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Archivos del sistema operativo
 desktop.ini
-Thumbs.db
-.DS_Store
+
+# Caché de Unity del proyecto anidado
+/proyecto Juego UNAD/Library/
+/proyecto Juego UNAD/Temp/
+/proyecto Juego UNAD/Obj/
+/proyecto Juego UNAD/Logs/
+/proyecto Juego UNAD/UserSettings/
