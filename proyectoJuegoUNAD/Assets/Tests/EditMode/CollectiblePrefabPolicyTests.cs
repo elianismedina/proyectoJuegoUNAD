@@ -78,4 +78,28 @@ public class CollectiblePrefabPolicyTests
             Assert.IsTrue(glows, p.name + " needs an emissive rim material above the bloom threshold");
         }
     }
+
+    // Built by Forest Guardian > Collectibles > Build Waste Beacon: a light beam and sparkles seen from far away.
+    [Test]
+    public void Variants_HaveABeaconThatStandsStillAndCastsNoShadow()
+    {
+        foreach (var p in LoadVariants())
+        {
+            var beacon = p.transform.Find("Beacon");
+            Assert.IsNotNull(beacon, p.name + " needs a Beacon child (run Forest Guardian > Collectibles > Build Waste Beacon)");
+            Assert.AreEqual(p.transform, beacon.parent, "The beacon must sit on the root, not under Visual, so it does not bob or spin.");
+
+            var beam = beacon.Find("Beam");
+            Assert.IsNotNull(beam, p.name + " beacon needs its Beam");
+            var beamRenderer = beam.GetComponent<MeshRenderer>();
+            Assert.IsNotNull(beamRenderer.sharedMaterial, p.name + " beam needs its material");
+            Assert.IsNotNull(beam.GetComponent<MeshFilter>().sharedMesh, p.name + " beam needs its mesh");
+            Assert.AreEqual(UnityEngine.Rendering.ShadowCastingMode.Off, beamRenderer.shadowCastingMode, "A light beam must not cast a shadow.");
+            Assert.GreaterOrEqual(beam.GetComponent<MeshFilter>().sharedMesh.bounds.size.y, 4f, "The beam must be tall enough to see over bushes.");
+
+            var sparkles = beacon.GetComponentInChildren<ParticleSystem>(true);
+            Assert.IsNotNull(sparkles, p.name + " beacon needs its sparkles");
+            Assert.IsTrue(sparkles.main.loop, "The sparkles must keep going until the item is collected.");
+        }
+    }
 }
