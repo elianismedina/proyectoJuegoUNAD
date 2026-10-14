@@ -158,7 +158,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SideScrollerController
   MoveSpeed: 6
   SpeedChangeRate: 10
-  RotationSmoothTime: 0.08
+  RotationSmoothTime: 0.15
   InputDeadZone: 0.2
   JumpHeight: 1.7
   Gravity: -20

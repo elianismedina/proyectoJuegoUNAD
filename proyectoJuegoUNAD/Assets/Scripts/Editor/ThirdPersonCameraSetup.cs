@@ -3,6 +3,7 @@ using Unity.Cinemachine.TargetTracking;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Turns the side-view Cinemachine camera of Level01 into a third person camera behind the player
@@ -22,9 +23,25 @@ public static class ThirdPersonCameraSetup
     private static readonly Vector2 PitchRange = new Vector2(-5f, 60f);
     private static readonly Vector3 AimOffset = new Vector3(0f, 1.2f, 0f);
 
-    // Recentering: wait this long without mouse input, then swing behind the player over this many seconds.
-    private const float RecenterWait = 1.5f;
-    private const float RecenterTime = 1f;
+    // Recentering: wait this long without mouse input, then ease behind the player over this many seconds.
+    // Movement is camera-relative, so holding A/D keeps the player 90° off the camera and recentering chases it
+    // in a circle at roughly 90° / Time per second. A long Time keeps that turn slow (about 35° per second when
+    // play-tested, starting only after the wait) instead of the dizzy 160° per second spin of the old 1 s swing
+    // (playtest critique). Pitch only settles back, so it can be quicker.
+    private const float RecenterWait = 2.5f;
+    private const float RecenterTime = 4f;
+    private const float PitchRecenterTime = 2.5f;
+
+    // Mouse / right stick orbit, read from Cinemachine's own Look action (mouse in pixels per second × 0.1,
+    // stick × 100 degrees per second), which suits its speed-based axis driver. The gains bring the mouse down to
+    // 0.06° per pixel and the stick to 60° per second (pitch a bit slower); the accel / decel times ease the
+    // start and stop of every orbit so a flick of the mouse never jerks the view.
+    private const string LookActionAsset = CinemachineCore.kPackageRoot + "/Runtime/Input/CinemachineDefaultInputActions.inputactions";
+    private const string LookActionName = "Look";
+    private const float OrbitGainX = 0.6f;
+    private const float OrbitGainY = -0.4f; // negative: mouse up looks up
+    private const float OrbitAccelTime = 0.1f;
+    private const float OrbitDecelTime = 0.2f;
 
     [MenuItem("Forest Guardian/Player/Set Up Third Person Camera")]
     public static void SetUp()
@@ -98,19 +115,44 @@ public static class ThirdPersonCameraSetup
         orbit.VerticalAxis.Value = DefaultPitch;
         orbit.VerticalAxis.Recentering.Enabled = true;
         orbit.VerticalAxis.Recentering.Wait = RecenterWait;
-        orbit.VerticalAxis.Recentering.Time = RecenterTime;
+        orbit.VerticalAxis.Recentering.Time = PitchRecenterTime;
 
         var composer = GetOrAdd<CinemachineRotationComposer>(cameraObject);
         composer.TargetOffset = root != null ? Vector3.zero : AimOffset;
         composer.Damping = new Vector2(0.4f, 0.4f);
 
-        // Added last so it discovers the orbit's axes and fills in its default mouse / right stick bindings.
+        // Added last so it discovers the orbit's axes. Its automatic default bindings are not reliable when the
+        // component is added from a script (they came out empty), so the look controllers are bound explicitly.
         var input = GetOrAdd<CinemachineInputAxisController>(cameraObject);
         input.SynchronizeControllers();
+        var look = LoadLookAction();
+        foreach (var controller in input.Controllers)
+        {
+            bool isX = controller.Name == "Look Orbit X";
+            if (!isX && controller.Name != "Look Orbit Y") continue;
+            controller.Enabled = true;
+            controller.Input.InputAction = look;
+            controller.Input.Gain = isX ? OrbitGainX : OrbitGainY;
+            controller.Input.CancelDeltaTime = false;
+            controller.Driver.AccelTime = OrbitAccelTime;
+            controller.Driver.DecelTime = OrbitDecelTime;
+        }
+        if (look == null)
+            Debug.LogWarning("ThirdPersonCameraSetup: no '" + LookActionName + "' action in " + LookActionAsset + "; the mouse will not orbit.");
 
         EditorSceneManager.MarkSceneDirty(scene);
         Selection.activeGameObject = cameraObject;
         Debug.Log("ThirdPersonCameraSetup: '" + CameraName + "' now orbits " + target.name + ". Save the scene to keep it.");
+    }
+
+    private static InputActionReference LoadLookAction()
+    {
+        foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(LookActionAsset))
+        {
+            if (asset is InputActionReference reference && reference.action != null && reference.action.name == LookActionName)
+                return reference;
+        }
+        return null;
     }
 
     private static T GetOrAdd<T>(GameObject go) where T : Component
