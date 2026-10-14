@@ -20,8 +20,9 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Acceleration and deceleration rate (higher = snappier).")]
     public float SpeedChangeRate = 10f;
 
+    // 0.15 s eases the character round on A/D instead of snapping it 90° (which felt jerky) and still lets it dodge.
     [Tooltip("How long the character takes to turn toward its travel direction.")]
-    public float RotationSmoothTime = 0.08f;
+    public float RotationSmoothTime = 0.15f;
 
     [Tooltip("Move input below this magnitude is ignored (stick drift).")]
     [Range(0f, 0.5f)] public float InputDeadZone = 0.2f;
