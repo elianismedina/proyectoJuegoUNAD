@@ -88,6 +88,31 @@ public static class LevelEnvironmentBuilder
         ("Obstacle_Stump_01", 258f, 0.8f), ("Obstacle_Rock_04", 264f, -0.5f),
     };
 
+    // Barriers that close the way (playtest request: "más obstáculos, colocados para cerrar el paso"), all ≤ 1.2 m so
+    // they are jumped, never a dead end. Kept off the banks (an obstacle on a bank would exceed 1.2 m above the trail),
+    // the streams, the hazards, the waste and the start, where the PlayMode tests run (s < 30).
+    private enum Barrier
+    {
+        LogAcrossPath, // one log turned across the 4 m path: jump it or step round it through the grass
+        LogFence,      // three logs end to end across the whole 12 m corridor: the only way on is to jump
+        RockRow,       // three rocks across the path, gaps (0.44 m) narrower than the player (0.6 m)
+        StumpRow,      // four stumps across the path, gaps 0.36 m
+    }
+
+    private static readonly (float s, Barrier kind)[] Barriers =
+    {
+        // Zone 1: one of each easy kind, to teach that a closed way means "jump".
+        (35f, Barrier.LogAcrossPath), (61f, Barrier.LogFence),
+        // Zone 2.
+        (110f, Barrier.RockRow), (146f, Barrier.LogFence), (176f, Barrier.StumpRow),
+        // Zone 3: the most, and closer together.
+        (202f, Barrier.LogFence), (211f, Barrier.StumpRow), (235.5f, Barrier.LogAcrossPath), (268f, Barrier.RockRow),
+    };
+
+    private const float BarrierRowSpacing = 1.4f;   // rock row: centre to centre (Rock_04 is 0.96 m wide)
+    private const float StumpRowSpacing = 1f;       // stump row: centre to centre (Stump_01 is 0.64 m wide)
+    private const float LogLength = 4f;             // Obstacle_Log_01, along its local X
+
     // Rocks off the path that hold a waste item on top.
     private static readonly (string prefab, float s, float lateral)[] Ledges =
     {
@@ -148,6 +173,8 @@ public static class LevelEnvironmentBuilder
 
         foreach (var (prefab, s, lateral) in Obstacles)
             PlaceOnTrail(Prefab(prefab, "Obstacles"), ZoneChild(zoneRoots, trail, s, "Obstacles"), trail, s, lateral, reserved);
+        foreach (var (s, kind) in Barriers)
+            PlaceBarrier(kind, ZoneChild(zoneRoots, trail, s, "Obstacles"), trail, s, reserved);
 
         var ledgeTops = new Dictionary<float, float>();
         foreach (var (prefab, s, lateral) in Ledges)
@@ -502,6 +529,38 @@ public static class LevelEnvironmentBuilder
     }
 
     private static void Reserve(List<Vector2> reserved, Vector3 position) => reserved.Add(new Vector2(position.x, position.z));
+
+    private static void PlaceBarrier(Barrier kind, Transform parent, ForestTrail trail, float s, List<Vector2> reserved)
+    {
+        switch (kind)
+        {
+            case Barrier.LogAcrossPath:
+                PlaceAcross("Obstacle_Log_01", parent, trail, s, 0f, reserved);
+                break;
+            case Barrier.LogFence:
+                for (int i = -1; i <= 1; i++)
+                    PlaceAcross("Obstacle_Log_01", parent, trail, s, i * LogLength, reserved);
+                break;
+            case Barrier.RockRow:
+                for (int i = -1; i <= 1; i++)
+                    PlaceOnTrail(Prefab("Obstacle_Rock_04", "Obstacles"), parent, trail, s, i * BarrierRowSpacing, reserved);
+                break;
+            case Barrier.StumpRow:
+                for (int i = 0; i < 4; i++)
+                    PlaceOnTrail(Prefab("Obstacle_Stump_01", "Obstacles"), parent, trail, s, (i - 1.5f) * StumpRowSpacing, reserved);
+                break;
+        }
+    }
+
+    // The trail frame has local X along the trail, so a log (long along its X) is turned 90° to lie across it.
+    // Both ends are reserved too, so no tree grows through them.
+    private static void PlaceAcross(string prefab, Transform parent, ForestTrail trail, float s, float lateral, List<Vector2> reserved)
+    {
+        var go = PlaceOnTrail(Prefab(prefab, "Obstacles"), parent, trail, s, lateral, reserved);
+        go.transform.rotation = Frame(trail, s) * Quaternion.Euler(0f, 90f, 0f);
+        Reserve(reserved, OnTrail(trail, s, lateral + LogLength * 0.5f, 0f));
+        Reserve(reserved, OnTrail(trail, s, lateral - LogLength * 0.5f, 0f));
+    }
 
     private static void PlaceHazards(ForestTrail trail, List<Vector2> reserved)
     {
