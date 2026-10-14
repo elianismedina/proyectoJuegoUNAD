@@ -124,16 +124,22 @@ public static class LevelEnvironmentBuilder
     private const float MudWidthScale = 1.5f; // The mud slab is 3 m deep; 4.5 m covers the 4 m path.
 
     // Waste: type, trail distance, sideways offset, height above the ground below it (or above the ledge it sits on).
-    // At most three lie on the path at foot height (Zone 1, to teach collecting); the rest need a detour, a jump or a risk.
+    // Every item needs a jump (playtest request: "que exijan saltar"). The trigger is a 0.7 m sphere centred 0.55 m above
+    // the item, so its bottom is lift − 0.15 m; the player capsule is 1.6 m tall and a jump lifts it 1.7 m. A lift of
+    // 1.9 m or more therefore keeps the item out of reach on foot (bottom ≥ 1.75 m) and easily within a jump (≤ 3.3 m).
+    // Over a stream, the lift is measured from the trail level and the item stays more than 1 m from both banks, so it is
+    // taken in mid-jump; on a ledge, the jump is the one up onto the rock.
     private static readonly (string type, float s, float lateral, float lift, bool onLedge)[] Waste =
     {
-        // Zone 1: two on the path, one on a rock in the first clearing.
-        ("Bottle", 16f, 0f, 0f, false), ("Can", 45f, 0.8f, 0f, false), ("Paper", 78f, 11f, 0.05f, true),
-        // Zone 2: high in a clearing, low over a stream, in the rolling log's path, high in a clearing.
-        ("Bag", 114f, 12f, 2.2f, false), ("Cup", 104f, 3f, 0.3f, false), ("Bottle", 161f, 0f, 0f, false), ("Battery", 172f, -11f, 2.2f, false),
-        // Zone 3: low over a stream, next to the falling rock, high on the last bank, low over the last stream, high in a clearing.
-        ("Jar", 196f, -2.5f, 0.3f, false), ("Can", 207.5f, 0f, 0f, false), ("Paper", 222f, 9f, 2.2f, false),
-        ("Bag", 230.4f, -3f, 0.5f, false), ("Battery", 252f, 10f, 2.4f, false),
+        // Zone 1 teaches "jump to collect": over the path, over the log fence (higher, so it is out of reach even standing
+        // on a log: it is taken while jumping the fence), on a rock in the first clearing.
+        ("Bottle", 16f, 0f, 1.9f, false), ("Can", 61f, 0f, 2.5f, false), ("Paper", 78f, 11f, 0.05f, true),
+        // Zone 2: high in a clearing, over a stream, above the rolling log's path, high in a clearing.
+        ("Bag", 114f, 12f, 2.2f, false), ("Cup", 104f, 3f, 1.9f, false), ("Bottle", 161f, 0f, 2f, false), ("Battery", 172f, -11f, 2.2f, false),
+        // Zone 3: over a stream, above the falling rock's spot, high on the last bank, over the last stream (jumping down
+        // from the 1.2 m bank, so it is 1.9 m above the bank top), high in a clearing.
+        ("Jar", 196f, -2.5f, 1.9f, false), ("Can", 207.5f, 0f, 2f, false), ("Paper", 222f, 9f, 2.2f, false),
+        ("Bag", 230.4f, -3f, 3.1f, false), ("Battery", 252f, 10f, 2.4f, false),
     };
 
     // ------------------------------------------------------------------ scenery
