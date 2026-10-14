@@ -83,6 +83,9 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    /// <summary>Raised when a hazard actually knocks the player back (not while immune or with input disabled).</summary>
+    public static event System.Action<PlayerController> Stumbled;
+
     /// <summary>When false, player input is ignored (paused, won or lost).</summary>
     public bool InputEnabled { get; set; } = true;
 
@@ -206,6 +209,7 @@ public class PlayerController : MonoBehaviour
         _jumpBufferTimer = 0f;
 
         if (_hasAnimator) _animator.SetTrigger(_animIDStumble);
+        Stumbled?.Invoke(this);
         return true;
     }
 

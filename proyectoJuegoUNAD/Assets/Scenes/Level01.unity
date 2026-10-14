@@ -96584,6 +96584,15 @@ MonoBehaviour:
   pickupClip: {fileID: 8300000, guid: 9f463ca2dddd60b4aad9e563bec0461a, type: 3}
   pickupVolume: 0.8
   pickupPitchVariation: 0.06
+  stumbleClip: {fileID: 8300000, guid: 9c882f7710825254c8662bca5d9d0202, type: 3}
+  stumbleVolume: 0.8
+  goalMissingClip: {fileID: 8300000, guid: 51034601df76a1544b85937c6f8a5b57, type: 3}
+  goalMissingVolume: 0.9
+  winClip: {fileID: 8300000, guid: 8f4dcf519b0bf7a41be60740d514e532, type: 3}
+  winVolume: 0.9
+  loseClip: {fileID: 8300000, guid: e0072ebbc3ab18445b6edede2b459176, type: 3}
+  loseVolume: 0.9
+  endVolumeScale: 0.35
 --- !u!4 &1789100003
 Transform:
   m_ObjectHideFlags: 0
