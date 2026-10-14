@@ -8,7 +8,8 @@ using UnityEngine.TestTools;
 /// <summary>
 /// Checks the waste placed under the <c>Collectibles</c> root of Level01: enough to reach the target, more of it
 /// in each zone (GDD §8.2), all inside the play area and reachable with a jump, few of them lying on the path at foot
-/// height (the rest need a detour, a jump or a risk), and collecting all of it, then reaching the goal, wins the level.
+/// height (the rest need a detour, a jump or a risk), none collectable without jumping, and collecting all of it, then
+/// reaching the goal, wins the level.
 /// </summary>
 public class LevelCollectiblesPlayModeTests
 {
@@ -142,6 +143,39 @@ public class LevelCollectiblesPlayModeTests
             Assert.AreEqual(0, trail.ZoneAt(s), c.name + " lies free on the path outside Zone 1; move it off the path, up high or next to a hazard.");
         }
         Assert.LessOrEqual(free, MaxFreeWaste, "Too much waste lies free on the path.");
+    }
+
+    // Something the player must jump onto (a rock, a log) rather than step onto: higher than the controller's step offset.
+    private const float JumpOntoHeight = 0.5f;
+
+    // Playtest request "que exijan saltar": no item may be touched by a player standing on anything they can walk onto.
+    // The player touches the trigger when their capsule centre comes within (capsule radius + trigger radius) of the
+    // trigger's centre, so every spot that close is checked: either it is too low for the standing capsule to reach the
+    // trigger, or it is the top of something the player had to jump onto. Over a stream there is nothing to stand on.
+    [Test]
+    public void EveryWaste_NeedsAJump()
+    {
+        foreach (var c in items)
+        {
+            var bounds = TriggerBounds(c);
+            Vector3 centre = bounds.center;
+            float horizontal = characterController.radius + bounds.extents.x;
+
+            for (int ring = 0; ring <= 4; ring++)
+            for (int k = 0; k < (ring == 0 ? 1 : 12); k++)
+            {
+                float r = horizontal * ring / 4f, a = k * Mathf.PI / 6f;
+                // From just above the trigger, so a ledge whose top is inside the trigger is still found.
+                Vector3 spot = new Vector3(centre.x + Mathf.Cos(a) * r, bounds.max.y + 0.1f, centre.z + Mathf.Sin(a) * r);
+                if (!Physics.Raycast(spot, Vector3.down, out var hit, 10f, ~0, QueryTriggerInteraction.Ignore)) continue;
+                if (bounds.min.y - hit.point.y >= characterController.height) continue; // too low to reach standing
+
+                // Standing on a rock or log is fine if getting up there took a jump.
+                bool overFloor = Physics.Raycast(hit.point + Vector3.down * 0.01f, Vector3.down, out var floor, 10f, LayerMask.GetMask("Ground"), QueryTriggerInteraction.Ignore);
+                bool jumpedOnto = hit.collider.name != "ForestFloor" && overFloor && hit.point.y - floor.point.y >= JumpOntoHeight;
+                Assert.IsTrue(jumpedOnto, c.name + " can be collected without jumping, standing on " + hit.collider.name + " at " + hit.point.ToString("F2") + ".");
+            }
+        }
     }
 
     [UnityTest]
