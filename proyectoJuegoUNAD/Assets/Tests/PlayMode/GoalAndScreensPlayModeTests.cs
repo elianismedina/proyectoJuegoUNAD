@@ -9,6 +9,7 @@ using UnityEngine.UI;
 /// The goal at the end of Level01 and the end-of-game screens: reaching the goal early shows how much waste is
 /// missing and keeps the game going, reaching it with enough waste shows "¡Bosque limpio!", and falling shows
 /// "¡Inténtalo de nuevo!". Esc opens the pause menu, whose buttons resume, restart or go back to the main menu.
+/// The level opens with a banner that states the goal for a few seconds.
 /// </summary>
 public class GoalAndScreensPlayModeTests
 {
@@ -94,7 +95,23 @@ public class GoalAndScreensPlayModeTests
         Assert.IsTrue(controller.InputEnabled, "The player must be able to go back for the missing waste.");
         Assert.IsTrue(screens.NoticeShown);
         StringAssert.Contains("Te faltan 3 residuos", screens.NoticeText);
+        Assert.IsFalse(screens.ObjectiveShown, "The notice replaces the objective banner.");
         Assert.IsFalse(screens.WinShown);
+    }
+
+    [UnityTest]
+    public IEnumerator LevelStart_ShowsTheObjectiveThenHidesIt()
+    {
+        var session = GameManager.Instance.Session;
+        Assert.IsTrue(screens.ObjectiveShown, "The goal must be on screen when the level starts.");
+        Assert.AreEqual(GameScreens.FormatObjective(session.TargetWaste), screens.ObjectiveText);
+        StringAssert.Contains(session.TargetWaste + " residuos", screens.ObjectiveText);
+        StringAssert.Contains("meta", screens.ObjectiveText);
+
+        yield return new WaitForSeconds(6f);
+
+        Assert.IsFalse(screens.ObjectiveShown, "The objective banner must go away after a few seconds.");
+        Assert.AreEqual(GameState.Playing, session.State, "The banner must not stop the game.");
     }
 
     [UnityTest]
@@ -108,6 +125,7 @@ public class GoalAndScreensPlayModeTests
         Assert.AreEqual(GameState.Won, session.State);
         Assert.IsTrue(screens.WinShown, "¡Bosque limpio! must show on a win.");
         Assert.IsFalse(screens.LoseShown);
+        Assert.IsFalse(screens.ObjectiveShown, "The objective banner must not linger over the win screen.");
     }
 
     private Button PauseButton(string name)
