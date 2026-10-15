@@ -88,6 +88,59 @@ public class HazardPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator RollingLog_IsSolid_PlayerCannotWalkThroughIt()
+    {
+        var log = Object.FindFirstObjectByType<RollingLog>();
+        Assert.IsNotNull(log, "Level01 needs a RollingLog.");
+        log.enabled = false; // Hold it still so only the player moves.
+
+        // The log rolls along its local X and lies along its local Z. Walk at it along the run, 1.5 m from its
+        // middle along its length: the old sphere trigger only covered the middle, so the player went straight through.
+        Vector3 run = log.transform.right; run.y = 0f; run.Normalize();
+        Vector3 length = Vector3.Cross(run, Vector3.up);
+        Vector3 ground = log.transform.position - Vector3.up * 0.5f; // The log's centre is 0.5 m above the ground.
+        Vector3 start = ground + length * 1.5f - run * 3f + Vector3.up * 0.1f;
+        Teleport(start);
+        PlayerTestRig.Face(player, run);
+        yield return new WaitForSeconds(0.3f);
+
+        // Long enough to reach the log, stumble back, recover and walk into it again while immune.
+        inputs.move = Vector2.up;
+        float end = Time.time + 3f;
+        float furthest = float.NegativeInfinity;
+        while (Time.time < end)
+        {
+            PlayerTestRig.Face(player, run);
+            furthest = Mathf.Max(furthest, Vector3.Dot(player.transform.position - ground, run));
+            yield return null;
+        }
+
+        Assert.Less(furthest, 0f, "The player must stay in front of the log, not pass through it (got " + furthest + " m past its axis).");
+    }
+
+    [UnityTest]
+    public IEnumerator RollingLog_PushesAsideAPlayerItRollsInto()
+    {
+        var log = Object.FindFirstObjectByType<RollingLog>();
+        Assert.IsNotNull(log, "Level01 needs a RollingLog.");
+
+        // Stand still on the log's run, ahead of it, and let it roll into the player.
+        Vector3 ground = log.transform.position - Vector3.up * 0.5f;
+        Vector3 run = log.transform.right; run.y = 0f; run.Normalize();
+        var body = log.transform.Find("Body").GetComponent<CapsuleCollider>();
+        float end = Time.time + 8f;
+        Teleport(ground + run * 2f + Vector3.up * 0.1f);
+        while (Time.time < end)
+        {
+            yield return new WaitForFixedUpdate();
+            Transform t = body.transform;
+            Transform p = characterController.transform;
+            bool inside = Physics.ComputePenetration(body, t.position, t.rotation, characterController, p.position, p.rotation, out _, out float depth);
+            Assert.IsFalse(inside && depth > 0.1f, "The rolling log must not overlap the player (" + depth + " m deep).");
+        }
+    }
+
+    [UnityTest]
     public IEnumerator FallingRock_WarnsThenDropsThenDisappears()
     {
         var rock = Object.FindFirstObjectByType<FallingRock>(FindObjectsInactive.Include);

@@ -88,6 +88,31 @@ public static class LevelEnvironmentBuilder
         ("Obstacle_Stump_01", 258f, 0.8f), ("Obstacle_Rock_04", 264f, -0.5f),
     };
 
+    // Barriers that close the way (playtest request: "más obstáculos, colocados para cerrar el paso"), all ≤ 1.2 m so
+    // they are jumped, never a dead end. Kept off the banks (an obstacle on a bank would exceed 1.2 m above the trail),
+    // the streams, the hazards, the waste and the start, where the PlayMode tests run (s < 30).
+    private enum Barrier
+    {
+        LogAcrossPath, // one log turned across the 4 m path: jump it or step round it through the grass
+        LogFence,      // three logs end to end across the whole 12 m corridor: the only way on is to jump
+        RockRow,       // three rocks across the path, gaps (0.44 m) narrower than the player (0.6 m)
+        StumpRow,      // four stumps across the path, gaps 0.36 m
+    }
+
+    private static readonly (float s, Barrier kind)[] Barriers =
+    {
+        // Zone 1: one of each easy kind, to teach that a closed way means "jump".
+        (35f, Barrier.LogAcrossPath), (61f, Barrier.LogFence),
+        // Zone 2.
+        (110f, Barrier.RockRow), (146f, Barrier.LogFence), (176f, Barrier.StumpRow),
+        // Zone 3: the most, and closer together.
+        (202f, Barrier.LogFence), (211f, Barrier.StumpRow), (235.5f, Barrier.LogAcrossPath), (268f, Barrier.RockRow),
+    };
+
+    private const float BarrierRowSpacing = 1.4f;   // rock row: centre to centre (Rock_04 is 0.96 m wide)
+    private const float StumpRowSpacing = 1f;       // stump row: centre to centre (Stump_01 is 0.64 m wide)
+    private const float LogLength = 4f;             // Obstacle_Log_01, along its local X
+
     // Rocks off the path that hold a waste item on top.
     private static readonly (string prefab, float s, float lateral)[] Ledges =
     {
@@ -99,16 +124,22 @@ public static class LevelEnvironmentBuilder
     private const float MudWidthScale = 1.5f; // The mud slab is 3 m deep; 4.5 m covers the 4 m path.
 
     // Waste: type, trail distance, sideways offset, height above the ground below it (or above the ledge it sits on).
-    // At most three lie on the path at foot height (Zone 1, to teach collecting); the rest need a detour, a jump or a risk.
+    // Every item needs a jump (playtest request: "que exijan saltar"). The trigger is a 0.7 m sphere centred 0.55 m above
+    // the item, so its bottom is lift − 0.15 m; the player capsule is 1.6 m tall and a jump lifts it 1.7 m. A lift of
+    // 1.9 m or more therefore keeps the item out of reach on foot (bottom ≥ 1.75 m) and easily within a jump (≤ 3.3 m).
+    // Over a stream, the lift is measured from the trail level and the item stays more than 1 m from both banks, so it is
+    // taken in mid-jump; on a ledge, the jump is the one up onto the rock.
     private static readonly (string type, float s, float lateral, float lift, bool onLedge)[] Waste =
     {
-        // Zone 1: two on the path, one on a rock in the first clearing.
-        ("Bottle", 16f, 0f, 0f, false), ("Can", 45f, 0.8f, 0f, false), ("Paper", 78f, 11f, 0.05f, true),
-        // Zone 2: high in a clearing, low over a stream, in the rolling log's path, high in a clearing.
-        ("Bag", 114f, 12f, 2.2f, false), ("Cup", 104f, 3f, 0.3f, false), ("Bottle", 161f, 0f, 0f, false), ("Battery", 172f, -11f, 2.2f, false),
-        // Zone 3: low over a stream, next to the falling rock, high on the last bank, low over the last stream, high in a clearing.
-        ("Jar", 196f, -2.5f, 0.3f, false), ("Can", 207.5f, 0f, 0f, false), ("Paper", 222f, 9f, 2.2f, false),
-        ("Bag", 230.4f, -3f, 0.5f, false), ("Battery", 252f, 10f, 2.4f, false),
+        // Zone 1 teaches "jump to collect": over the path, over the log fence (higher, so it is out of reach even standing
+        // on a log: it is taken while jumping the fence), on a rock in the first clearing.
+        ("Bottle", 16f, 0f, 1.9f, false), ("Can", 61f, 0f, 2.5f, false), ("Paper", 78f, 11f, 0.05f, true),
+        // Zone 2: high in a clearing, over a stream, above the rolling log's path, high in a clearing.
+        ("Bag", 114f, 12f, 2.2f, false), ("Cup", 104f, 3f, 1.9f, false), ("Bottle", 161f, 0f, 2f, false), ("Battery", 172f, -11f, 2.2f, false),
+        // Zone 3: over a stream, above the falling rock's spot, high on the last bank, over the last stream (jumping down
+        // from the 1.2 m bank, so it is 1.9 m above the bank top), high in a clearing.
+        ("Jar", 196f, -2.5f, 1.9f, false), ("Can", 207.5f, 0f, 2f, false), ("Paper", 222f, 9f, 2.2f, false),
+        ("Bag", 230.4f, -3f, 3.1f, false), ("Battery", 252f, 10f, 2.4f, false),
     };
 
     // ------------------------------------------------------------------ scenery
@@ -148,6 +179,8 @@ public static class LevelEnvironmentBuilder
 
         foreach (var (prefab, s, lateral) in Obstacles)
             PlaceOnTrail(Prefab(prefab, "Obstacles"), ZoneChild(zoneRoots, trail, s, "Obstacles"), trail, s, lateral, reserved);
+        foreach (var (s, kind) in Barriers)
+            PlaceBarrier(kind, ZoneChild(zoneRoots, trail, s, "Obstacles"), trail, s, reserved);
 
         var ledgeTops = new Dictionary<float, float>();
         foreach (var (prefab, s, lateral) in Ledges)
@@ -502,6 +535,38 @@ public static class LevelEnvironmentBuilder
     }
 
     private static void Reserve(List<Vector2> reserved, Vector3 position) => reserved.Add(new Vector2(position.x, position.z));
+
+    private static void PlaceBarrier(Barrier kind, Transform parent, ForestTrail trail, float s, List<Vector2> reserved)
+    {
+        switch (kind)
+        {
+            case Barrier.LogAcrossPath:
+                PlaceAcross("Obstacle_Log_01", parent, trail, s, 0f, reserved);
+                break;
+            case Barrier.LogFence:
+                for (int i = -1; i <= 1; i++)
+                    PlaceAcross("Obstacle_Log_01", parent, trail, s, i * LogLength, reserved);
+                break;
+            case Barrier.RockRow:
+                for (int i = -1; i <= 1; i++)
+                    PlaceOnTrail(Prefab("Obstacle_Rock_04", "Obstacles"), parent, trail, s, i * BarrierRowSpacing, reserved);
+                break;
+            case Barrier.StumpRow:
+                for (int i = 0; i < 4; i++)
+                    PlaceOnTrail(Prefab("Obstacle_Stump_01", "Obstacles"), parent, trail, s, (i - 1.5f) * StumpRowSpacing, reserved);
+                break;
+        }
+    }
+
+    // The trail frame has local X along the trail, so a log (long along its X) is turned 90° to lie across it.
+    // Both ends are reserved too, so no tree grows through them.
+    private static void PlaceAcross(string prefab, Transform parent, ForestTrail trail, float s, float lateral, List<Vector2> reserved)
+    {
+        var go = PlaceOnTrail(Prefab(prefab, "Obstacles"), parent, trail, s, lateral, reserved);
+        go.transform.rotation = Frame(trail, s) * Quaternion.Euler(0f, 90f, 0f);
+        Reserve(reserved, OnTrail(trail, s, lateral + LogLength * 0.5f, 0f));
+        Reserve(reserved, OnTrail(trail, s, lateral - LogLength * 0.5f, 0f));
+    }
 
     private static void PlaceHazards(ForestTrail trail, List<Vector2> reserved)
     {

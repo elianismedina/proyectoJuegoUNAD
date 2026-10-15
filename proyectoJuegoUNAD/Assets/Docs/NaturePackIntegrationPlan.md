@@ -87,7 +87,7 @@ The side camera sits at z = −8 looking at z = 0 with FOV 45, so depth matters.
 
 ### Phase D — Replace the provisional hazards with art (M) — done
 - [x] **Hazard prefabs** in `Assets/Prefabs/Hazards/`; the gameplay scripts (`RollingLog`, `FallingRock`, `FallingRockTrigger`, `MudZone`, `PlayerHazard`) keep their behaviour and the art sits on `Visual` children:
-  - `RollingLog_Hazard`: `Branch_01` x5 turned 90° so its axis runs along Z and it rolls along X (the camera sees its end face, like a rolling barrel). Trigger sphere on the root.
+  - `RollingLog_Hazard`: `Branch_01` x5 turned 90° so its axis runs along Z and it rolls along X (the camera sees its end face, like a rolling barrel). Capsule trigger along the whole log on the root (stumbles), plus a solid capsule child `Body` so the log blocks the player.
   - `FallingRock_Hazard`: a container with `Rock` (`Rock_04` x1.2 plus `FallingRock`), `WarningMarker` (the ground shadow) and `Trigger` (arms the rock, 4 m before it). The scripts' references are wired inside the prefab, so it can be dropped anywhere as a unit.
   - `MudZone_Hazard`: a 6 x 3 m wet slab (`Mud_Wet`, dark brown, matte) across the lane with four pebbles on top, and a trigger box on the root.
 - [x] **Visual language, "dark means avoid":** a new `Obstacle_Atlas` material (the pack atlas tinted darker) is used by all five static obstacles and by the log and the falling rock, so they never read as scenery rocks and stumps. Waste will be the opposite: bright, saturated and never found in nature (phase F).
