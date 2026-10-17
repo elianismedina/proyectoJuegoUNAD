@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class WasteCounter : MonoBehaviour
 {
     [SerializeField] private Text label;
+    [SerializeField] private UnityEngine.UI.Image progressBarFill;
 
     private GameSession session;
 
@@ -25,14 +26,15 @@ public class WasteCounter : MonoBehaviour
         session.WasteCollected += OnWasteCollected;
         OnWasteCollected(session.CollectedWaste, session.TargetWaste);
     }
-
-    private void OnDestroy()
-    {
-        if (session != null) session.WasteCollected -= OnWasteCollected;
-    }
-
+    /// Updates the counter text and progress bar when waste is collected.
     private void OnWasteCollected(int collected, int target)
     {
         label.text = Format(collected, target);
+
+        if (progressBarFill != null)
+        {
+            progressBarFill.fillAmount =
+                target > 0 ? Mathf.Clamp01((float)collected / target) : 0f;
+        }
     }
 }
