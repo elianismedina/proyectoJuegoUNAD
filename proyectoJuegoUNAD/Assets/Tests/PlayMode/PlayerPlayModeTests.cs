@@ -190,6 +190,28 @@ public class PlayerPlayModeTests
         Assert.IsFalse(controller.Stumble(Vector3.back), "Hits during the immunity window are ignored.");
     }
 
+    // GDD 7.4: after the stumble the player keeps going, but slower, for 1.5 s.
+    [UnityTest]
+    public IEnumerator Stumble_IsFollowedByASlowdownOfOneAndAHalfSeconds()
+    {
+        Assert.AreEqual(1.5f, controller.StumbleSlowDuration, 0.001f);
+        Assert.IsTrue(controller.Stumble(Vector3.back));
+        Assert.IsFalse(controller.IsSlowedByStumble, "The slowdown starts once the player has control again.");
+
+        yield return new WaitForSeconds(controller.StumbleDuration + 0.1f);
+        Assert.IsFalse(controller.IsStumbling);
+        Assert.IsTrue(controller.IsSlowedByStumble, "Right after the stumble the player must be slowed.");
+        Assert.AreEqual(controller.StumbleSlowMultiplier, controller.SpeedMultiplier, 0.01f);
+        Assert.Less(controller.StumbleSlowMultiplier, 1f);
+
+        yield return new WaitForSeconds(controller.StumbleSlowDuration - 0.3f);
+        Assert.IsTrue(controller.IsSlowedByStumble, "Still slowed shortly before the 1.5 s are up.");
+
+        yield return new WaitForSeconds(0.4f);
+        Assert.IsFalse(controller.IsSlowedByStumble);
+        Assert.AreEqual(1f, controller.SpeedMultiplier, 0.01f, "Normal speed returns after 1.5 s.");
+    }
+
     [UnityTest]
     public IEnumerator FallingBelowKillPlane_RaisesLost()
     {

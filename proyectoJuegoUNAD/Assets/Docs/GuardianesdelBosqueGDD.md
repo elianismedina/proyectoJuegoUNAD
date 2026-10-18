@@ -405,7 +405,7 @@ Para el personaje se contemplan las siguientes animaciones:
 
 - Slow (en lodo): El personaje se desplaza con un paso más lento mientras esta sobre una zona de lodo.
 
-- Stumble: Reacción breve al ser golpeado por un tronco que rueda o una piedra que cae.
+- Stumble: Reacción breve al ser golpeado por un tronco que rueda o una piedra que cae, o al chocar de frente con un obstáculo (tronco, tocón o roca). Después del tropiezo el personaje sigue más lento durante 1,5 s (usa la misma animación Slow que el lodo).
 
 - **Victory:** personaje al completar el objetivo de una zona del bosque.
 
@@ -419,7 +419,7 @@ El personaje responde a las acciones del jugador y a los distintos elementos del
 | Comando de movimiento | Se desplaza y reproduce la animación de Run. |
 | Comando de salto | Se eleva, reproduce Jump y aterrizar vuelve a Idle o Run según corresponda. |
 | Contacto con un residuo | Lo recoge automáticamente, se actualiza el contador y el indicador de contaminación de la zona del bosque. |
-| Contacto con tronco que rueda o piedra que cae | Reproduce la animación de Stumble, si cae fuera del recorrido, se activa la condición de derrota (igual que con los demás obstáculos) |
+| Contacto con tronco que rueda o piedra que cae, o choque de frente con un obstáculo | Tropieza: pierde el control medio segundo, retrocede un poco y reproduce Stumble. Al recuperar el control avanza a la mitad de velocidad durante 1,5 s y luego vuelve a la normal. Durante 1 s después del tropiezo no vuelve a tropezar. Pararse encima de un obstáculo o rozarlo de lado no cuenta como choque. Si cae fuera del recorrido, se activa la condición de derrota |
 | Entrar en una zona de lodo | Reduce su velocidad de desplazamiento y reproduce la animación Slow mientras permanece en esa zona, recupera velocidad al salir |
 | Recuperar una zona completa | Reproduce una animación breve de satisfacción o alivio (puede compartirse con Victory a escala reducida), coherente con el avance del indicador de contaminación |
 ## 7.5 Limitaciones del personaje
@@ -538,9 +538,9 @@ Los obstáculos principales son:
 
 - **Peligros dinámicos:** tronco que rueda (Zona 2), zona de lodo (Zona 2) y piedra que cae, anunciada antes por una sombra en el suelo (Zona 3) 
 
-Las **cercas** siguen previstas pero aún no están en el nivel. Hay 3 obstáculos sólidos en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3.
+Además de los obstáculos sueltos, hay **barreras que cierran el paso**: un tronco atravesado en el camino, una cerca de tres troncos que cubre todo el corredor (solo se pasa saltando) e hileras de rocas o tocones con huecos más estrechos que el jugador. Todos miden 1,2 m o menos. Hay 7 obstáculos sólidos en la Zona 1, 14 en la Zona 2 y 16 en la Zona 3.
 
-Su función no es causar daño mediante un sistema de salud, sino interrumpir el recorrido y exigir al jugador utilizar el salto o el desplazamiento.
+Su función no es causar daño mediante un sistema de salud, sino interrumpir el recorrido y exigir al jugador utilizar el salto o el desplazamiento. Chocar de frente con uno hace tropezar al jugador y lo deja más lento durante 1,5 s (ver 7.4), igual que los peligros dinámicos.
 
 Los obstáculos no hacen caer al jugador por sí solos: la derrota ocurre si cae a un arroyo.
 ## 8.4 Distribución de residuos
@@ -570,7 +570,7 @@ No existe clasificación entre residuos.
 
 Esto es importante porque mantiene el propósito educativo en la acción de **recoger y limpiar** el espacio natural, sin agregar una mecánica de reciclaje/clasificación que aumentaría el alcance del proyecto.
 
-**Ubicación actual:** hay **12 residuos** en el nivel (2 más que el objetivo de 10): 3 en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3. Solo dos están sueltos sobre el camino, en la Zona 1, para enseñar a recoger. El resto exige un desvío, un salto o un riesgo: en lo alto de un claro, sobre una roca, encima de un arroyo o junto a un peligro (el tronco que rueda, la piedra que cae).
+**Ubicación actual:** hay **12 residuos** en el nivel (2 más que el objetivo de 10): 3 en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3. **Todos exigen saltar**: cuelgan sobre el camino a 1,9–2,5 m (fuera del alcance a pie, dentro del salto), encima de un arroyo, en lo alto de un claro o sobre una roca. El primero, en la Zona 1, enseña a saltar para recoger; otro se toma al saltar la cerca de troncos.
 ## 8.5 Recorrido del jugador
 El recorrido general será:
 
