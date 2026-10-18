@@ -103,6 +103,31 @@ public class EnvironmentPlayModeTests
     }
 
     [UnityTest]
+    public IEnumerator RunningIntoAnObstacle_StumblesThePlayerAndSlowsThemDown()
+    {
+        // A log turned across the lane, so the player runs straight into its side.
+        var log = Spawn("Obstacles/Obstacle_Log_01", new Vector3(0.5f, 0f, 0f));
+        log.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+        float startX = player.transform.position.x;
+
+        inputs.move = Vector2.up;
+        bool stumbled = false;
+        float end = Time.time + 1.5f;
+        while (Time.time < end && !stumbled)
+        {
+            stumbled = controller.IsStumbling;
+            yield return null;
+        }
+        inputs.move = Vector2.zero;
+        Assert.IsTrue(stumbled, "Running into an obstacle must stumble the player.");
+
+        yield return new WaitForSeconds(controller.StumbleDuration + 0.05f);
+        Assert.IsTrue(controller.IsSlowedByStumble, "After the stumble the player must be slowed.");
+        Assert.Less(player.transform.position.x, log.GetComponentInChildren<Collider>().bounds.min.x, "The knockback pushes the player back from the obstacle.");
+        Assert.Greater(player.transform.position.x, startX - 3f);
+    }
+
+    [UnityTest]
     public IEnumerator EveryObstacle_CanBeJumpedOver(
         [ValueSource(nameof(ObstaclePaths))] string path)
     {

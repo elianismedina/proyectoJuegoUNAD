@@ -7,7 +7,8 @@ using UnityEngine;
 /// movement is on the ground plane relative to the camera (forward is where the camera looks), the character
 /// turns toward its travel direction, camera look is left to Cinemachine, and jumping gains coyote time and a jump buffer.
 /// The animation events <c>OnFootstep</c> and <c>OnLand</c> are forwarded by <see cref="PlayerAnimationEvents"/>.
-/// Hazards call <see cref="Stumble"/>; mud zones use <see cref="AddSpeedModifier"/>. Input is disabled
+/// Hazards call <see cref="Stumble"/>, and so does running head-on into an <see cref="Obstacle"/>; every stumble is
+/// followed by a short slowdown. Mud zones use <see cref="AddSpeedModifier"/>. Input is disabled
 /// automatically whenever the <see cref="GameManager"/> session is not in the Playing state.
 /// </summary>
 [RequireComponent(typeof(CharacterController), typeof(StarterAssetsInputs))]
@@ -67,6 +68,15 @@ public class PlayerController : MonoBehaviour
     [Tooltip("Seconds after a stumble during which further hits are ignored.")]
     public float StumbleImmunity = 1f;
 
+    [Tooltip("Speed multiplier for the slowdown that follows a stumble (0.5 = half speed).")]
+    [Range(0.1f, 1f)] public float StumbleSlowMultiplier = 0.5f;
+
+    [Tooltip("Seconds the player stays slowed once control returns after a stumble.")]
+    public float StumbleSlowDuration = 1.5f;
+
+    [Tooltip("Speed in m/s toward an obstacle above which running into it counts as a hit (MoveSpeed is 6).")]
+    public float ObstacleHitSpeed = 3f;
+
     [Header("Audio")]
     public AudioClip LandingAudioClip;
     public AudioClip[] FootstepAudioClips;
@@ -77,13 +87,13 @@ public class PlayerController : MonoBehaviour
     {
         get
         {
-            float multiplier = 1f;
+            float multiplier = IsSlowedByStumble ? StumbleSlowMultiplier : 1f;
             foreach (float modifier in _speedModifiers) multiplier *= modifier;
             return multiplier;
         }
     }
 
-    /// <summary>Raised when a hazard actually knocks the player back (not while immune or with input disabled).</summary>
+    /// <summary>Raised when a hazard or an obstacle actually knocks the player back (not while immune or with input disabled).</summary>
     public static event System.Action<PlayerController> Stumbled;
 
     /// <summary>When false, player input is ignored (paused, won or lost).</summary>
@@ -91,6 +101,9 @@ public class PlayerController : MonoBehaviour
 
     /// <summary>True while the player is reeling from a hazard hit and cannot steer.</summary>
     public bool IsStumbling => Time.time < _stumbleEndTime;
+
+    /// <summary>True during the slowdown after a stumble: <see cref="StumbleSlowDuration"/> seconds once control returns.</summary>
+    public bool IsSlowedByStumble => !IsStumbling && Time.time < _stumbleEndTime + StumbleSlowDuration;
 
     /// <summary>Current velocity on the ground plane (Y is always 0).</summary>
     public Vector3 HorizontalVelocity => _velocity;
@@ -191,7 +204,8 @@ public class PlayerController : MonoBehaviour
     public void RemoveSpeedModifier(float multiplier) => _speedModifiers.Remove(multiplier);
 
     /// <summary>
-    /// Knocks the player back away from a hazard: brief loss of control, a small hop and the Stumble animation.
+    /// Knocks the player back away from a hazard or obstacle: brief loss of control, a small hop and the Stumble animation,
+    /// then <see cref="StumbleSlowDuration"/> seconds at <see cref="StumbleSlowMultiplier"/> speed (GDD 7.4).
     /// No damage is dealt (the game has no health). Returns false if input is disabled or the player is still immune.
     /// </summary>
     /// <param name="knockbackDirection">World direction to be pushed toward; only its ground-plane part is used.</param>
@@ -211,6 +225,18 @@ public class PlayerController : MonoBehaviour
         if (_hasAnimator) _animator.SetTrigger(_animIDStumble);
         Stumbled?.Invoke(this);
         return true;
+    }
+
+    // Running head-on into an obstacle stumbles the player like a hazard. Only side contacts count (landing on top has
+    // an upward normal), and only when running into it, so brushing along a rock or standing still against it is fine.
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (hit.normal.y > 0.5f || hit.collider.GetComponentInParent<Obstacle>() == null) return;
+
+        Vector3 into = -new Vector3(hit.normal.x, 0f, hit.normal.z).normalized;
+        if (Vector3.Dot(_velocity, into) < ObstacleHitSpeed) return;
+
+        Stumble(-into);
     }
 
     private void Update()

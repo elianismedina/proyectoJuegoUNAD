@@ -74,6 +74,13 @@ public class EnvironmentPrefabPolicyTests
     }
 
     [Test]
+    public void Obstacles_AreMarkedSoRunningIntoThemStumblesThePlayer()
+    {
+        foreach (var p in Load("Obstacles"))
+            Assert.IsNotNull(p.GetComponent<Obstacle>(), p.name + " needs the Obstacle component on its root");
+    }
+
+    [Test]
     public void Obstacles_AreJumpable()
     {
         foreach (var p in Load("Obstacles"))
