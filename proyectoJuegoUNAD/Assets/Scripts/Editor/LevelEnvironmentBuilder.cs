@@ -113,6 +113,22 @@ public static class LevelEnvironmentBuilder
     private const float StumpRowSpacing = 1f;       // stump row: centre to centre (Stump_01 is 0.64 m wide)
     private const float LogLength = 4f;             // Obstacle_Log_01, along its local X
 
+    // Obstacles Jhon placed by hand in the Editor on main (PR #31, #32), moved here so rebuilding keeps them: prefab,
+    // trail distance, sideways offset, and turn in degrees from the trail frame. Of the 17 he added, these are the ones
+    // that neither repeat a barrier nor crowd a waste item or a checkpoint. Left out: the three logs at s 34–35 (the log
+    // across the path there), the log at s 58 (the fence at s 61), the logs at s 205–209 (between the fence at s 202 and
+    // the stump row at s 211), the raised log at s 220.6 (beside the paper at s 222), the stumps at s 17–18 (where the
+    // first bottle's jump lands) and a second rock at exactly the same spot as the one at s 75.8. Heights come from the
+    // ground here, so the rocks on the s 64–72 bank stay within the 1.2 m rule; the wide Rock_01 there moved from 1.8 to
+    // 2.6 m sideways so its turned corner stays off the centre of the path (on the bank it would stand 1.7 m above the trail).
+    private static readonly (string prefab, float s, float lateral, float yaw)[] HandPlaced =
+    {
+        ("Obstacle_Rock_04", 40.5f, 2.41f, -4f),
+        ("Obstacle_Rock_04", 51.7f, -1.29f, -2f), ("Obstacle_Rock_04", 51.9f, 1.08f, -2f),
+        ("Obstacle_Rock_04", 68.5f, -2.72f, 2f), ("Obstacle_Rock_01", 68.5f, 2.6f, 34f),
+        ("Obstacle_Rock_01", 75.8f, 1.64f, 22f),
+    };
+
     // Rocks off the path that hold a waste item on top.
     private static readonly (string prefab, float s, float lateral)[] Ledges =
     {
@@ -189,6 +205,11 @@ public static class LevelEnvironmentBuilder
             PlaceOnTrail(Prefab(prefab, "Obstacles"), ZoneChild(zoneRoots, trail, s, "Obstacles"), trail, s, lateral, reserved);
         foreach (var (s, kind) in Barriers)
             PlaceBarrier(kind, ZoneChild(zoneRoots, trail, s, "Obstacles"), trail, s, reserved);
+        foreach (var (prefab, s, lateral, yaw) in HandPlaced)
+        {
+            var go = PlaceOnTrail(Prefab(prefab, "Obstacles"), ZoneChild(zoneRoots, trail, s, "Obstacles"), trail, s, lateral, reserved);
+            go.transform.rotation = Frame(trail, s) * Quaternion.Euler(0f, yaw, 0f);
+        }
 
         var ledgeTops = new Dictionary<float, float>();
         foreach (var (prefab, s, lateral) in Ledges)

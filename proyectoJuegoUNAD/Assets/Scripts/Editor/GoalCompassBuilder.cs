@@ -16,7 +16,7 @@ public static class GoalCompassBuilder
     private const string ArrowPath = "Assets/Generated/HUD_GoalArrow.png";
     private const string CompassName = "GoalCompass";
 
-    // Top centre, above the notices (MissingNotice spans y −90…−210) and well clear of the counter at the top left.
+    // Top centre, above the notices (MissingNotice spans y −270…−390) and well clear of the counter at the top left.
     private static readonly Vector2 CompassPosition = new Vector2(0f, -56f);
     private const float ArrowSize = 64f;
     private const int LabelFontSize = 36;

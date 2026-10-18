@@ -538,7 +538,7 @@ Los obstáculos principales son:
 
 - **Peligros dinámicos:** tronco que rueda (Zona 2), zona de lodo (Zona 2) y piedra que cae, anunciada antes por una sombra en el suelo (Zona 3) 
 
-Además de los obstáculos sueltos, hay **barreras que cierran el paso**: un tronco atravesado en el camino, una cerca de tres troncos que cubre todo el corredor (solo se pasa saltando) e hileras de rocas o tocones con huecos más estrechos que el jugador. Todos miden 1,2 m o menos. Hay 7 obstáculos sólidos en la Zona 1, 14 en la Zona 2 y 16 en la Zona 3.
+Además de los obstáculos sueltos, hay **barreras que cierran el paso**: un tronco atravesado en el camino, una cerca de tres troncos que cubre todo el corredor (solo se pasa saltando) e hileras de rocas o tocones con huecos más estrechos que el jugador. Todos miden 1,2 m o menos. Hay 13 obstáculos sólidos en la Zona 1, 14 en la Zona 2 y 16 en la Zona 3 (incluidas seis rocas que colocó Jhon).
 
 Su función no es causar daño mediante un sistema de salud, sino interrumpir el recorrido y exigir al jugador utilizar el salto o el desplazamiento. Chocar de frente con uno hace tropezar al jugador y lo deja más lento durante 1,5 s (ver 7.4), igual que los peligros dinámicos.
 

@@ -12,7 +12,7 @@ using UnityEngine.TestTools;
 public class GoalCompassPlayModeTests
 {
     private const string LevelScene = "Level01";
-    private const float TestS = 52f; // Zone 1, flat path between the log fence (s 61) and the log across the path (s 35)
+    private const float TestS = 50f; // Zone 1, flat path between the log across the path (s 35) and the rocks at s 52
 
     private GameObject player;
     private PlayerController controller;
@@ -60,7 +60,7 @@ public class GoalCompassPlayModeTests
     {
         PlayerTestRig.Face(player, -trail.TangentAt(TestS));
         inputs.move = Vector2.up;
-        yield return new WaitForSeconds(1.8f);
+        yield return new WaitForSeconds(1.5f); // about 8 m back: stays clear of the log at s 35
         Assert.IsTrue(compass.WrongWayShown, "Running back along the trail must show the warning.");
 
         PlayerTestRig.Face(player, trail.TangentAt(trail.Project(player.transform.position, out _)));

@@ -74,6 +74,8 @@ public static class ThirdPersonCameraSetup
         // confiner keeps it inside the side-view bounds box.
         RemoveIfPresent<CinemachinePositionComposer>(cameraObject);
         RemoveIfPresent<CinemachineConfiner3D>(cameraObject);
+        // A fixed-offset Follow body (tried on main in PR #32) would fight the Orbital Follow for the camera position.
+        RemoveIfPresent<CinemachineFollow>(cameraObject);
 
         // The camera recenters behind the player's facing, so start the player looking down the course.
         var goal = Object.FindFirstObjectByType<LevelGoal>();
