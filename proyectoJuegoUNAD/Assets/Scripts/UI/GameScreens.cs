@@ -4,7 +4,8 @@ using UnityEngine.UI;
 
 /// <summary>
 /// End-of-game screens from GDD §5.3: "¡Bosque limpio!" on a win and "¡Inténtalo de nuevo!" on a loss, each with a
-/// button that restarts the level, plus a short notice when the player reaches the goal with waste still missing.
+/// button that restarts the level, plus a short notice when the player reaches the goal with waste still missing or
+/// falls into a stream and is put back at the start of the zone (<see cref="KillPlane.PlayerRespawned"/>).
 /// Also the pause menu from GDD §6.6 (Esc): "Continuar" resumes, "Reiniciar" restarts the level and "Salir" goes back
 /// to the main menu (GDD §10.3). When the level starts, a banner states the goal from GDD §5.1 ("Recoge 10 residuos y
 /// llega a la meta") for a few seconds and then fades out.
@@ -51,6 +52,9 @@ public class GameScreens : MonoBehaviour
     public bool ObjectiveShown => objectiveBanner.gameObject.activeSelf;
     public string ObjectiveText => objectiveText.text;
 
+    /// <summary>The notice shown when the player falls and reappears at the start of the zone with their waste.</summary>
+    public const string RespawnNotice = "¡Te caíste! Vuelves al inicio de la zona con tus residuos.";
+
     /// <summary>The goal line the banner shows when the level starts, e.g. "Recoge 10 residuos y llega a la meta".</summary>
     public static string FormatObjective(int targetWaste) =>
         "Recoge " + targetWaste + (targetWaste == 1 ? " residuo" : " residuos") + " y llega a la meta";
@@ -76,11 +80,13 @@ public class GameScreens : MonoBehaviour
         session = GameManager.Instance.Session;
         session.StateChanged += OnStateChanged;
         session.GoalReachedWithMissingWaste += OnGoalReachedWithMissingWaste;
+        KillPlane.PlayerRespawned += OnPlayerRespawned;
         ShowObjective(session.TargetWaste);
     }
 
     private void OnDestroy()
     {
+        KillPlane.PlayerRespawned -= OnPlayerRespawned;
         if (session == null) return;
 
         session.StateChanged -= OnStateChanged;
@@ -143,6 +149,17 @@ public class GameScreens : MonoBehaviour
             ? "Te falta 1 residuo. ¡Vuelve a buscarlo!"
             : "Te faltan " + missing + " residuos. ¡Vuelve a buscarlos!";
         objectiveBanner.gameObject.SetActive(false); // The notice says what is left, so the goal line would only clutter.
+        ShowNotice();
+    }
+
+    private void OnPlayerRespawned(Checkpoint checkpoint)
+    {
+        missingText.text = RespawnNotice;
+        ShowNotice();
+    }
+
+    private void ShowNotice()
+    {
         missingNotice.SetActive(true);
         noticeHideTime = Time.unscaledTime + noticeSeconds;
     }

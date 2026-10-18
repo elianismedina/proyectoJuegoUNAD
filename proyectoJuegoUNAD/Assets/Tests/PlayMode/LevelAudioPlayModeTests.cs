@@ -82,10 +82,20 @@ public class LevelAudioPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator Losing_PlaysTheLoseSound()
+    public IEnumerator FallingIntoAStream_PlaysTheLoseSoundAndTheGameGoesOn()
     {
         Teleport(new Vector3(0f, GameManager.Instance.Config.killPlaneY - 1f, 0f));
         yield return new WaitForSeconds(0.3f);
+
+        Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State);
+        Assert.AreEqual(levelAudio.LoseClip, levelAudio.LastEventClip);
+    }
+
+    [UnityTest]
+    public IEnumerator Losing_PlaysTheLoseSound()
+    {
+        GameManager.Instance.Lose();
+        yield return null;
 
         Assert.AreEqual(GameState.Lost, GameManager.Instance.Session.State);
         Assert.AreEqual(levelAudio.LoseClip, levelAudio.LastEventClip);

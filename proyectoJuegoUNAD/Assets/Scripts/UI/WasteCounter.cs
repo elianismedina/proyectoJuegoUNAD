@@ -5,6 +5,7 @@ using UnityEngine.UI;
 /// HUD counter from GDD §10.2: "Residuos: X/10", where 10 is <see cref="LevelConfig.targetWaste"/>.
 /// Listens to <see cref="GameSession.WasteCollected"/> on the session owned by the <see cref="GameManager"/>;
 /// holds no game rules itself. Spare items past the target keep counting (for example 11/10).
+/// It also fills the optional <see cref="progressBarFill"/> image (collected / target, capped at full).
 /// </summary>
 public class WasteCounter : MonoBehaviour
 {
@@ -26,7 +27,13 @@ public class WasteCounter : MonoBehaviour
         session.WasteCollected += OnWasteCollected;
         OnWasteCollected(session.CollectedWaste, session.TargetWaste);
     }
-    /// Updates the counter text and progress bar when waste is collected.
+
+    private void OnDestroy()
+    {
+        if (session != null) session.WasteCollected -= OnWasteCollected;
+    }
+
+    // Updates the counter text and the "Recuperación del bosque" progress bar when waste is collected.
     private void OnWasteCollected(int collected, int target)
     {
         label.text = Format(collected, target);

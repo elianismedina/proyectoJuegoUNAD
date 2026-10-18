@@ -135,7 +135,7 @@ El jugador asume el papel del **Guardián del Bosque**, cuya tarea es recorrer e
 ## 4.3 Desarrollo
 Durante el recorrido, el jugador encuentra diferentes residuos y obstáculos que debe superar mediante el desplazamiento y los saltos. A medida que avanza por las tres zonas del nivel, debe recoger la cantidad necesaria de residuos para cumplir el objetivo.
 ## 4.4 Final
-Cuando el jugador alcanza la cantidad objetivo de residuos y llega a la meta al final del recorrido, el bosque se considera limpio y se muestra el mensaje **“¡Bosque limpio!”**. Si el personaje cae fuera del recorrido (por ejemplo, a un arroyo), se muestra **“¡Inténtalo de nuevo!”** y puede reiniciar el nivel.
+Cuando el jugador alcanza la cantidad objetivo de residuos y llega a la meta al final del recorrido, el bosque se considera limpio y se muestra el mensaje **“¡Bosque limpio!”**. Si el personaje cae fuera del recorrido (por ejemplo, a un arroyo), reaparece en el punto de control del inicio de la zona en la que cayó, conserva los residuos que ya recogió y el juego continúa; no hay que reiniciar el nivel.
 
 # 5. Objetivo y reglas
 ## 5.1 Objetivo principal
@@ -149,11 +149,11 @@ La cantidad de residuos será un parámetro ajustable, por lo que posteriormente
 | Elemento | Regla | Respuesta del sistema | Parámetro |
 | --- | --- | --- | --- |
 | Recolección | El jugador entra en contacto con un residuo. | El residuo desaparece, el contador aumenta en 1 y se reproduce un sonido. | Cantidad objetivo |
-| Obstáculos | El jugador debe saltar o desplazarse para superarlos. Los troncos que ruedan y las piedras que caen lo hacen trastabillar; el lodo lo frena. | Los obstáculos no hacen daño. Si cae a un arroyo (fuera del recorrido), pierde. | Ubicación de obstáculos |
+| Obstáculos | El jugador debe saltar o desplazarse para superarlos. Los troncos que ruedan y las piedras que caen lo hacen trastabillar; el lodo lo frena. | Los obstáculos no hacen daño. Si cae a un arroyo (fuera del recorrido), vuelve al punto de control de la zona. | Ubicación de obstáculos |
 | Progreso | El jugador continúa recorriendo las tres zonas y recogiendo residuos. | El HUD actualiza el contador, por ejemplo: **7/10**. | Cantidad de residuos |
 | Victoria | El contador alcanza la cantidad objetivo y el jugador llega a la meta. | Se muestra **“ ¡Bosque limpio!”**. | Objetivo = 10 |
 | Meta sin completar | El jugador llega a la meta con menos residuos que el objetivo. | Se muestra **“Te faltan N residuos”** y el juego continúa. | Objetivo = 10 |
-| Derrota | El personaje cae fuera del recorrido (a un arroyo, por debajo de la altura límite del nivel). | Se muestra **“ ¡Inténtalo de nuevo!”** y puede reiniciar. | Diseño del recorrido |
+| Caída | El personaje cae fuera del recorrido (a un arroyo, por debajo de la altura límite del nivel). | Reaparece en el punto de control del inicio de la zona actual, mirando hacia adelante, con los residuos ya recogidos. Se muestra unos segundos **“¡Te caíste! Vuelves al inicio de la zona con tus residuos.”** y suena el sonido de error. | Un punto de control por zona |
 ## 5.3 Condiciones de victoria y derrota
 Victoria:
 
@@ -161,7 +161,7 @@ residuosRecogidos >= objetivo  Y  jugador llega a la meta        ¡Bosque limpio
 
 Derrota:
 
-jugador cae fuera del recorrido (altura del personaje < límite del nivel, y = −2)         ¡Inténtalo de nuevo!                    Reiniciar nivel
+No hay derrota en el nivel actual. Si el jugador cae fuera del recorrido (altura del personaje < límite del nivel, y = −2), reaparece en el punto de control de su zona y conserva los residuos. La pantalla **“¡Inténtalo de nuevo!”** queda lista para futuras reglas de derrota.
 
 **5.4 Límites del juego**
 
@@ -207,7 +207,7 @@ Los obstáculos son:
 
 - Taludes de tierra (escalones del terreno de hasta 1,2 m que hay que subir saltando). 
 
-- Arroyos que cruzan el sendero y hay que saltar (caer en uno es derrota). 
+- Arroyos que cruzan el sendero y hay que saltar (caer en uno devuelve al jugador al inicio de la zona). 
 
 - Peligros dinámicos: tronco que rueda, piedra que cae y zona de lodo (ver 7.4).
 
@@ -281,7 +281,7 @@ Sin embargo, el jugador puede **equivocarse en su recorrido**:
 
 - caer fuera del recorrido; 
 
-- tener que reiniciar la zona. 
+- tener que repetir la zona desde su punto de control. 
 
 De esta manera existe desafío sin agregar un sistema complejo de clasificación.
 
@@ -538,11 +538,11 @@ Los obstáculos principales son:
 
 - **Peligros dinámicos:** tronco que rueda (Zona 2), zona de lodo (Zona 2) y piedra que cae, anunciada antes por una sombra en el suelo (Zona 3) 
 
-Además de los obstáculos sueltos, hay **barreras que cierran el paso**: un tronco atravesado en el camino, una cerca de tres troncos que cubre todo el corredor (solo se pasa saltando) e hileras de rocas o tocones con huecos más estrechos que el jugador. Todos miden 1,2 m o menos. Hay 7 obstáculos sólidos en la Zona 1, 14 en la Zona 2 y 16 en la Zona 3.
+Además de los obstáculos sueltos, hay **barreras que cierran el paso**: un tronco atravesado en el camino, una cerca de tres troncos que cubre todo el corredor (solo se pasa saltando) e hileras de rocas o tocones con huecos más estrechos que el jugador. Todos miden 1,2 m o menos. Hay 13 obstáculos sólidos en la Zona 1, 14 en la Zona 2 y 16 en la Zona 3 (incluidas seis rocas que colocó Jhon).
 
 Su función no es causar daño mediante un sistema de salud, sino interrumpir el recorrido y exigir al jugador utilizar el salto o el desplazamiento. Chocar de frente con uno hace tropezar al jugador y lo deja más lento durante 1,5 s (ver 7.4), igual que los peligros dinámicos.
 
-Los obstáculos no hacen caer al jugador por sí solos: la derrota ocurre si cae a un arroyo.
+Los obstáculos no hacen caer al jugador por sí solos. Caer a un arroyo no hace perder: el jugador vuelve al punto de control de la zona.
 ## 8.4 Distribución de residuos
 Se utilizarán ocho tipos de residuos y se clasificaran de la siguiente manera:
 
@@ -751,6 +751,12 @@ Y así sucesivamente hasta:
 
 Esto permite que el jugador sepa claramente **cuánto ha avanzado y cuánto le falta**.
 
+**Indicador de dirección hacia la meta**
+
+Una flecha pequeña y discreta en el centro de la parte superior de la pantalla señala, desde el punto de vista de la cámara, hacia dónde queda la meta siguiendo el sendero: apunta a un punto unos 10 m más adelante en el camino, así que en las curvas sigue el sendero en lugar de señalar a través de los árboles, y al final apunta a la meta misma. Gira suavemente, sin saltos.
+
+Si el jugador corre de vuelta hacia el inicio durante más de 1 s, la flecha se vuelve naranja y aparece a su lado **“Vas en sentido contrario”**. El aviso desaparece en cuanto vuelve a avanzar hacia la meta. Cruzar el camino o rodear un obstáculo no lo activa, y nada parpadea (accesibilidad). La flecha se oculta en la pausa y en las pantallas de victoria y derrota.
+
 **Pausa**
 
 Por ahora no hay botón en pantalla: la tecla Esc (o Start en el mando) abre el menú de pausa. Un botón ⏸️ queda pendiente para cuando se use mando o pantalla táctil.
@@ -791,7 +797,7 @@ La pantalla de victoria indicará claramente que el objetivo fue completado.
 
 **Aviso de residuos pendientes:** si el jugador llega a la meta sin el objetivo, aparece unos segundos “Te faltan N residuos. ¡Vuelve a buscarlos!” y el juego continúa.
 ## 10.6 Pantalla de derrota
-Si el personaje cae fuera del recorrido:
+Caer fuera del recorrido ya no la muestra: el jugador reaparece en el punto de control de la zona con un aviso breve (ver 5.2). La pantalla queda preparada para una regla de derrota futura:
 
  **¡Inténtalo de nuevo!**
 
@@ -859,7 +865,7 @@ Los menús se pueden usar sin ratón: el botón principal de cada pantalla queda
 ## 11.5.	Accesibilidad Cognitiva y Comprensión del Objetivo (WCAG 3.2 y 3.3)
 HUD Claro e Ininterrumpido: Muestra permanente del progreso mediante el formato Residuos: X/10 para evitar sobrecargar la memoria de trabajo del estudiante.   
 
-Guía de Navegación Contextual: Indicador visual sutil en el escenario (línea de huellas o indicador de dirección) para orientar al jugador hacia la siguiente zona con residuos.
+Guía de Navegación Contextual: Indicador visual sutil para orientar al jugador. Ya existe una flecha discreta en el HUD que señala el camino hacia la meta y avisa “Vas en sentido contrario” si el jugador retrocede (ver 10.2). Queda pendiente, como opción, una guía hacia el siguiente residuo (línea de huellas).
 
 Formato de Texto Legible y Accesible:
 
@@ -889,9 +895,9 @@ Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inve
 
 - **1 condición de victoria:** alcanzar la cantidad objetivo y llegar a la meta. 
 
-- **1 condición de derrota:** caer fuera del recorrido (a un arroyo). 
+- **Sin derrota:** caer fuera del recorrido (a un arroyo) devuelve al jugador al punto de control de la zona, con sus residuos. 
 
-- **HUD básico:** contador; pausa con Esc. 
+- **HUD básico:** contador; flecha hacia la meta con aviso de sentido contrario; pausa con Esc. 
 
 - **Menú principal y menú de pausa.** 
 
