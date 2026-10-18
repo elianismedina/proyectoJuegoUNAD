@@ -751,6 +751,12 @@ Y así sucesivamente hasta:
 
 Esto permite que el jugador sepa claramente **cuánto ha avanzado y cuánto le falta**.
 
+**Indicador de dirección hacia la meta**
+
+Una flecha pequeña y discreta en el centro de la parte superior de la pantalla señala, desde el punto de vista de la cámara, hacia dónde queda la meta siguiendo el sendero: apunta a un punto unos 10 m más adelante en el camino, así que en las curvas sigue el sendero en lugar de señalar a través de los árboles, y al final apunta a la meta misma. Gira suavemente, sin saltos.
+
+Si el jugador corre de vuelta hacia el inicio durante más de 1 s, la flecha se vuelve naranja y aparece a su lado **“Vas en sentido contrario”**. El aviso desaparece en cuanto vuelve a avanzar hacia la meta. Cruzar el camino o rodear un obstáculo no lo activa, y nada parpadea (accesibilidad). La flecha se oculta en la pausa y en las pantallas de victoria y derrota.
+
 **Pausa**
 
 Por ahora no hay botón en pantalla: la tecla Esc (o Start en el mando) abre el menú de pausa. Un botón ⏸️ queda pendiente para cuando se use mando o pantalla táctil.
@@ -859,7 +865,7 @@ Los menús se pueden usar sin ratón: el botón principal de cada pantalla queda
 ## 11.5.	Accesibilidad Cognitiva y Comprensión del Objetivo (WCAG 3.2 y 3.3)
 HUD Claro e Ininterrumpido: Muestra permanente del progreso mediante el formato Residuos: X/10 para evitar sobrecargar la memoria de trabajo del estudiante.   
 
-Guía de Navegación Contextual: Indicador visual sutil en el escenario (línea de huellas o indicador de dirección) para orientar al jugador hacia la siguiente zona con residuos.
+Guía de Navegación Contextual: Indicador visual sutil para orientar al jugador. Ya existe una flecha discreta en el HUD que señala el camino hacia la meta y avisa “Vas en sentido contrario” si el jugador retrocede (ver 10.2). Queda pendiente, como opción, una guía hacia el siguiente residuo (línea de huellas).
 
 Formato de Texto Legible y Accesible:
 
@@ -891,7 +897,7 @@ Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inve
 
 - **Sin derrota:** caer fuera del recorrido (a un arroyo) devuelve al jugador al punto de control de la zona, con sus residuos. 
 
-- **HUD básico:** contador; pausa con Esc. 
+- **HUD básico:** contador; flecha hacia la meta con aviso de sentido contrario; pausa con Esc. 
 
 - **Menú principal y menú de pausa.** 
 
