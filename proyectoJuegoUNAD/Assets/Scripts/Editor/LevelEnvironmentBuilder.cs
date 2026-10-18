@@ -28,6 +28,12 @@ public static class LevelEnvironmentBuilder
     private const string LaneMaterialPath = "Assets/Materials/Lane_Path.mat";
     private const string GrassMaterialPath = "Assets/Materials/Terrain_Base.mat";
     private const string WaterMaterialPath = "Assets/Materials/Stream_Water.mat";
+
+    // Forest recovery (ForestRecovery): the scenery's normal material and the placeholder look of a polluted zone, the
+    // same atlas tinted dull brown. Geordany can replace the polluted material's art without touching any code.
+    private const string NatureMaterialPath = "Assets/SimpleNaturePack/Materials/SimpleNaturePack_Texture_01.mat";
+    private const string PollutedMaterialPath = "Assets/Materials/Recovery/Nature_Polluted.mat";
+    private static readonly Color PollutedTint = new Color(0.6f, 0.47f, 0.3f, 1f);
     private const string LevelConfigPath = "Assets/Config/LevelConfig_Level01.asset";
 
     // ------------------------------------------------------------------ trail shape
@@ -225,6 +231,7 @@ public static class LevelEnvironmentBuilder
 
         BuildScenery(Child(root.transform, "Scenery"), trail, floorCollider, reserved);
         BuildFarAway(Child(root.transform, "FarAway"), trail);
+        AddForestRecovery(root);
         UpdateLevelConfig();
 
         EditorSceneManager.MarkSceneDirty(scene);
@@ -717,6 +724,32 @@ public static class LevelEnvironmentBuilder
             Undo.RecordObject(orbit, "Face the trail");
             orbit.HorizontalAxis.Value = Mathf.DeltaAngle(0f, Quaternion.LookRotation(forward).eulerAngles.y);
         }
+    }
+
+    // The zone-by-zone polluted-to-healthy look: only the scenery under Environment/Scenery changes (the ground is one
+    // mesh for the whole trail, and the far hills are out of every zone).
+    private static void AddForestRecovery(GameObject root)
+    {
+        var healthy = AssetDatabase.LoadAssetAtPath<Material>(NatureMaterialPath);
+        var recovery = root.AddComponent<ForestRecovery>();
+        var so = new SerializedObject(recovery);
+        so.FindProperty("sceneryRoot").objectReferenceValue = root.transform.Find("Scenery");
+        so.FindProperty("healthyMaterial").objectReferenceValue = healthy;
+        so.FindProperty("pollutedMaterial").objectReferenceValue = healthy != null ? PollutedMaterial(healthy) : null;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // Created once from the healthy material; after that it is left alone, so hand-made art put in its place survives rebuilds.
+    private static Material PollutedMaterial(Material healthy)
+    {
+        var existing = AssetDatabase.LoadAssetAtPath<Material>(PollutedMaterialPath);
+        if (existing != null) return existing;
+
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(PollutedMaterialPath));
+        var polluted = new Material(healthy) { name = "Nature_Polluted" };
+        polluted.SetColor("_BaseColor", PollutedTint);
+        AssetDatabase.CreateAsset(polluted, PollutedMaterialPath);
+        return polluted;
     }
 
     private static void UpdateLevelConfig()

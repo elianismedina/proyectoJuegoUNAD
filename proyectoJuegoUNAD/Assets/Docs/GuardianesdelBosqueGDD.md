@@ -230,7 +230,16 @@ La recolección produce:
 - actualización del progreso de la zona.
 
 ### 6.1.4. Recuperar la zona
-**Estado:** diseño previsto, todavía no implementado en el juego. Por ahora las tres zonas están abiertas desde el inicio y solo cuenta el total de residuos (ver 5.1).
+**Estado:** implementado sin el desbloqueo de tramos. Las tres zonas siguen abiertas desde el inicio y para ganar sigue contando el total de residuos (ver 5.1), pero cada zona ya se recupera por separado:
+
+- Al empezar el nivel, la vegetación de las tres zonas (árboles, arbustos, hierba y flores) se ve **contaminada**: un tono pardo y apagado.
+- Cuando el jugador recoge **todos los residuos de una zona** (3 en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3), la zona queda **recuperada** y su vegetación vuelve a verse **sana**, con sus colores normales. Las demás zonas no cambian.
+- Al ganar (**“¡Bosque limpio!”**), todo el bosque se ve sano, aunque haya quedado algún residuo sin recoger.
+- La barra **“Recuperación del bosque”** del HUD muestra el avance (ver 10.2).
+
+Por ahora el cambio es un cambio de material provisional (el mismo atlas de la vegetación teñido de pardo). Geordany puede reemplazarlo por su arte sin tocar código. El suelo no cambia, porque es una sola malla para todo el sendero. Quedan pendientes el desbloqueo del siguiente tramo, el sonido de zona contaminada / limpia y una animación o aviso al recuperar una zona.
+
+Diseño original:
 
 Cada zona tendrá una cantidad determinada de residuos.
 
@@ -713,7 +722,7 @@ Elementos:
 
 - Contador de residuos. 
 
-- Indicador de contaminación (barra o medidor de avance por zona y/o general)
+- Indicador de contaminación: la barra “Recuperación del bosque”, bajo el contador (ver 10.2)
 
 - Icono de residuos. 
 
@@ -750,6 +759,10 @@ Y así sucesivamente hasta:
 ♻️ **Residuos: 10/10**
 
 Esto permite que el jugador sepa claramente **cuánto ha avanzado y cuánto le falta**.
+
+**Barra “Recuperación del bosque”**
+
+Bajo el contador hay una barra que muestra cuánto se ha recuperado el bosque: es el promedio del avance de las tres zonas (residuos recogidos en cada zona sobre los que tiene). Sube con cada residuo, cada zona recuperada suma un tercio, y se llena del todo cuando las tres zonas están recuperadas o al ganar. Como el nivel tiene 12 residuos y el objetivo son 10, se puede ganar sin haber llenado la barra; al ganar se completa.
 
 **Indicador de dirección hacia la meta**
 
