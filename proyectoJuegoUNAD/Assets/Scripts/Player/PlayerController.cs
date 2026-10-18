@@ -227,6 +227,28 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Puts the player at <paramref name="position"/> facing <paramref name="rotation"/>'s heading, at rest: used by
+    /// <see cref="KillPlane"/> to bring the player back to a <see cref="Checkpoint"/>. Clears any stumble and its slowdown.
+    /// </summary>
+    public void Respawn(Vector3 position, Quaternion rotation)
+    {
+        float yaw = rotation.eulerAngles.y;
+        bool wasEnabled = _controller.enabled;
+        _controller.enabled = false; // a CharacterController overrides direct position changes while enabled
+        transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+        _controller.enabled = wasEnabled;
+
+        _velocity = Vector3.zero;
+        _verticalVelocity = 0f;
+        _targetYaw = yaw;
+        _yawVelocity = 0f;
+        _jumpBufferTimer = 0f;
+        _fallTimeoutDelta = FallTimeout;
+        _stumbleEndTime = float.NegativeInfinity;
+        _stumbleImmuneUntil = float.NegativeInfinity;
+    }
+
     // Running head-on into an obstacle stumbles the player like a hazard. Only side contacts count (landing on top has
     // an upward normal), and only when running into it, so brushing along a rock or standing still against it is fine.
     private void OnControllerColliderHit(ControllerColliderHit hit)

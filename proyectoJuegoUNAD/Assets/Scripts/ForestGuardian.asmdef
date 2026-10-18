@@ -4,6 +4,7 @@
     "references": [
         "Unity.StarterAssets",
         "Unity.InputSystem",
+        "Unity.Cinemachine",
         "UnityEngine.UI"
     ],
     "includePlatforms": [],

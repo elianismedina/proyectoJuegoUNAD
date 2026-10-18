@@ -10,7 +10,7 @@ using Random = System.Random;
 /// From the tables below it generates, under one root called "Environment":
 /// <list type="bullet">
 /// <item>the forest floor: a low-poly mesh that follows the trail, with a dirt path in the middle, earth banks the
-/// player must jump up, and streams that cut across it (falling in loses);</item>
+/// player must jump up, and streams that cut across it (falling in sends the player back to the zone's checkpoint);</item>
 /// <item>the play area: invisible walls along both sides of the corridor, hidden behind a line of trees;</item>
 /// <item>obstacles, ledges, scenery (trees inside the corridor get trunk colliders) and the far hills;</item>
 /// <item>a <see cref="ForestTrail"/> with the trail's centre line, used by tests and runtime code.</item>
@@ -119,6 +119,14 @@ public static class LevelEnvironmentBuilder
         ("Obstacle_Rock_01", 78f, 11f),
     };
 
+    // Checkpoints: where the player reappears after falling into a stream, one at the start of each zone, facing down the
+    // trail (zones split the trail in thirds, about 93.7 m each). Zone 1's is the spawn point. Each sits on flat path,
+    // clear of obstacles: Zone 2's beside the log that lies along the path at s 98, Zone 3's past the stump at s 189.
+    private static readonly (int zone, float s, float lateral)[] Checkpoints =
+    {
+        (0, SpawnDistance, 0f), (1, 95f, 1.5f), (2, 190.5f, 1f),
+    };
+
     // Hazards already in the scene (by name prefix), moved onto the trail and turned to follow it.
     private const float MudS = 121f, RollingLogS = 158f, FallingRockS = 206f;
     private const float MudWidthScale = 1.5f; // The mud slab is 3 m deep; 4.5 m covers the 4 m path.
@@ -192,6 +200,7 @@ public static class LevelEnvironmentBuilder
         PlaceHazards(trail, reserved);
         PlaceWaste(trail, ledgeTops, reserved);
         PlaceGoalSpawnAndCameras(trail);
+        PlaceCheckpoints(Child(root.transform, "Checkpoints"), trail, reserved);
 
         BuildScenery(Child(root.transform, "Scenery"), trail, floorCollider, reserved);
         BuildFarAway(Child(root.transform, "FarAway"), trail);
@@ -627,6 +636,19 @@ public static class LevelEnvironmentBuilder
             go.name = "Collectible_" + type + "_s" + Mathf.RoundToInt(s);
             go.transform.SetPositionAndRotation(OnTrail(trail, s, lateral, baseHeight + lift), Quaternion.identity);
             Undo.RegisterCreatedObjectUndo(go, "Place waste");
+            Reserve(reserved, go.transform.position);
+        }
+    }
+
+    private static void PlaceCheckpoints(Transform parent, ForestTrail trail, List<Vector2> reserved)
+    {
+        foreach (var (zone, s, lateral) in Checkpoints)
+        {
+            var go = new GameObject("Checkpoint_Zone" + (zone + 1));
+            go.transform.SetParent(parent, false);
+            go.transform.SetPositionAndRotation(OnTrail(trail, s, lateral, CorridorHeight(s) + 0.05f),
+                Quaternion.LookRotation(trail.TangentAt(s), Vector3.up));
+            go.AddComponent<Checkpoint>().Zone = zone;
             Reserve(reserved, go.transform.position);
         }
     }

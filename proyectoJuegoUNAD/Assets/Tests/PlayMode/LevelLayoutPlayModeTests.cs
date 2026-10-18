@@ -7,7 +7,8 @@ using UnityEngine.TestTools;
 /// <summary>
 /// Structural checks on the Level01 forest trail built by <c>LevelEnvironmentBuilder</c>
 /// (Docs/ThirdPersonConversionPlan.md, phase 2): ground along the whole trail except the streams, jumpable banks
-/// and streams, a closed play area, colliders only where they belong, and falling into a stream loses.
+/// and streams, a closed play area, colliders only where they belong, a checkpoint at the start of every zone, and
+/// falling into a stream putting the player back at that checkpoint with their waste.
 /// </summary>
 public class LevelLayoutPlayModeTests
 {
@@ -150,18 +151,59 @@ public class LevelLayoutPlayModeTests
         }
     }
 
+    [Test]
+    public void EveryZone_HasACheckpointOnClearGroundAtItsStart()
+    {
+        var checkpoints = Object.FindObjectsByType<Checkpoint>(FindObjectsSortMode.None);
+        Assert.AreEqual(ForestTrail.ZoneCount, checkpoints.Length, "One checkpoint per zone (Forest Guardian > Level > Build Level01 Environment).");
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+        {
+            var c = Checkpoint.ForZone(zone);
+            Assert.AreEqual(zone, c.Zone, "Zone " + (zone + 1) + " has no checkpoint.");
+            Vector3 p = c.transform.position;
+            float s = trail.Project(p, out float lateral);
+            Assert.AreEqual(zone, trail.ZoneAt(s), c.name + " must lie in its own zone.");
+            Assert.Less(s - zone * trail.Length / ForestTrail.ZoneCount, 10f, c.name + " must be at the start of its zone.");
+            Assert.LessOrEqual(Mathf.Abs(lateral), 2f, c.name + " must be on the path.");
+            Assert.IsFalse(trail.IsOverStream(s), c.name + " must not be over a stream.");
+            Assert.IsTrue(GroundHeight(p, out float ground) && Mathf.Abs(p.y - ground) < 0.2f, c.name + " must stand on the ground.");
+            // Room for the player's capsule (1.6 m tall, 0.3 m radius): no obstacle, trunk or wall in the way.
+            // (Zone 1's checkpoint is the spawn point, where the player is standing, so the player is ignored.)
+            foreach (var hit in Physics.OverlapCapsule(p + Vector3.up * 0.4f, p + Vector3.up * 1.3f, 0.35f, ~0, QueryTriggerInteraction.Ignore))
+                Assert.IsTrue(hit.CompareTag("Player"), c.name + " is blocked by " + hit.name + ": the player would reappear inside it.");
+            Assert.Greater(Vector3.Dot(c.transform.forward, trail.TangentAt(s)), 0.9f, c.name + " must face down the trail.");
+        }
+    }
+
+    // GDD 5.2: falling into a stream puts the player back at the start of the zone with the waste already collected.
     [UnityTest]
-    public IEnumerator FallingIntoAStream_LosesTheLevel()
+    public IEnumerator FallingIntoAStream_PutsThePlayerBackAtTheStartOfTheZoneWithTheirWaste()
     {
         var player = GameObject.FindGameObjectWithTag("Player");
         var characterController = player.GetComponent<CharacterController>();
+        var session = GameManager.Instance.Session;
+        var killPlane = Object.FindFirstObjectByType<KillPlane>();
+        Assert.IsNotNull(killPlane, "Level01 needs a KillPlane.");
+        session.AddWaste();
+        session.AddWaste();
+        session.AddWaste();
+
         var span = trail.StreamSpans[0];
+        int zone = trail.ZoneAt(span.x);
+        Assert.AreEqual(1, zone, "The first stream is in Zone 2.");
 
         characterController.enabled = false;
         player.transform.position = trail.PointAt((span.x + span.y) / 2f) + Vector3.up * 0.2f;
         characterController.enabled = true;
-
         yield return new WaitForSeconds(1.5f);
-        Assert.AreEqual(GameState.Lost, GameManager.Instance.Session.State, "Falling into a stream must lose the level.");
+
+        Assert.AreEqual(GameState.Playing, session.State, "Falling into a stream no longer loses the level.");
+        Assert.AreEqual(3, session.CollectedWaste, "The waste already collected must be kept.");
+        Assert.AreEqual(1, killPlane.Respawns);
+        float s = trail.Project(player.transform.position, out _);
+        Assert.AreEqual(zone, trail.ZoneAt(s), "The player must reappear in the zone they fell in, not back at the level start.");
+        Vector3 offset = player.transform.position - Checkpoint.ForZone(zone).transform.position;
+        Assert.Less(new Vector2(offset.x, offset.z).magnitude, 0.5f, "The player must reappear at the Zone 2 checkpoint.");
+        Assert.Less(s, span.x, "The checkpoint is before the stream.");
     }
 }

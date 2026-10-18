@@ -135,7 +135,7 @@ El jugador asume el papel del **Guardián del Bosque**, cuya tarea es recorrer e
 ## 4.3 Desarrollo
 Durante el recorrido, el jugador encuentra diferentes residuos y obstáculos que debe superar mediante el desplazamiento y los saltos. A medida que avanza por las tres zonas del nivel, debe recoger la cantidad necesaria de residuos para cumplir el objetivo.
 ## 4.4 Final
-Cuando el jugador alcanza la cantidad objetivo de residuos y llega a la meta al final del recorrido, el bosque se considera limpio y se muestra el mensaje **“¡Bosque limpio!”**. Si el personaje cae fuera del recorrido (por ejemplo, a un arroyo), se muestra **“¡Inténtalo de nuevo!”** y puede reiniciar el nivel.
+Cuando el jugador alcanza la cantidad objetivo de residuos y llega a la meta al final del recorrido, el bosque se considera limpio y se muestra el mensaje **“¡Bosque limpio!”**. Si el personaje cae fuera del recorrido (por ejemplo, a un arroyo), reaparece en el punto de control del inicio de la zona en la que cayó, conserva los residuos que ya recogió y el juego continúa; no hay que reiniciar el nivel.
 
 # 5. Objetivo y reglas
 ## 5.1 Objetivo principal
@@ -149,11 +149,11 @@ La cantidad de residuos será un parámetro ajustable, por lo que posteriormente
 | Elemento | Regla | Respuesta del sistema | Parámetro |
 | --- | --- | --- | --- |
 | Recolección | El jugador entra en contacto con un residuo. | El residuo desaparece, el contador aumenta en 1 y se reproduce un sonido. | Cantidad objetivo |
-| Obstáculos | El jugador debe saltar o desplazarse para superarlos. Los troncos que ruedan y las piedras que caen lo hacen trastabillar; el lodo lo frena. | Los obstáculos no hacen daño. Si cae a un arroyo (fuera del recorrido), pierde. | Ubicación de obstáculos |
+| Obstáculos | El jugador debe saltar o desplazarse para superarlos. Los troncos que ruedan y las piedras que caen lo hacen trastabillar; el lodo lo frena. | Los obstáculos no hacen daño. Si cae a un arroyo (fuera del recorrido), vuelve al punto de control de la zona. | Ubicación de obstáculos |
 | Progreso | El jugador continúa recorriendo las tres zonas y recogiendo residuos. | El HUD actualiza el contador, por ejemplo: **7/10**. | Cantidad de residuos |
 | Victoria | El contador alcanza la cantidad objetivo y el jugador llega a la meta. | Se muestra **“ ¡Bosque limpio!”**. | Objetivo = 10 |
 | Meta sin completar | El jugador llega a la meta con menos residuos que el objetivo. | Se muestra **“Te faltan N residuos”** y el juego continúa. | Objetivo = 10 |
-| Derrota | El personaje cae fuera del recorrido (a un arroyo, por debajo de la altura límite del nivel). | Se muestra **“ ¡Inténtalo de nuevo!”** y puede reiniciar. | Diseño del recorrido |
+| Caída | El personaje cae fuera del recorrido (a un arroyo, por debajo de la altura límite del nivel). | Reaparece en el punto de control del inicio de la zona actual, mirando hacia adelante, con los residuos ya recogidos. Se muestra unos segundos **“¡Te caíste! Vuelves al inicio de la zona con tus residuos.”** y suena el sonido de error. | Un punto de control por zona |
 ## 5.3 Condiciones de victoria y derrota
 Victoria:
 
@@ -161,7 +161,7 @@ residuosRecogidos >= objetivo  Y  jugador llega a la meta        ¡Bosque limpio
 
 Derrota:
 
-jugador cae fuera del recorrido (altura del personaje < límite del nivel, y = −2)         ¡Inténtalo de nuevo!                    Reiniciar nivel
+No hay derrota en el nivel actual. Si el jugador cae fuera del recorrido (altura del personaje < límite del nivel, y = −2), reaparece en el punto de control de su zona y conserva los residuos. La pantalla **“¡Inténtalo de nuevo!”** queda lista para futuras reglas de derrota.
 
 **5.4 Límites del juego**
 
@@ -207,7 +207,7 @@ Los obstáculos son:
 
 - Taludes de tierra (escalones del terreno de hasta 1,2 m que hay que subir saltando). 
 
-- Arroyos que cruzan el sendero y hay que saltar (caer en uno es derrota). 
+- Arroyos que cruzan el sendero y hay que saltar (caer en uno devuelve al jugador al inicio de la zona). 
 
 - Peligros dinámicos: tronco que rueda, piedra que cae y zona de lodo (ver 7.4).
 
@@ -281,7 +281,7 @@ Sin embargo, el jugador puede **equivocarse en su recorrido**:
 
 - caer fuera del recorrido; 
 
-- tener que reiniciar la zona. 
+- tener que repetir la zona desde su punto de control. 
 
 De esta manera existe desafío sin agregar un sistema complejo de clasificación.
 
@@ -542,7 +542,7 @@ Además de los obstáculos sueltos, hay **barreras que cierran el paso**: un tro
 
 Su función no es causar daño mediante un sistema de salud, sino interrumpir el recorrido y exigir al jugador utilizar el salto o el desplazamiento. Chocar de frente con uno hace tropezar al jugador y lo deja más lento durante 1,5 s (ver 7.4), igual que los peligros dinámicos.
 
-Los obstáculos no hacen caer al jugador por sí solos: la derrota ocurre si cae a un arroyo.
+Los obstáculos no hacen caer al jugador por sí solos. Caer a un arroyo no hace perder: el jugador vuelve al punto de control de la zona.
 ## 8.4 Distribución de residuos
 Se utilizarán ocho tipos de residuos y se clasificaran de la siguiente manera:
 
@@ -791,7 +791,7 @@ La pantalla de victoria indicará claramente que el objetivo fue completado.
 
 **Aviso de residuos pendientes:** si el jugador llega a la meta sin el objetivo, aparece unos segundos “Te faltan N residuos. ¡Vuelve a buscarlos!” y el juego continúa.
 ## 10.6 Pantalla de derrota
-Si el personaje cae fuera del recorrido:
+Caer fuera del recorrido ya no la muestra: el jugador reaparece en el punto de control de la zona con un aviso breve (ver 5.2). La pantalla queda preparada para una regla de derrota futura:
 
  **¡Inténtalo de nuevo!**
 
@@ -889,7 +889,7 @@ Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inve
 
 - **1 condición de victoria:** alcanzar la cantidad objetivo y llegar a la meta. 
 
-- **1 condición de derrota:** caer fuera del recorrido (a un arroyo). 
+- **Sin derrota:** caer fuera del recorrido (a un arroyo) devuelve al jugador al punto de control de la zona, con sus residuos. 
 
 - **HUD básico:** contador; pausa con Esc. 
 

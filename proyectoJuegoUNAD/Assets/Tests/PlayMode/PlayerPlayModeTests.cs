@@ -213,16 +213,22 @@ public class PlayerPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator FallingBelowKillPlane_RaisesLost()
+    public IEnumerator FallingBelowKillPlane_PutsThePlayerBackAtTheZoneCheckpoint()
     {
         Assert.IsNotNull(GameManager.Instance, "Level01 needs a GameManager.");
         Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State);
+        var checkpoint = Checkpoint.ForZone(0);
+        Assert.IsNotNull(checkpoint, "Level01 needs a checkpoint in Zone 1.");
 
-        Teleport(new Vector3(0f, GameManager.Instance.Config.killPlaneY - 1f, 0f));
+        Teleport(new Vector3(0f, GameManager.Instance.Config.killPlaneY - 1f, 0f)); // under Zone 1
         yield return new WaitForSeconds(0.3f);
 
-        Assert.AreEqual(GameState.Lost, GameManager.Instance.Session.State);
-        Assert.IsFalse(controller.InputEnabled, "Input must be disabled after losing.");
+        Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State, "Falling no longer ends the game.");
+        Assert.IsTrue(controller.InputEnabled, "The player keeps control after reappearing.");
+        Vector3 offset = player.transform.position - checkpoint.transform.position;
+        Assert.Less(new Vector2(offset.x, offset.z).magnitude, 0.5f, "The player must reappear at the Zone 1 checkpoint.");
+        Assert.Greater(Vector3.Dot(player.transform.forward, checkpoint.transform.forward), 0.9f, "The player must face down the trail.");
+        Assert.Less(controller.HorizontalVelocity.magnitude, 0.5f, "The player must reappear at rest.");
     }
 
     [UnityTest]

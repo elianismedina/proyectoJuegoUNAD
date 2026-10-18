@@ -7,8 +7,8 @@ using UnityEngine.UI;
 
 /// <summary>
 /// The goal at the end of Level01 and the end-of-game screens: reaching the goal early shows how much waste is
-/// missing and keeps the game going, reaching it with enough waste shows "¡Bosque limpio!", and falling shows
-/// "¡Inténtalo de nuevo!". Esc opens the pause menu, whose buttons resume, restart or go back to the main menu.
+/// missing and keeps the game going, reaching it with enough waste shows "¡Bosque limpio!", falling says the player is
+/// back at the zone start, and a loss shows "¡Inténtalo de nuevo!". Esc opens the pause menu, whose buttons resume, restart or go back to the main menu.
 /// The level opens with a banner that states the goal for a few seconds.
 /// </summary>
 public class GoalAndScreensPlayModeTests
@@ -198,10 +198,23 @@ public class GoalAndScreensPlayModeTests
     }
 
     [UnityTest]
-    public IEnumerator FallingOffTheCourse_ShowsTheLoseScreen()
+    public IEnumerator FallingOffTheCourse_SaysThePlayerIsBackAtTheZoneStartAndKeepsPlaying()
     {
         Teleport(new Vector3(0f, GameManager.Instance.Config.killPlaneY - 1f, 0f));
         yield return new WaitForSeconds(0.3f);
+
+        Assert.AreEqual(GameState.Playing, GameManager.Instance.Session.State);
+        Assert.IsTrue(screens.NoticeShown, "A notice must say what happened.");
+        Assert.AreEqual(GameScreens.RespawnNotice, screens.NoticeText);
+        Assert.IsFalse(screens.LoseShown, "Falling no longer shows the lose screen.");
+    }
+
+    // Nothing in Level01 loses any more, but the lose screen stays for game modes that do.
+    [UnityTest]
+    public IEnumerator Losing_ShowsTheLoseScreen()
+    {
+        GameManager.Instance.Lose();
+        yield return null;
 
         Assert.AreEqual(GameState.Lost, GameManager.Instance.Session.State);
         Assert.IsTrue(screens.LoseShown, "¡Inténtalo de nuevo! must show on a loss.");

@@ -3,7 +3,8 @@ using UnityEngine;
 /// <summary>
 /// Level sound: a forest ambience bed, the pickup sound for waste, and one-shot sounds for the game events:
 /// stumbling on a hazard (<see cref="PlayerController.Stumbled"/>), reaching the goal with waste still missing
-/// (<see cref="GameSession.GoalReachedWithMissingWaste"/>), winning and losing (<see cref="GameSession.StateChanged"/>).
+/// (<see cref="GameSession.GoalReachedWithMissingWaste"/>), falling into a stream and reappearing at a checkpoint
+/// (<see cref="KillPlane.PlayerRespawned"/>, with the lose clip), winning and losing (<see cref="GameSession.StateChanged"/>).
 /// The ambience plays the clips in <see cref="ambientClips"/> one after another, looping the list and
 /// crossfading between them so the short clips do not repeat audibly; with a single clip it simply loops.
 /// The pickup sound plays on <see cref="Collectible.Collected"/> with a slight pitch variation.
@@ -44,7 +45,8 @@ public class LevelAudio : MonoBehaviour
     [SerializeField] private AudioClip winClip;
     [SerializeField, Range(0f, 1f)] private float winVolume = 0.9f;
 
-    [SerializeField] private AudioClip loseClip;
+    [SerializeField, Tooltip("Losing, and falling into a stream (the player reappears at the zone's checkpoint).")]
+    private AudioClip loseClip;
     [SerializeField, Range(0f, 1f)] private float loseVolume = 0.9f;
 
     [SerializeField, Range(0f, 1f), Tooltip("Ambience volume multiplier once the level is won or lost.")]
@@ -90,12 +92,14 @@ public class LevelAudio : MonoBehaviour
     {
         Collectible.Collected += OnCollected;
         PlayerController.Stumbled += OnStumbled;
+        KillPlane.PlayerRespawned += OnPlayerRespawned;
     }
 
     private void OnDisable()
     {
         Collectible.Collected -= OnCollected;
         PlayerController.Stumbled -= OnStumbled;
+        KillPlane.PlayerRespawned -= OnPlayerRespawned;
     }
 
     private void Start()
@@ -165,6 +169,8 @@ public class LevelAudio : MonoBehaviour
     private void OnStumbled(PlayerController player) => PlayEvent(stumbleClip, stumbleVolume);
 
     private void OnGoalReachedWithMissingWaste(int missing) => PlayEvent(goalMissingClip, goalMissingVolume);
+
+    private void OnPlayerRespawned(Checkpoint checkpoint) => PlayEvent(loseClip, loseVolume);
 
     private void PlayEvent(AudioClip clip, float volume)
     {
