@@ -233,6 +233,7 @@ La recolección produce:
 **Estado:** implementado sin el desbloqueo de tramos. Las tres zonas siguen abiertas desde el inicio y para ganar sigue contando el total de residuos (ver 5.1), pero cada zona ya se recupera por separado:
 
 - Al empezar el nivel, la vegetación de las tres zonas (árboles, arbustos, hierba y flores) se ve **contaminada**: un tono pardo y apagado.
+- Cada residuo recogido hace brotar unas flores en ese punto (ver 10.4).
 - Cuando una zona se recupera, además de volver al verde, **florece**: aparecen grupos de flores (margaritas, dientes de león, jacintos azules y rosas rojas) junto al camino, que crecen una tras otra en algo más de un segundo. Hay unas 80 a 90 flores por zona, en manchas de 4 a 7 de la misma especie, fuera del camino y sin estorbar residuos ni puntos de control. Al ganar florece todo el bosque.
 - Cuando el jugador recoge **todos los residuos de una zona** (3 en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3), la zona queda **recuperada** y su vegetación vuelve a verse **sana**, con sus colores normales. Las demás zonas no cambian.
 - Al ganar (**“¡Bosque limpio!”**), todo el bosque se ve sano, aunque haya quedado algún residuo sin recoger.
@@ -798,7 +799,9 @@ No incluiremos configuraciones complejas ni otros menús porque no son necesario
 ## 10.4 Retroalimentación de recolección
 Cuando el jugador recoja un residuo:
 
-*Jugador toca residuo*  *Residuo desaparece*  *♻️* *+1*  *Sonido de recolección*
+*Jugador toca residuo*  *Residuo desaparece*  *♻️* *+1*  *Sonido de recolección*  *Brotan flores*
+
+**Flores donde estaba el residuo:** al recogerlo brotan unas 5 flores del *Low Poly Flower Pack* (margaritas, dientes de león, jacintos azules y rosas rojas) en el suelo bajo ese punto, una tras otra con una animación corta de crecimiento (medio segundo cada una, con un pequeño rebote). No tienen colisión y nunca quedan sobre el camino: si el residuo estaba encima del camino brotan a ambos lados, y si estaba sobre un arroyo, en la orilla más cercana. Así el recorrido va quedando marcado por las flores de lo que se ha limpiado.
 ## 10.5 Pantalla de victoria
 Cuando:
 

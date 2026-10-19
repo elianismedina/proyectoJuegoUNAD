@@ -749,6 +749,14 @@ public static class LevelEnvironmentBuilder
         so.FindProperty("pollutedMaterial").objectReferenceValue = healthy != null ? PollutedMaterial(healthy) : null;
         so.FindProperty("recoveryPropsRoot").objectReferenceValue = root.transform.Find("Recovery");
         so.ApplyModifiedPropertiesWithoutUndo();
+
+        // Flowers that sprout where each waste item is picked up, from the same recovery flower variants.
+        var bloom = new SerializedObject(root.AddComponent<PickupBloom>());
+        var prefabs = bloom.FindProperty("flowerPrefabs");
+        prefabs.arraySize = RecoveryFlowerNames.Length;
+        for (int i = 0; i < RecoveryFlowerNames.Length; i++)
+            prefabs.GetArrayElementAtIndex(i).objectReferenceValue = Prefab("Recovery_" + RecoveryFlowerNames[i], "Recovery");
+        bloom.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // Created once from the healthy material; after that it is left alone, so hand-made art put in its place survives rebuilds.
