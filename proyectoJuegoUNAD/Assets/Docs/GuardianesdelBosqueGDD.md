@@ -233,6 +233,7 @@ La recolección produce:
 **Estado:** implementado sin el desbloqueo de tramos. Las tres zonas siguen abiertas desde el inicio y para ganar sigue contando el total de residuos (ver 5.1), pero cada zona ya se recupera por separado:
 
 - Al empezar el nivel, la vegetación de las tres zonas (árboles, arbustos, hierba y flores) se ve **contaminada**: un tono pardo y apagado.
+- Cuando una zona se recupera, además de volver al verde, **florece**: aparecen grupos de flores (margaritas, dientes de león, jacintos azules y rosas rojas) junto al camino, que crecen una tras otra en algo más de un segundo. Hay unas 80 a 90 flores por zona, en manchas de 4 a 7 de la misma especie, fuera del camino y sin estorbar residuos ni puntos de control. Al ganar florece todo el bosque.
 - Cuando el jugador recoge **todos los residuos de una zona** (3 en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3), la zona queda **recuperada** y su vegetación vuelve a verse **sana**, con sus colores normales. Las demás zonas no cambian.
 - Al ganar (**“¡Bosque limpio!”**), todo el bosque se ve sano, aunque haya quedado algún residuo sin recoger.
 - La barra **“Recuperación del bosque”** del HUD muestra el avance (ver 10.2).
@@ -990,6 +991,7 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Montañas | Entorno | FBX / Prefab | Colinas del paquete "Low-Poly Simple Nature Pack" (JustCreate), pieza `Ground_02` escalada; ver enlace en la fila de árboles | Standard Unity Asset Store EULA (Extension Asset) |
 | Troncos | Obstáculos | FBX / Prefab | Tocón, tronco y rama del paquete "Low-Poly Simple Nature Pack" (JustCreate), ver enlace en la fila de árboles; el tronco que rueda usa la rama `Branch_01` del mismo paquete | Standard Unity Asset Store EULA (Extension Asset) (solo las piezas del paquete) |
 | Cercas | Obstáculos | FBX / Prefab | Aún no se usan en el nivel | — |
+| Flores de recuperación | Entorno (vegetación que aparece al recuperar una zona) | FBX / Prefab | Unity Asset Store: "Low Poly Flower Pack" (Emilulz), versión demo, en `Assets/Emilulz_Assets/DEMOLowPolyFlowers` (margarita, diente de león, jacinto azul y rosa roja, usadas a través de las variantes de `Assets/Prefabs/Environment/Recovery`). Enlace por verificar | Standard Unity Asset Store EULA (por verificar) |
 | Botellas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Bottle`) | Propio (creado por el equipo) |
 | Latas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Can`) | Propio (creado por el equipo) |
 | Papeles | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Paper`) | Propio (creado por el equipo) |

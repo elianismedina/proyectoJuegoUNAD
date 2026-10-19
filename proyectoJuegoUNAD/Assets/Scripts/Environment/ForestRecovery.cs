@@ -12,6 +12,8 @@ using UnityEngine;
 /// The look is a simple shared-material swap (placeholder art): any renderer under <see cref="sceneryRoot"/> that uses
 /// <see cref="healthyMaterial"/> is swapped. To change the art, assign other materials here, or give the polluted state its
 /// own material per asset later. <c>LevelEnvironmentBuilder</c> adds this to the <c>Environment</c> root.
+/// The flowers under <see cref="recoveryPropsRoot"/> (Low Poly Flower Pack, placed by the builder) are hidden while their
+/// zone is polluted and grow in, one after another, when it is recovered (GDD §6.1.4, "aparición de vegetación").
 /// </summary>
 public class ForestRecovery : MonoBehaviour
 {
@@ -24,6 +26,15 @@ public class ForestRecovery : MonoBehaviour
     [SerializeField, Tooltip("What that scenery looks like while its zone is polluted.")]
     private Material pollutedMaterial;
 
+    [SerializeField, Tooltip("Parent of the flowers that appear when a zone is recovered (each child is one flower).")]
+    private Transform recoveryPropsRoot;
+
+    [SerializeField, Min(0.05f), Tooltip("Seconds one flower takes to grow in.")]
+    private float growSeconds = 0.6f;
+
+    [SerializeField, Min(0f), Tooltip("Flowers start growing at random within this many seconds, so the zone blooms in a wave.")]
+    private float growSpread = 1f;
+
     /// <summary>Raised with the zone index when a zone is recovered.</summary>
     public static event Action<int> ZoneRecovered;
 
@@ -35,6 +46,9 @@ public class ForestRecovery : MonoBehaviour
 
     private readonly Dictionary<Collectible, int> zoneOfWaste = new Dictionary<Collectible, int>();
     private List<Renderer>[] zoneRenderers;
+    private List<Transform>[] zoneProps;
+    private readonly Dictionary<Transform, Vector3> fullScale = new Dictionary<Transform, Vector3>();
+    private readonly List<(Transform prop, float start)> growing = new List<(Transform, float)>();
     private GameSession session;
 
     public ZoneRecoveryTracker Tracker { get; private set; }
@@ -46,6 +60,25 @@ public class ForestRecovery : MonoBehaviour
     public Material PollutedMaterial => pollutedMaterial;
 
     public IReadOnlyList<Renderer> RenderersInZone(int zone) => zoneRenderers[zone];
+
+    /// <summary>The flowers that bloom when the zone is recovered.</summary>
+    public IReadOnlyList<Transform> FlowersInZone(int zone) => zoneProps[zone];
+
+    /// <summary>True when every flower of the zone has finished growing (also for a zone with no flowers).</summary>
+    public bool FlowersBloomed(int zone)
+    {
+        foreach (var prop in zoneProps[zone])
+            if (prop.localScale != fullScale[prop]) return false;
+        return true;
+    }
+
+    /// <summary>True while none of the zone's flowers shows yet.</summary>
+    public bool FlowersHidden(int zone)
+    {
+        foreach (var prop in zoneProps[zone])
+            if (prop.localScale != Vector3.zero) return false;
+        return true;
+    }
 
     private void Awake() => Current = this;
 
@@ -90,8 +123,24 @@ public class ForestRecovery : MonoBehaviour
             }
         }
 
+        zoneProps = new List<Transform>[ForestTrail.ZoneCount];
+        for (int z = 0; z < zoneProps.Length; z++) zoneProps[z] = new List<Transform>();
+        if (recoveryPropsRoot != null)
+        {
+            foreach (Transform group in recoveryPropsRoot)
+            foreach (Transform prop in group)
+            {
+                zoneProps[trail.ZoneAt(trail.Project(prop.position, out _))].Add(prop);
+                fullScale[prop] = prop.localScale;
+            }
+        }
+
         for (int z = 0; z < zoneRenderers.Length; z++)
-            if (!Tracker.IsRecovered(z)) SetLook(z, healthyMaterial, pollutedMaterial);
+        {
+            if (Tracker.IsRecovered(z)) continue;
+            SetLook(z, healthyMaterial, pollutedMaterial);
+            foreach (var prop in zoneProps[z]) prop.localScale = Vector3.zero;
+        }
 
         if (GameManager.Instance != null)
         {
@@ -127,7 +176,28 @@ public class ForestRecovery : MonoBehaviour
     private void OnZoneRecovered(int zone)
     {
         SetLook(zone, pollutedMaterial, healthyMaterial);
+        foreach (var prop in zoneProps[zone]) growing.Add((prop, Time.time + UnityEngine.Random.value * growSpread));
         ZoneRecovered?.Invoke(zone);
+    }
+
+    // Game time, so a pause holds the bloom. Each flower pops up with a small overshoot, then settles.
+    private void Update()
+    {
+        for (int i = growing.Count - 1; i >= 0; i--)
+        {
+            var (prop, start) = growing[i];
+            float t = (Time.time - start) / growSeconds;
+            if (t < 0f) continue;
+            if (prop == null || t >= 1f)
+            {
+                if (prop != null) prop.localScale = fullScale[prop];
+                growing.RemoveAt(i);
+                continue;
+            }
+            float eased = 1f - Mathf.Pow(1f - t, 3f);
+            float overshoot = 1f + 0.15f * Mathf.Sin(t * Mathf.PI);
+            prop.localScale = fullScale[prop] * (eased * overshoot);
+        }
     }
 
     // Swaps one shared material for another on the zone's scenery (shared materials keep the SRP Batcher happy).

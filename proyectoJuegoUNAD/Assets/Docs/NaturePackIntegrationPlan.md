@@ -98,9 +98,9 @@ The side camera sits at z = −8 looking at z = 0 with FOV 45, so depth matters.
 
 ### Phase E — Polluted-to-recovered visual state (M)
 GDD §6.1.4, §8.6 and §9.1 ask the player to see a zone go from polluted to recovered.
-- [ ] Three material stages of the same atlas: `Nature_Polluted` (desaturated, brownish), `Nature_Partial`, `Nature_Healthy` (the package default). Swapping **shared materials** keeps the SRP Batcher working; avoid per-renderer property blocks.
-- [ ] `ZoneRecovery` component (`Scripts/Environment/`): listens to `GameSession.WasteCollected`, computes progress as `collected / target`, applies the stage to the scenery of its zone and scales in the "recovery" props (flowers, grass, bushes from 0 to 1). The progress rule goes in pure C# so it can be unit-tested.
-- [ ] Win state: all zones fully healthy.
+- [x] Material stages of the same atlas, swapped as **shared materials**: `Assets/Materials/Recovery/Nature_Polluted.mat` (brownish placeholder) and the package default as healthy. A middle `Nature_Partial` stage was left out: each zone flips when its last waste is collected.
+- [x] Built as `ForestRecovery` (`Scripts/Environment/`) with the pure, EditMode-tested rule `ZoneRecoveryTracker`: a zone recovers when all of its waste is collected; its scenery swaps to healthy and its recovery flowers scale in from 0 to 1. The flowers come from the "Low Poly Flower Pack" demo (Emilulz, `Assets/Emilulz_Assets`) through the variants in `Assets/Prefabs/Environment/Recovery` (daisy, dandelion, blue hyacinth, red rose; no colliders), placed by `LevelEnvironmentBuilder` in patches off the path, about 80–90 per zone.
+- [x] Win state: all zones fully healthy, and all flowers bloom.
 - [ ] Not building a water shader or custom Shader Graph (scope, GDD §12.3). If wanted later, treat it as stretch.
 - **Done when:** collecting waste visibly recovers the forest; EditMode tests cover the progress rule; the win state shows a fully green forest.
 

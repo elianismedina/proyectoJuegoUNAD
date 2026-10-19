@@ -177,6 +177,16 @@ public static class LevelEnvironmentBuilder
     private static readonly string[] TreeNames = { "Tree_01", "Tree_02", "Tree_03", "Tree_04", "Tree_05" };
     private static readonly string[] BushNames = { "Bush_01", "Bush_02", "Bush_03" };
     private static readonly string[] RockNames = { "Rock_01", "Rock_04", "Rock_05" };
+    // Flowers that bloom when a zone is recovered (ForestRecovery; GDD 6.1.4 "aparición de vegetación"), from the Low Poly
+    // Flower Pack (Assets/Emilulz_Assets) through the variants in Prefabs/Environment/Recovery. They sit in clusters off the
+    // path, a few per stretch so every zone visibly blooms, and stay clear of obstacles, trunks, waste and checkpoints.
+    private static readonly string[] RecoveryFlowerNames = { "Daisy", "Dandelion", "Hyacinth", "Rose" };
+    private const int FlowerClustersPerZone = 16;
+    private const int FlowersPerClusterMin = 4, FlowersPerClusterMax = 7;
+    private const float FlowerClusterRadius = 1f;
+    private const float FlowerScaleMin = 1.2f, FlowerScaleMax = 1.6f; // on top of the variants' 0.55: 0.5–1.4 m tall
+    private const float FlowerClear = 1f; // metres kept from waste, checkpoints, obstacles and hazards
+
     private static readonly string[] SmallFoliage = { "Grass_01", "Grass_02", "Flowers_01", "Flowers_02", "Mushroom_01", "Mushroom_02", "Rock_02", "Rock_03" };
 
     private static readonly string[] ZoneNames = { "Zone1_Learning", "Zone2_Development", "Zone3_Challenge" };
@@ -230,6 +240,7 @@ public static class LevelEnvironmentBuilder
         PlaceCheckpoints(Child(root.transform, "Checkpoints"), trail, reserved);
 
         BuildScenery(Child(root.transform, "Scenery"), trail, floorCollider, reserved);
+        BuildRecoveryFlowers(Child(root.transform, "Recovery"), trail, floorCollider, reserved);
         BuildFarAway(Child(root.transform, "FarAway"), trail);
         AddForestRecovery(root);
         UpdateLevelConfig();
@@ -736,6 +747,7 @@ public static class LevelEnvironmentBuilder
         so.FindProperty("sceneryRoot").objectReferenceValue = root.transform.Find("Scenery");
         so.FindProperty("healthyMaterial").objectReferenceValue = healthy;
         so.FindProperty("pollutedMaterial").objectReferenceValue = healthy != null ? PollutedMaterial(healthy) : null;
+        so.FindProperty("recoveryPropsRoot").objectReferenceValue = root.transform.Find("Recovery");
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -808,6 +820,60 @@ public static class LevelEnvironmentBuilder
             (s, side) => side * (TrailHalfWidth + 1.2f + Next(rng) * (HalfWidth(s, side, length) - TrailHalfWidth - 1.6f)), insideCorridor: true);
         Scatter(rng, ground, SmallFoliage, Mathf.RoundToInt(length * 1.2f), trail, raycastSet, new List<Vector2>(reserved), 0.8f, 0.9f, 1.4f,
             (s, side) => side * (TrailHalfWidth + 0.2f + Next(rng) * (HalfWidth(s, side, length) + 2f)), insideCorridor: false);
+    }
+
+    // One child per zone ("Zone1".."Zone3") holding that zone's flowers. Their own random stream (seed 11), so the rest of
+    // the scenery does not move when this changes. Not static: ForestRecovery scales them in at runtime.
+    private static void BuildRecoveryFlowers(Transform root, ForestTrail trail, Collider floor, List<Vector2> reserved)
+    {
+        var rng = new Random(11);
+        var raycastSet = new HashSet<Collider> { floor };
+        float length = trail.Length, zoneLength = length / ForestTrail.ZoneCount;
+        Physics.SyncTransforms();
+
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+        {
+            var parent = Child(root, "Zone" + (zone + 1));
+            for (int cluster = 0, attempts = 0; cluster < FlowerClustersPerZone && attempts < FlowerClustersPerZone * 30; attempts++)
+            {
+                float s = zone * zoneLength + (0.06f + Next(rng) * 0.88f) * zoneLength;
+                int side = rng.Next(2) == 0 ? -1 : 1;
+                float maxLateral = Mathf.Min(HalfWidth(s, side, length) - 0.6f, 4.5f); // near the path, where the player looks
+                float lateral = side * Mathf.Lerp(TrailHalfWidth + 0.9f, maxLateral, Next(rng));
+                Vector3 centre = OnTrail(trail, s, lateral, 0f);
+                if (trail.IsOverStream(s) || !FlowerSpotIsFree(centre, trail, raycastSet, reserved, out _)) continue;
+
+                int count = rng.Next(FlowersPerClusterMin, FlowersPerClusterMax + 1);
+                string kind = RecoveryFlowerNames[rng.Next(RecoveryFlowerNames.Length)]; // one kind per patch, like a real meadow
+                for (int i = 0; i < count; i++)
+                {
+                    float angle = Next(rng) * Mathf.PI * 2f, radius = Mathf.Sqrt(Next(rng)) * FlowerClusterRadius;
+                    Vector3 p = centre + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
+                    if (!FlowerSpotIsFree(p, trail, raycastSet, reserved, out float y)) continue;
+
+                    var go = Spawn(Prefab("Recovery_" + (Next(rng) < 0.8f ? kind : RecoveryFlowerNames[rng.Next(RecoveryFlowerNames.Length)]), "Recovery"), parent);
+                    go.transform.position = new Vector3(p.x, y - 0.02f, p.z);
+                    go.transform.rotation = Quaternion.Euler(0f, Next(rng) * 360f, 0f);
+                    go.transform.localScale *= Mathf.Lerp(FlowerScaleMin, FlowerScaleMax, Next(rng));
+                }
+                cluster++;
+            }
+        }
+    }
+
+    // Off the path, on the forest floor (not over a stream), and with nothing solid or reserved close by.
+    private static bool FlowerSpotIsFree(Vector3 p, ForestTrail trail, HashSet<Collider> raycastSet, List<Vector2> reserved, out float y)
+    {
+        y = 0f;
+        trail.Project(p, out float fromCentre);
+        if (Mathf.Abs(fromCentre) < TrailHalfWidth + 0.3f) return false;
+        if (!TryGroundY(p.x, p.z, raycastSet, out y)) return false;
+        var point = new Vector2(p.x, p.z);
+        foreach (var r in reserved)
+            if ((r - point).sqrMagnitude < FlowerClear * FlowerClear) return false;
+        foreach (var hit in Physics.OverlapSphere(new Vector3(p.x, y + 0.5f, p.z), 0.45f, ~0, QueryTriggerInteraction.Ignore))
+            if (!raycastSet.Contains(hit)) return false; // obstacle, trunk, wall or hazard body
+        return true;
     }
 
     private static float Next(Random rng) => (float)rng.NextDouble();
