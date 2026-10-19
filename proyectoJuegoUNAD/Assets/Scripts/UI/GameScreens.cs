@@ -8,7 +8,9 @@ using UnityEngine.UI;
 /// falls into a stream and is put back at the start of the zone (<see cref="KillPlane.PlayerRespawned"/>).
 /// Also the pause menu from GDD §6.6 (Esc): "Continuar" resumes, "Reiniciar" restarts the level and "Salir" goes back
 /// to the main menu (GDD §10.3). When the level starts, a banner states the goal from GDD §5.1 ("Recoge 10 residuos y
-/// llega a la meta") for a few seconds and then fades out.
+/// llega a la meta") for a few seconds and then fades out. When a zone of the forest is recovered
+/// (<see cref="ForestRecovery.ZoneRecovered"/>), "¡Zona recuperada!" shows for about 2 s with a short chime, below the
+/// goal arrow and above the objective banner and the other notices, so it never covers them.
 /// Listens to the <see cref="GameSession"/> owned by the <see cref="GameManager"/>; holds no game rules itself.
 /// </summary>
 public class GameScreens : MonoBehaviour
@@ -40,9 +42,22 @@ public class GameScreens : MonoBehaviour
     [SerializeField, Min(0f), Tooltip("Seconds the objective banner takes to fade out at the end.")]
     private float objectiveFadeSeconds = 0.6f;
 
+    [SerializeField] private CanvasGroup zoneNotice;
+    [SerializeField] private AudioSource zoneNoticeAudio;
+    [SerializeField] private AudioClip zoneNoticeClip;
+
+    [SerializeField, Min(0.5f), Tooltip("Seconds '¡Zona recuperada!' stays on screen, fade included.")]
+    private float zoneNoticeSeconds = 2f;
+
+    [SerializeField, Min(0f), Tooltip("Seconds '¡Zona recuperada!' takes to fade out at the end.")]
+    private float zoneNoticeFadeSeconds = 0.4f;
+
+    [SerializeField, Range(0f, 1f)] private float zoneNoticeVolume = 0.8f;
+
     private GameSession session;
     private float noticeHideTime;
     private float objectiveHideTime;
+    private float zoneNoticeHideTime;
 
     public bool WinShown => winPanel.activeSelf;
     public bool LoseShown => losePanel.activeSelf;
@@ -51,6 +66,13 @@ public class GameScreens : MonoBehaviour
     public string NoticeText => missingText.text;
     public bool ObjectiveShown => objectiveBanner.gameObject.activeSelf;
     public string ObjectiveText => objectiveText.text;
+    public bool ZoneNoticeShown => zoneNotice != null && zoneNotice.gameObject.activeSelf;
+
+    /// <summary>How many times the zone-recovered chime played since the level loaded.</summary>
+    public int ZoneNoticeSoundsPlayed { get; private set; }
+
+    /// <summary>What the HUD says when a zone of the forest is recovered.</summary>
+    public const string ZoneRecoveredMessage = "¡Zona recuperada!";
 
     /// <summary>The notice shown when the player falls and reappears at the start of the zone with their waste.</summary>
     public const string RespawnNotice = "¡Te caíste! Vuelves al inicio de la zona con tus residuos.";
@@ -66,6 +88,7 @@ public class GameScreens : MonoBehaviour
         pausePanel.SetActive(false);
         missingNotice.SetActive(false);
         objectiveBanner.gameObject.SetActive(false);
+        if (zoneNotice != null) zoneNotice.gameObject.SetActive(false);
         winRestartButton.onClick.AddListener(Restart);
         loseRestartButton.onClick.AddListener(Restart);
         pauseContinueButton.onClick.AddListener(Continue);
@@ -81,12 +104,14 @@ public class GameScreens : MonoBehaviour
         session.StateChanged += OnStateChanged;
         session.GoalReachedWithMissingWaste += OnGoalReachedWithMissingWaste;
         KillPlane.PlayerRespawned += OnPlayerRespawned;
+        ForestRecovery.ZoneRecovered += OnZoneRecovered;
         ShowObjective(session.TargetWaste);
     }
 
     private void OnDestroy()
     {
         KillPlane.PlayerRespawned -= OnPlayerRespawned;
+        ForestRecovery.ZoneRecovered -= OnZoneRecovered;
         if (session == null) return;
 
         session.StateChanged -= OnStateChanged;
@@ -97,6 +122,33 @@ public class GameScreens : MonoBehaviour
     {
         if (missingNotice.activeSelf && Time.unscaledTime >= noticeHideTime) missingNotice.SetActive(false);
         if (objectiveBanner.gameObject.activeSelf) UpdateObjective();
+        if (ZoneNoticeShown) UpdateZoneNotice();
+    }
+
+    // Only while playing: winning recovers every zone at once, and the win screen says it better.
+    private void OnZoneRecovered(int zone)
+    {
+        if (zoneNotice == null || session == null || session.State != GameState.Playing) return;
+
+        zoneNotice.alpha = 1f;
+        zoneNotice.gameObject.SetActive(true);
+        zoneNoticeHideTime = Time.unscaledTime + zoneNoticeSeconds;
+        if (zoneNoticeAudio != null && zoneNoticeClip != null)
+        {
+            zoneNoticeAudio.PlayOneShot(zoneNoticeClip, zoneNoticeVolume);
+            ZoneNoticeSoundsPlayed++;
+        }
+    }
+
+    private void UpdateZoneNotice()
+    {
+        float left = zoneNoticeHideTime - Time.unscaledTime;
+        if (left <= 0f)
+        {
+            zoneNotice.gameObject.SetActive(false);
+            return;
+        }
+        zoneNotice.alpha = zoneNoticeFadeSeconds > 0f ? Mathf.Clamp01(left / zoneNoticeFadeSeconds) : 1f;
     }
 
     private void ShowObjective(int targetWaste)
@@ -131,6 +183,7 @@ public class GameScreens : MonoBehaviour
         if (state == GameState.Won)
         {
             objectiveBanner.gameObject.SetActive(false);
+            if (zoneNotice != null) zoneNotice.gameObject.SetActive(false);
             missingNotice.SetActive(false);
             winDetail.text = "Recogiste " + session.CollectedWaste + " residuos.";
             Show(winPanel, winRestartButton);
@@ -138,6 +191,7 @@ public class GameScreens : MonoBehaviour
         else if (state == GameState.Lost)
         {
             objectiveBanner.gameObject.SetActive(false);
+            if (zoneNotice != null) zoneNotice.gameObject.SetActive(false);
             missingNotice.SetActive(false);
             Show(losePanel, loseRestartButton);
         }

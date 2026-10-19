@@ -236,8 +236,9 @@ La recolección produce:
 - Cuando el jugador recoge **todos los residuos de una zona** (3 en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3), la zona queda **recuperada** y su vegetación vuelve a verse **sana**, con sus colores normales. Las demás zonas no cambian.
 - Al ganar (**“¡Bosque limpio!”**), todo el bosque se ve sano, aunque haya quedado algún residuo sin recoger.
 - La barra **“Recuperación del bosque”** del HUD muestra el avance (ver 10.2).
+- Al recuperarse una zona aparece unos 2 s en el HUD el aviso **“¡Zona recuperada!”**, en verde, con un sonido corto (dos notas ascendentes). Al ganar no aparece, porque ya lo dice la pantalla de victoria.
 
-Por ahora el cambio es un cambio de material provisional (el mismo atlas de la vegetación teñido de pardo). Geordany puede reemplazarlo por su arte sin tocar código. El suelo no cambia, porque es una sola malla para todo el sendero. Quedan pendientes el desbloqueo del siguiente tramo, el sonido de zona contaminada / limpia y una animación o aviso al recuperar una zona.
+Por ahora el cambio es un cambio de material provisional (el mismo atlas de la vegetación teñido de pardo). Geordany puede reemplazarlo por su arte sin tocar código. El suelo no cambia, porque es una sola malla para todo el sendero. Quedan pendientes el desbloqueo del siguiente tramo, el sonido de ambiente de zona contaminada / limpia y una animación del personaje al recuperar una zona.
 
 Diseño original:
 
@@ -763,6 +764,10 @@ Esto permite que el jugador sepa claramente **cuánto ha avanzado y cuánto le f
 **Barra “Recuperación del bosque”**
 
 Bajo el contador hay una barra que muestra cuánto se ha recuperado el bosque: es el promedio del avance de las tres zonas (residuos recogidos en cada zona sobre los que tiene). Sube con cada residuo, cada zona recuperada suma un tercio, y se llena del todo cuando las tres zonas están recuperadas o al ganar. Como el nivel tiene 12 residuos y el objetivo son 10, se puede ganar sin haber llenado la barra; al ganar se completa.
+
+**Aviso “¡Zona recuperada!”**
+
+Cuando el jugador recoge el último residuo de una zona aparece “¡Zona recuperada!” en verde sobre un panel oscuro, unos 2 s, y se desvanece al final, acompañado de un sonido corto (`sonido_zona_recuperada.wav`, provisional). Está en el centro, entre la flecha hacia la meta y el banner del objetivo, a la derecha del contador, así que no tapa ninguno de ellos ni los demás avisos.
 
 **Indicador de dirección hacia la meta**
 

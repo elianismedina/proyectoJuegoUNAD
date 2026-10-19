@@ -7,7 +7,8 @@ using UnityEngine.TestTools;
 
 /// <summary>
 /// The forest's recovery in Level01: every zone starts polluted; collecting all of a zone's waste recovers that zone
-/// (its scenery goes back to the healthy material) and fills Jhon's "Recuperación del bosque" bar; winning recovers all.
+/// (its scenery goes back to the healthy material), fills Jhon's "Recuperación del bosque" bar and shows "¡Zona recuperada!"
+/// for about 2 s with a chime; winning recovers all without the notice.
 /// </summary>
 public class ForestRecoveryPlayModeTests
 {
@@ -18,6 +19,7 @@ public class ForestRecoveryPlayModeTests
     private WasteCounter counter;
     private GameObject player;
     private CharacterController characterController;
+    private GameScreens screens;
 
     [UnitySetUp]
     public IEnumerator LoadLevel()
@@ -30,6 +32,7 @@ public class ForestRecoveryPlayModeTests
         counter = Object.FindFirstObjectByType<WasteCounter>();
         player = GameObject.FindGameObjectWithTag("Player");
         characterController = player.GetComponent<CharacterController>();
+        screens = Object.FindFirstObjectByType<GameScreens>();
         Assert.IsNotNull(forest, "Level01 needs a ForestRecovery (Forest Guardian > Level > Build Level01 Environment).");
         Assert.IsNotNull(forest.Tracker, "The forest must be set up once the level has started.");
     }
@@ -84,6 +87,12 @@ public class ForestRecoveryPlayModeTests
             CollectionAssert.AreEqual(new[] { 0 }, recovered);
             Assert.AreEqual(forest.Progress, counter.BarFill, 0.001f, "Jhon's bar shows the forest's recovery.");
             Assert.AreEqual(1f / 3f, counter.BarFill, 0.001f, "One zone of three recovered.");
+
+            Assert.IsTrue(screens.ZoneNoticeShown, "Recovering a zone must show the notice.");
+            Assert.AreEqual(GameScreens.ZoneRecoveredMessage, screens.transform.Find("ZoneNotice/Text").GetComponent<UnityEngine.UI.Text>().text);
+            Assert.AreEqual(1, screens.ZoneNoticeSoundsPlayed, "...with one short chime.");
+            yield return new WaitForSecondsRealtime(2.3f);
+            Assert.IsFalse(screens.ZoneNoticeShown, "The notice goes away after about 2 s.");
         }
         finally
         {
@@ -103,5 +112,23 @@ public class ForestRecoveryPlayModeTests
         for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
             Assert.IsFalse(forest.LooksPolluted(zone), "¡Bosque limpio! Zone " + (zone + 1) + " must be healthy.");
         Assert.AreEqual(1f, counter.BarFill, 0.001f, "The bar is full when the forest is clean.");
+        Assert.IsFalse(screens.ZoneNoticeShown, "The win screen says it already: no zone notice over it.");
+        Assert.AreEqual(0, screens.ZoneNoticeSoundsPlayed);
+    }
+
+    // As laid out in Level01 (with Jhon's taller counter), in screen space.
+    [Test]
+    public void ZoneNotice_DoesNotCoverTheBannerTheArrowOrTheCounter()
+    {
+        Rect notice = ScreenRect(screens.transform.Find("ZoneNotice"));
+        foreach (var path in new[] { "ObjectiveBanner", "GoalCompass/Arrow", "GoalCompass/WrongWay", "WasteCounter", "MissingNotice" })
+            Assert.IsFalse(notice.Overlaps(ScreenRect(screens.transform.Find(path))), "'¡Zona recuperada!' would cover " + path + ".");
+    }
+
+    private static Rect ScreenRect(Transform t)
+    {
+        var corners = new Vector3[4];
+        ((RectTransform)t).GetWorldCorners(corners); // screen-space overlay canvas: world = screen pixels
+        return Rect.MinMaxRect(corners[0].x, corners[0].y, corners[2].x, corners[2].y);
     }
 }
