@@ -7,7 +7,8 @@ using UnityEngine.TestTools;
 /// <summary>
 /// Level01 sound: the ambience starts with the level and picking up waste plays the pickup sound once per item.
 /// Stumbling, reaching the goal with waste missing, winning and losing each play their own sound.
-/// A polluted zone sounds polluted (bosque_contaminado_sound); recovering it fades to the living forest.
+/// A polluted zone sounds polluted (bosque_contaminado_sound); recovering it fades to the recovered forest
+/// (sonido_bosque_recuperado).
 /// </summary>
 public class LevelAudioPlayModeTests
 {
@@ -40,6 +41,7 @@ public class LevelAudioPlayModeTests
     public void Ambience_StartsWithTheLevel()
     {
         Assert.IsNotNull(levelAudio.CurrentAmbientClip, "LevelAudio needs at least one ambient clip.");
+        Assert.AreEqual("sonido_bosque_recuperado", levelAudio.CurrentAmbientClip.name, "A recovered forest sounds like sonido_bosque_recuperado.");
         Assert.IsNotNull(levelAudio.PickupClip, "LevelAudio needs the pickup clip.");
         Assert.IsNotNull(levelAudio.StumbleClip, "LevelAudio needs the stumble clip.");
         Assert.IsNotNull(levelAudio.GoalMissingClip, "LevelAudio needs the goal-with-waste-missing clip.");

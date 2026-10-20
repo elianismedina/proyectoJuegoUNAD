@@ -115881,8 +115881,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ForestGuardian::LevelAudio
   ambientClips:
-  - {fileID: 8300000, guid: 685c5e1b964286649bb20eca2a4c8389, type: 3}
-  - {fileID: 8300000, guid: 7ce9571d7e0f9b64dbb7bf30f55e3f33, type: 3}
+  - {fileID: 8300000, guid: 5ed310c1308f8ca4c913e6f2be35c598, type: 3}
   ambientVolume: 0.15
   crossfadeDuration: 2
   pausedVolumeScale: 0.4

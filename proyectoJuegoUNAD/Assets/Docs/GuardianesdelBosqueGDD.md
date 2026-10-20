@@ -242,7 +242,7 @@ La recolección produce:
 
 Por ahora el cambio es un cambio de material provisional (el mismo atlas de la vegetación teñido de pardo). Geordany puede reemplazarlo por su arte sin tocar código. El suelo no cambia, porque es una sola malla para todo el sendero. Quedan pendientes el desbloqueo del siguiente tramo y una animación del personaje al recuperar una zona.
 
-**Sonido de la zona:** mientras el jugador está en una zona contaminada suena el ambiente `bosque_contaminado_sound` (en bucle). Al recuperar esa zona, o al pasar a una zona ya recuperada, se hace un fundido de unos 3 s al ambiente de bosque vivo (las dos pistas de siempre); al entrar de nuevo en una zona contaminada, el fundido va al revés. Como la Zona 1 empieza contaminada, el nivel arranca con el ambiente contaminado.
+**Sonido de la zona:** mientras el jugador está en una zona contaminada suena el ambiente `bosque_contaminado_sound` (en bucle). Al recuperar esa zona, o al pasar a una zona ya recuperada, se hace un fundido de unos 3 s al ambiente de bosque recuperado (`sonido_bosque_recuperado`, en bucle); al entrar de nuevo en una zona contaminada, el fundido va al revés. Como la Zona 1 empieza contaminada, el nivel arranca con el ambiente contaminado.
 
 Diseño original:
 
@@ -718,7 +718,7 @@ Clics en botones, pausa, sonidos de confirmación y error al interactuar con el 
 | Interfaz de usuario | UI_Pausa | Indicador sonoro al abrir o cerrar el menú de pausa. | .wav |
 | Interfaz de usuario | UI_Confirmacion | Retroalimentación al seleccionar opciones o interactuar con el mapa educativo. | .wav |
 | Interfaz de usuario | UI_Error | Alerta auditiva cuando se realiza una acción inválida o error de clasificación. | .wav |
-**Estado actual del audio:** ya suenan dos pistas de ambiente de bosque (`Assets/Sound/Ambient/`) que se alternan con un fundido, el sonido de recolección de residuos (`Assets/Sound/SFX/collectible_pickup_sound.wav`, con una ligera variación de tono) y los pasos y el aterrizaje del paquete Starter Assets. En las zonas contaminadas suena `bosque_contaminado_sound` y, al recuperarlas, un fundido lleva al ambiente de bosque vivo (ver 6.1.4). Al recuperar una zona suena un sonido corto con el aviso “¡Zona recuperada!”, y al brotar flores tras recoger un residuo suena `flowers_sound`. Al pausar, el ambiente baja de volumen. Todo el sonido es 2D. Faltan la música, el salto y los sonidos de interfaz.
+**Estado actual del audio:** el ambiente sigue la recuperación del bosque: `bosque_contaminado_sound` en las zonas contaminadas y `sonido_bosque_recuperado` en las recuperadas, con un fundido entre ambos (los dos en `Assets/Sound/Ambient/`; las pistas anteriores `ambient_sound_one` y `ambient_sound_two` ya no se usan), el sonido de recolección de residuos (`Assets/Sound/SFX/collectible_pickup_sound.wav`, con una ligera variación de tono) y los pasos y el aterrizaje del paquete Starter Assets. En las zonas contaminadas suena `bosque_contaminado_sound` y, al recuperarlas, un fundido lleva al ambiente de bosque vivo (ver 6.1.4). Al recuperar una zona suena un sonido corto con el aviso “¡Zona recuperada!”, y al brotar flores tras recoger un residuo suena `flowers_sound`. Al pausar, el ambiente baja de volumen. Todo el sonido es 2D. Faltan la música, el salto y los sonidos de interfaz.
 
 ## 9.3 Recursos de interfaz
 La interfaz será sencilla y contendrá únicamente la información necesaria para que el jugador conozca su progreso.

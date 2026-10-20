@@ -104,12 +104,23 @@ public class LevelAudio : MonoBehaviour
     /// <summary>Current volume of the polluted ambience.</summary>
     public float PollutedAmbienceVolume => pollutedSource != null ? pollutedSource.volume : 0f;
 
-    /// <summary>Current volume of the living-forest ambience (both of its crossfading sources together).</summary>
-    public float LivingAmbienceVolume => ambientSources != null ? ambientSources[0].volume + ambientSources[1].volume : 0f;
+    /// <summary>Current volume of the living-forest ambience (its playing crossfade sources together).</summary>
+    public float LivingAmbienceVolume
+    {
+        get
+        {
+            if (ambientSources == null) return 0f;
+            float volume = 0f;
+            foreach (var source in ambientSources)
+                if (source.isPlaying) volume += source.volume;
+            return volume;
+        }
+    }
 
     private void Awake()
     {
         ambientSources = new[] { CreateSource("Ambience A"), CreateSource("Ambience B") };
+        foreach (var source in ambientSources) source.volume = 0f; // B stays silent with a single clip
         sfxSource = CreateSource("Pickup SFX");
         // Its own source: the pickup source's random pitch must not detune these.
         eventSource = CreateSource("Event SFX");
