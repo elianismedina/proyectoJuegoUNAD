@@ -6,7 +6,8 @@ using UnityEngine;
 /// <see cref="Collectible.Collected"/> it spawns <see cref="flowersPerPickup"/> flowers from <see cref="flowerPrefabs"/>
 /// (the Low Poly Flower Pack variants, no colliders) on the forest floor below the item and grows them in with a short
 /// pop. They never stand on the dirt path: for an item above the path they sprout on both edges of it, and for one over
-/// a stream on the nearest bank. <c>LevelEnvironmentBuilder</c> adds this to the <c>Environment</c> root.
+/// a stream on the nearest bank. Each sprouting plays <see cref="bloomClip"/> (<c>flowers_sound</c>) once, in 2D.
+/// <c>LevelEnvironmentBuilder</c> adds this to the <c>Environment</c> root.
 /// </summary>
 public class PickupBloom : MonoBehaviour
 {
@@ -24,6 +25,11 @@ public class PickupBloom : MonoBehaviour
     [SerializeField, Min(0f), Tooltip("Delay between one flower and the next, so they pop up one after another.")]
     private float stagger = 0.08f;
 
+    [SerializeField, Tooltip("Played once each time flowers sprout (Assets/Sound/SFX/flowers_sound.wav).")]
+    private AudioClip bloomClip;
+
+    [SerializeField, Range(0f, 1f)] private float bloomVolume = 0.8f;
+
     /// <summary>Half-width of the dirt path the flowers keep off (ForestTrail's path is 4 m wide), plus a margin.</summary>
     public const float PathClearance = 2.4f;
 
@@ -31,6 +37,7 @@ public class PickupBloom : MonoBehaviour
 
     private ForestTrail trail;
     private Transform container;
+    private AudioSource audioSource;
     private readonly List<(Transform flower, Vector3 scale, float start)> growing = new List<(Transform, Vector3, float)>();
     private readonly List<Transform> spawned = new List<Transform>();
 
@@ -39,6 +46,11 @@ public class PickupBloom : MonoBehaviour
 
     /// <summary>True while some flower is still growing.</summary>
     public bool IsGrowing => growing.Count > 0;
+
+    public AudioClip BloomClip => bloomClip;
+
+    /// <summary>How many times the bloom sound played since the level loaded.</summary>
+    public int BloomSoundsPlayed { get; private set; }
 
     private void OnEnable() => Collectible.Collected += OnCollected;
 
@@ -49,6 +61,10 @@ public class PickupBloom : MonoBehaviour
         trail = FindAnyObjectByType<ForestTrail>();
         container = new GameObject("PickupFlowers").transform;
         container.SetParent(transform, false);
+
+        audioSource = container.gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f; // 2D, like the rest of the level's one-shots (LevelAudio)
     }
 
     private void OnCollected(Collectible item)
@@ -56,6 +72,7 @@ public class PickupBloom : MonoBehaviour
         if (flowerPrefabs == null || flowerPrefabs.Length == 0 || container == null) return;
 
         var spots = SproutSpots(item.transform.position);
+        int sprouted = 0;
         for (int i = 0; i < flowersPerPickup; i++)
         {
             Vector3 centre = spots[i % spots.Count];
@@ -69,6 +86,13 @@ public class PickupBloom : MonoBehaviour
             flower.localScale = Vector3.zero;
             growing.Add((flower, scale, Time.time + i * stagger));
             spawned.Add(flower);
+            sprouted++;
+        }
+
+        if (sprouted > 0 && bloomClip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(bloomClip, bloomVolume);
+            BloomSoundsPlayed++;
         }
     }
 

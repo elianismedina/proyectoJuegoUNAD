@@ -33670,6 +33670,8 @@ MonoBehaviour:
   spread: 0.6
   growSeconds: 0.5
   stagger: 0.08
+  bloomClip: {fileID: 8300000, guid: 60d94d9ad661c074f89beb399ac2b79a, type: 3}
+  bloomVolume: 0.8
 --- !u!114 &525010193
 MonoBehaviour:
   m_ObjectHideFlags: 0

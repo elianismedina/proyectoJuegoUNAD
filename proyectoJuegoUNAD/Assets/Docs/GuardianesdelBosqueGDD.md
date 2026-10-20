@@ -801,7 +801,7 @@ Cuando el jugador recoja un residuo:
 
 *Jugador toca residuo*  *Residuo desaparece*  *♻️* *+1*  *Sonido de recolección*  *Brotan flores*
 
-**Flores donde estaba el residuo:** al recogerlo brotan unas 5 flores del *Low Poly Flower Pack* (margaritas, dientes de león, jacintos azules y rosas rojas) en el suelo bajo ese punto, una tras otra con una animación corta de crecimiento (medio segundo cada una, con un pequeño rebote). No tienen colisión y nunca quedan sobre el camino: si el residuo estaba encima del camino brotan a ambos lados, y si estaba sobre un arroyo, en la orilla más cercana. Así el recorrido va quedando marcado por las flores de lo que se ha limpiado.
+**Flores donde estaba el residuo:** al recogerlo brotan unas 5 flores del *Low Poly Flower Pack* (margaritas, dientes de león, jacintos azules y rosas rojas) en el suelo bajo ese punto, una tras otra con una animación corta de crecimiento (medio segundo cada una, con un pequeño rebote), acompañadas del sonido `flowers_sound` (una vez por residuo). No tienen colisión y nunca quedan sobre el camino: si el residuo estaba encima del camino brotan a ambos lados, y si estaba sobre un arroyo, en la orilla más cercana. Así el recorrido va quedando marcado por las flores de lo que se ha limpiado.
 ## 10.5 Pantalla de victoria
 Cuando:
 

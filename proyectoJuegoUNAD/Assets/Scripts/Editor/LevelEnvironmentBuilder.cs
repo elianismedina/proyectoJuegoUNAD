@@ -33,6 +33,7 @@ public static class LevelEnvironmentBuilder
     // same atlas tinted dull brown. Geordany can replace the polluted material's art without touching any code.
     private const string NatureMaterialPath = "Assets/SimpleNaturePack/Materials/SimpleNaturePack_Texture_01.mat";
     private const string PollutedMaterialPath = "Assets/Materials/Recovery/Nature_Polluted.mat";
+    private const string FlowersSoundPath = "Assets/Sound/SFX/flowers_sound.wav"; // played when pickup flowers sprout
     private static readonly Color PollutedTint = new Color(0.6f, 0.47f, 0.3f, 1f);
     private const string LevelConfigPath = "Assets/Config/LevelConfig_Level01.asset";
 
@@ -756,6 +757,7 @@ public static class LevelEnvironmentBuilder
         prefabs.arraySize = RecoveryFlowerNames.Length;
         for (int i = 0; i < RecoveryFlowerNames.Length; i++)
             prefabs.GetArrayElementAtIndex(i).objectReferenceValue = Prefab("Recovery_" + RecoveryFlowerNames[i], "Recovery");
+        bloom.FindProperty("bloomClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(FlowersSoundPath);
         bloom.ApplyModifiedPropertiesWithoutUndo();
     }
 
