@@ -115886,6 +115886,9 @@ MonoBehaviour:
   ambientVolume: 0.15
   crossfadeDuration: 2
   pausedVolumeScale: 0.4
+  pollutedClip: {fileID: 8300000, guid: 1e4119720583b6f48a8bfb432304641c, type: 3}
+  pollutedVolume: 0.15
+  zoneFadeSeconds: 3
   pickupClip: {fileID: 8300000, guid: 9f463ca2dddd60b4aad9e563bec0461a, type: 3}
   pickupVolume: 0.8
   pickupPitchVariation: 0.06

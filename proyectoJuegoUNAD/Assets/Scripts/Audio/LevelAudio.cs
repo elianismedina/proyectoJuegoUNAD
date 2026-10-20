@@ -5,8 +5,11 @@ using UnityEngine;
 /// stumbling on a hazard (<see cref="PlayerController.Stumbled"/>), reaching the goal with waste still missing
 /// (<see cref="GameSession.GoalReachedWithMissingWaste"/>), falling into a stream and reappearing at a checkpoint
 /// (<see cref="KillPlane.PlayerRespawned"/>, with the lose clip), winning and losing (<see cref="GameSession.StateChanged"/>).
-/// The ambience plays the clips in <see cref="ambientClips"/> one after another, looping the list and
+/// The living-forest ambience plays the clips in <see cref="ambientClips"/> one after another, looping the list and
 /// crossfading between them so the short clips do not repeat audibly; with a single clip it simply loops.
+/// While the player is in a polluted zone (<see cref="ForestRecovery"/>), <see cref="pollutedClip"/> (bosque_contaminado_sound)
+/// loops instead; when that zone is recovered, or the player walks into a recovered one, the two fade into each other over
+/// <see cref="zoneFadeSeconds"/>. Without a ForestRecovery in the scene the forest always sounds alive.
 /// The pickup sound plays on <see cref="Collectible.Collected"/> with a slight pitch variation.
 /// All are 2D (non-spatial), so they sound the same wherever the camera is. Pausing the game lowers the
 /// ambience instead of cutting it, and so does the end of the game, so the win / lose sound stands out;
@@ -25,6 +28,14 @@ public class LevelAudio : MonoBehaviour
 
     [SerializeField, Range(0f, 1f), Tooltip("Ambience volume multiplier while the game is paused.")]
     private float pausedVolumeScale = 0.4f;
+
+    [SerializeField, Tooltip("Ambience of a polluted zone (Assets/Sound/SFX/bosque_contaminado_sound.wav), looped.")]
+    private AudioClip pollutedClip;
+
+    [SerializeField, Range(0f, 1f)] private float pollutedVolume = 0.5f;
+
+    [SerializeField, Min(0.1f), Tooltip("Seconds the fade between polluted and living-forest ambience takes.")]
+    private float zoneFadeSeconds = 3f;
 
     [Header("Pickup")]
     [SerializeField] private AudioClip pickupClip;
@@ -59,7 +70,12 @@ public class LevelAudio : MonoBehaviour
     private float volumeScale = 1f;
     private AudioSource sfxSource;
     private AudioSource eventSource;
+    private AudioSource pollutedSource;
     private GameSession session;
+    private ForestTrail trail;
+    private Transform player;
+    private float pollutedMix;   // 0 = living forest, 1 = polluted
+    private bool zoneMixReady;
 
     /// <summary>The ambient clip currently fading in or playing, or null when there is no ambience.</summary>
     public AudioClip CurrentAmbientClip => ambientSources != null ? ambientSources[activeSource].clip : null;
@@ -80,12 +96,25 @@ public class LevelAudio : MonoBehaviour
     /// <summary>How many game-event sounds were played since the level loaded.</summary>
     public int EventSoundsPlayed { get; private set; }
 
+    public AudioClip PollutedClip => pollutedClip;
+
+    /// <summary>The ambience blend: 0 = living forest only, 1 = polluted only.</summary>
+    public float PollutedMix => pollutedMix;
+
+    /// <summary>Current volume of the polluted ambience.</summary>
+    public float PollutedAmbienceVolume => pollutedSource != null ? pollutedSource.volume : 0f;
+
+    /// <summary>Current volume of the living-forest ambience (both of its crossfading sources together).</summary>
+    public float LivingAmbienceVolume => ambientSources != null ? ambientSources[0].volume + ambientSources[1].volume : 0f;
+
     private void Awake()
     {
         ambientSources = new[] { CreateSource("Ambience A"), CreateSource("Ambience B") };
         sfxSource = CreateSource("Pickup SFX");
         // Its own source: the pickup source's random pitch must not detune these.
         eventSource = CreateSource("Event SFX");
+        pollutedSource = CreateSource("Polluted Ambience");
+        pollutedSource.loop = true;
     }
 
     private void OnEnable()
@@ -111,12 +140,25 @@ public class LevelAudio : MonoBehaviour
             session.GoalReachedWithMissingWaste += OnGoalReachedWithMissingWaste;
         }
 
+        trail = FindAnyObjectByType<ForestTrail>();
+        var playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null) player = playerObject.transform;
+        // A level with a forest to recover starts polluted, so the living forest must not blip in on the first frame.
+        pollutedMix = ForestRecovery.Current != null && pollutedClip != null ? 1f : 0f;
+
+        if (pollutedClip != null)
+        {
+            pollutedSource.clip = pollutedClip;
+            pollutedSource.volume = pollutedVolume * pollutedMix;
+            pollutedSource.Play();
+        }
+
         if (ambientClips == null || ambientClips.Length == 0) return;
 
         AudioSource source = ambientSources[activeSource];
         source.clip = ambientClips[0];
         source.loop = ambientClips.Length == 1;
-        source.volume = ambientVolume;
+        source.volume = ambientVolume * (1f - pollutedMix);
         source.Play();
     }
 
@@ -130,7 +172,16 @@ public class LevelAudio : MonoBehaviour
 
     private void Update()
     {
-        if (ambientClips == null || ambientClips.Length < 2) return;
+        UpdatePollutedMix();
+        float living = ambientVolume * volumeScale * (1f - pollutedMix);
+        if (pollutedClip != null) pollutedSource.volume = pollutedVolume * volumeScale * pollutedMix;
+
+        if (ambientClips == null || ambientClips.Length == 0) return;
+        if (ambientClips.Length == 1)
+        {
+            ambientSources[activeSource].volume = living;
+            return;
+        }
 
         AudioSource current = ambientSources[activeSource];
         if (current.isPlaying && current.clip.length - current.time <= crossfadeDuration && fade >= 1f)
@@ -140,9 +191,25 @@ public class LevelAudio : MonoBehaviour
             fade = Mathf.Min(1f, fade + Time.unscaledDeltaTime / crossfadeDuration);
 
         AudioSource previous = ambientSources[1 - activeSource];
-        ambientSources[activeSource].volume = ambientVolume * volumeScale * fade;
-        previous.volume = ambientVolume * volumeScale * (1f - fade);
+        ambientSources[activeSource].volume = living * fade;
+        previous.volume = living * (1f - fade);
         if (fade >= 1f && previous.isPlaying) previous.Stop();
+    }
+
+    // Polluted while the player's zone is not recovered yet; snaps the first time the forest is known, then fades.
+    private void UpdatePollutedMix()
+    {
+        var forest = ForestRecovery.Current;
+        if (pollutedClip == null || forest == null || forest.Tracker == null || trail == null || player == null)
+        {
+            if (forest == null) pollutedMix = Mathf.MoveTowards(pollutedMix, 0f, Time.unscaledDeltaTime / zoneFadeSeconds);
+            return;
+        }
+
+        int zone = trail.ZoneAt(trail.Project(player.position, out _));
+        float target = forest.Tracker.IsRecovered(zone) ? 0f : 1f;
+        pollutedMix = zoneMixReady ? Mathf.MoveTowards(pollutedMix, target, Time.unscaledDeltaTime / zoneFadeSeconds) : target;
+        zoneMixReady = true;
     }
 
     private void PlayNextAmbientClip()
@@ -189,8 +256,6 @@ public class LevelAudio : MonoBehaviour
         volumeScale = state == GameState.Paused ? pausedVolumeScale
             : state == GameState.Won || state == GameState.Lost ? endVolumeScale
             : 1f;
-        if (ambientClips != null && ambientClips.Length == 1)
-            ambientSources[activeSource].volume = ambientVolume * volumeScale;
     }
 
     private AudioSource CreateSource(string sourceName)
