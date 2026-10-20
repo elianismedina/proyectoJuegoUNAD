@@ -57,6 +57,8 @@ public class ForestRecoveryPlayModeTests
             Assert.Greater(forest.RenderersInZone(zone).Count, 0, "Zone " + (zone + 1) + " needs scenery that changes.");
             Assert.IsTrue(forest.LooksPolluted(zone), "Zone " + (zone + 1) + " must start polluted.");
             Assert.IsFalse(forest.Tracker.IsRecovered(zone));
+            Assert.GreaterOrEqual(forest.FlowersInZone(zone).Count, 30, "Zone " + (zone + 1) + " needs flowers to bloom when it recovers.");
+            Assert.IsTrue(forest.FlowersHidden(zone), "Zone " + (zone + 1) + "'s flowers must not show while it is polluted.");
         }
         Assert.AreEqual(0f, counter.BarFill, 0.001f, "The recovery bar starts empty.");
     }
@@ -93,6 +95,9 @@ public class ForestRecoveryPlayModeTests
             Assert.AreEqual(1, screens.ZoneNoticeSoundsPlayed, "...with one short chime.");
             yield return new WaitForSecondsRealtime(2.3f);
             Assert.IsFalse(screens.ZoneNoticeShown, "The notice goes away after about 2 s.");
+
+            Assert.IsTrue(forest.FlowersBloomed(0), "Zone 1's flowers must have grown in by now.");
+            Assert.IsTrue(forest.FlowersHidden(1) && forest.FlowersHidden(2), "The other zones' flowers stay hidden.");
         }
         finally
         {
@@ -114,7 +119,32 @@ public class ForestRecoveryPlayModeTests
         Assert.AreEqual(1f, counter.BarFill, 0.001f, "The bar is full when the forest is clean.");
         Assert.IsFalse(screens.ZoneNoticeShown, "The win screen says it already: no zone notice over it.");
         Assert.AreEqual(0, screens.ZoneNoticeSoundsPlayed);
+
+        yield return new WaitForSeconds(2f);
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+            Assert.IsTrue(forest.FlowersBloomed(zone), "¡Bosque limpio! Zone " + (zone + 1) + "'s flowers must bloom.");
     }
+
+    // The flowers are decoration: off the dirt path, never solid, and not in front of waste or checkpoints.
+    [Test]
+    public void Flowers_StayOffThePathAndBlockNothing()
+    {
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+        {
+            foreach (var flower in forest.FlowersInZone(zone))
+            {
+                trail.Project(flower.position, out float lateral);
+                Assert.Greater(Mathf.Abs(lateral), 2f, flower.name + " stands on the path.");
+                Assert.IsEmpty(flower.GetComponentsInChildren<Collider>(true), flower.name + " must not block the player.");
+                foreach (var c in Object.FindObjectsByType<Checkpoint>())
+                    Assert.Greater(Vector3.Distance(Flat(c.transform.position), Flat(flower.position)), 0.9f, flower.name + " crowds " + c.name);
+                foreach (var w in Object.FindObjectsByType<Collectible>())
+                    Assert.Greater(Vector3.Distance(Flat(w.transform.position), Flat(flower.position)), 0.9f, flower.name + " crowds " + w.name);
+            }
+        }
+    }
+
+    private static Vector3 Flat(Vector3 v) => new Vector3(v.x, 0f, v.z);
 
     // As laid out in Level01 (with Jhon's taller counter), in screen space.
     [Test]

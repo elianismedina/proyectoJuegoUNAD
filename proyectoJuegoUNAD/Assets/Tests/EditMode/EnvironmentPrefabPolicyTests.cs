@@ -73,6 +73,24 @@ public class EnvironmentPrefabPolicyTests
         }
     }
 
+    // Flowers from the Low Poly Flower Pack that bloom when a zone is recovered (ForestRecovery).
+    [Test]
+    public void RecoveryFlowers_AreUrpDecorationWithoutColliders()
+    {
+        var prefabs = Load("Recovery");
+        Assert.GreaterOrEqual(prefabs.Length, 4, "Prefabs/Environment/Recovery needs the flower variants.");
+        foreach (var p in prefabs)
+        {
+            Assert.IsEmpty(p.GetComponentsInChildren<Collider>(true), p.name + " must not have colliders");
+            var renderers = p.GetComponentsInChildren<Renderer>(true);
+            Assert.IsNotEmpty(renderers, p.name + " has no model");
+            foreach (var r in renderers)
+            foreach (var m in r.sharedMaterials)
+                Assert.AreEqual("Universal Render Pipeline/Lit", m.shader.name, p.name + " must use URP/Lit");
+            Assert.IsNotNull(PrefabUtility.GetCorrespondingObjectFromSource(p), p.name + " must be a variant of a pack prefab, which stays untouched");
+        }
+    }
+
     [Test]
     public void Obstacles_AreMarkedSoRunningIntoThemStumblesThePlayer()
     {
