@@ -92,6 +92,28 @@ public class EnvironmentPrefabPolicyTests
     }
 
     [Test]
+    public void RecoveryAnimals_AreAnimatedDecorationWithoutCollidersOrPlayerScripts()
+    {
+        var prefabs = Load("RecoveryAnimals");
+        Assert.GreaterOrEqual(prefabs.Length, 3, "Prefabs/Environment/RecoveryAnimals needs the animal variants.");
+        foreach (var p in prefabs)
+        {
+            Assert.IsEmpty(p.GetComponentsInChildren<Collider>(true), p.name + " must not have colliders");
+            Assert.IsNotNull(p.GetComponent<RecoveryAnimal>(), p.name + " needs RecoveryAnimal on its root");
+            foreach (var b in p.GetComponentsInChildren<MonoBehaviour>(true))
+                Assert.AreNotEqual("ithappy.Animals_FREE", b.GetType().Namespace, p.name + " must not keep the pack's player scripts (" + b.GetType().Name + ")");
+            var animator = p.GetComponentInChildren<Animator>(true);
+            Assert.IsNotNull(animator, p.name + " needs its Animator");
+            Assert.IsNotNull(animator.runtimeAnimatorController, p.name + " needs the pack's animator controller");
+            Assert.IsFalse(animator.applyRootMotion, p.name + " is moved by RecoveryAnimal, not by root motion");
+            foreach (var r in p.GetComponentsInChildren<Renderer>(true))
+            foreach (var m in r.sharedMaterials)
+                Assert.AreEqual("Universal Render Pipeline/Lit", m.shader.name, p.name + " must use URP/Lit");
+            Assert.IsNotNull(PrefabUtility.GetCorrespondingObjectFromSource(p), p.name + " must be a variant of a pack prefab, which stays untouched");
+        }
+    }
+
+    [Test]
     public void Obstacles_AreMarkedSoRunningIntoThemStumblesThePlayer()
     {
         foreach (var p in Load("Obstacles"))
