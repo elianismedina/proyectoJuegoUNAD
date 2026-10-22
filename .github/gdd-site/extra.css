@@ -1,0 +1,92 @@
+/* Forest colours and a few touches for the GDD site (Material for MkDocs, see build_site.py). */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #2e7d32;
+  --md-primary-fg-color--light: #4caf50;
+  --md-primary-fg-color--dark: #1b5e20;
+  --md-accent-fg-color: #f9a825;
+  --md-typeset-a-color: #2e7d32;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #1f3d22;
+  --md-primary-fg-color--light: #2e5b32;
+  --md-primary-fg-color--dark: #142916;
+  --md-accent-fg-color: #ffca28;
+  --md-typeset-a-color: #81c784;
+  --md-default-bg-color: #141a15;
+}
+
+/* Home page hero: text beside the cover art, stacked on narrow screens. */
+.gdd-hero {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin: 1rem 0 0.5rem;
+}
+.gdd-hero-text { flex: 1 1 22rem; }
+.gdd-hero-text h1 {
+  margin: 0 0 0.4rem;
+  font-weight: 800;
+  color: var(--md-primary-fg-color);
+}
+[data-md-color-scheme="slate"] .gdd-hero-text h1 { color: #a5d6a7; }
+.gdd-hero-img {
+  flex: 1 1 22rem;
+  max-width: 50%;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+@media (max-width: 760px) {
+  .gdd-hero { flex-direction: column-reverse; }
+  .gdd-hero-img { max-width: 100%; }
+}
+
+.gdd-updated {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.75rem;
+}
+
+/* Images in the chapters: rounded, never wider than the text. */
+.md-typeset img {
+  border-radius: 10px;
+  max-width: 100%;
+}
+
+/* Tables: a soft header and rows that read easily; wide tables scroll inside themselves. */
+.md-typeset table:not([class]) {
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 0.72rem;
+}
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: #fff;
+}
+.md-typeset table:not([class]) tr:nth-child(even) td {
+  background-color: rgba(46, 125, 50, 0.05);
+}
+
+/* Chapter cards on the home page. */
+.md-typeset .grid.cards > ul > li {
+  border-radius: 12px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+}
+.md-typeset .grid.cards .twemoji { color: var(--md-primary-fg-color--light); }
+
+.md-typeset h1 { font-weight: 800; }
+.md-typeset h2 { font-weight: 700; }
+
+/* Long links (licences table) wrap instead of stretching the table. */
+.md-typeset td { overflow-wrap: anywhere; }
+
+/* The secondary button stays readable in dark mode. */
+[data-md-color-scheme="slate"] .md-typeset .md-button:not(.md-button--primary) {
+  color: #a5d6a7;
+  border-color: #a5d6a7;
+}
+
+.md-typeset .grid.cards p { margin: 0.3em 0 0; color: var(--md-default-fg-color--light); font-size: 0.7rem; }
