@@ -31,6 +31,7 @@
   color: var(--md-primary-fg-color);
 }
 [data-md-color-scheme="slate"] .gdd-hero-text h1 { color: #a5d6a7; }
+.gdd-hero-text .md-button { margin: 0 0.4rem 0.5rem 0; }
 .gdd-hero-img {
   flex: 1 1 22rem;
   max-width: 50%;

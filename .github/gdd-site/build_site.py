@@ -2,7 +2,7 @@
 
 The GDD stays one Markdown file (proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md). This script splits it into
 one page per chapter (each top-level "# N. Title" heading), adds a home page with the cover art and a card per chapter,
-copies the images and the style, and writes mkdocs.yml with the navigation. Then `mkdocs build` makes the site.
+copies the images and the style, links the Word version (made by build_docx.py) and writes mkdocs.yml with the navigation. Then `mkdocs build` makes the site.
 
 Usage: python build_site.py <gdd.md> <work dir> <updated text> <commit url>
 """
@@ -15,6 +15,8 @@ import unicodedata
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = "https://github.com/elianismedina/proyectoJuegoUNAD"
 GDD_PATH = "proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md"
+# The Word version, written into the docs folder by build_docx.py before `mkdocs build` (see the workflow).
+DOCX = "GuardianesdelBosqueGDD.docx"
 
 # A Material icon per chapter number, for the home page cards.
 ICONS = {
@@ -112,6 +114,7 @@ Minijuego educativo en 3D low-poly para estudiantes de 10 a 14 años: recorre el
 devuelve la vida a cada zona.
 
 [Empezar a leer :material-arrow-right:]({first}){{ .md-button .md-button--primary }}
+[:material-microsoft-word: Descargar en Word]({DOCX}){{ .md-button download }}
 [Historial de cambios]({REPO}/commits/main/{GDD_PATH}){{ .md-button }}
 
 </div>
@@ -139,7 +142,7 @@ devuelve la vida a cada zona.
 
     nav = "\n".join(f'  - "{n}. {t}": {f}' for n, t, f, _ in chapters)
     config = (HERE / "mkdocs.yml").read_text(encoding="utf-8")
-    config = config.replace("{{NAV}}", nav).replace("{{UPDATED}}", updated)
+    config = config.replace("{{NAV}}", nav).replace("{{UPDATED}}", updated).replace("{{DOCX}}", DOCX)
     (work / "mkdocs.yml").write_text(config, encoding="utf-8")
     print(f"{len(chapters)} chapters written to {docs}")
 

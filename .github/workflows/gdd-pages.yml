@@ -1,7 +1,8 @@
 # Publishes the GDD (proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md) as a website on GitHub Pages, so the
 # whole team (and the UNAD tutor) can read the latest version without opening the repository. The site uses Material
 # for MkDocs: .github/gdd-site/build_site.py splits the GDD into one page per chapter and adds a home page; the style is
-# .github/gdd-site/extra.css. It rebuilds whenever the GDD, its images, the site files or this workflow change on main,
+# .github/gdd-site/extra.css. .github/gdd-site/build_docx.py also turns the GDD into a Word file (with pandoc), served
+# at /GuardianesdelBosqueGDD.docx and linked from the home page and the footer of every page. It rebuilds whenever the GDD, its images, the site files or this workflow change on main,
 # and can be run by hand from the Actions tab. Runs on other branches only build the site (to check it), they never
 # publish it.
 name: GDD web page
@@ -41,8 +42,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Material for MkDocs
-        run: pip install "mkdocs-material==9.5.39"
+      - name: Install Material for MkDocs and pandoc
+        run: |
+          pip install "mkdocs-material==9.5.39"
+          sudo apt-get update -q && sudo apt-get install -y -q pandoc
 
       - name: Build the site
         env:
@@ -50,6 +53,7 @@ jobs:
         run: |
           updated="$(TZ=America/Bogota date '+%Y-%m-%d %H:%M') (hora de Colombia)"
           python .github/gdd-site/build_site.py proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md gdd-work "$updated" "$COMMIT_URL"
+          python .github/gdd-site/build_docx.py proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md gdd-work/docs/GuardianesdelBosqueGDD.docx "$updated"
           cd gdd-work && mkdocs build --strict --site-dir ../_site
 
       - uses: actions/upload-pages-artifact@v3
