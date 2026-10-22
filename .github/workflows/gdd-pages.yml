@@ -29,6 +29,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,9 +44,13 @@ jobs:
           python-version: '3.12'
 
       - name: Install Material for MkDocs and pandoc
+        # pandoc comes from its release tarball: installing it with apt-get hung the runner for over ten minutes.
+        timeout-minutes: 5
         run: |
           pip install "mkdocs-material==9.5.39"
-          sudo apt-get update -q && sudo apt-get install -y -q pandoc
+          curl -fsSL https://github.com/jgm/pandoc/releases/download/3.1.13/pandoc-3.1.13-linux-amd64.tar.gz \
+            | tar -xz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/pandoc-3.1.13/bin" >> "$GITHUB_PATH"
 
       - name: Build the site
         env:
