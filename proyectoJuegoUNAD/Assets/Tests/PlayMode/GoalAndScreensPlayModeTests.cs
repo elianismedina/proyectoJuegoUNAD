@@ -104,7 +104,7 @@ public class GoalAndScreensPlayModeTests
     {
         var session = GameManager.Instance.Session;
         Assert.IsTrue(screens.ObjectiveShown, "The goal must be on screen when the level starts.");
-        Assert.AreEqual(GameScreens.FormatObjective(session.TargetWaste), screens.ObjectiveText);
+        Assert.AreEqual(GameScreens.FormatObjective(session.TargetWaste, session.TimeLimit), screens.ObjectiveText);
         StringAssert.Contains(session.TargetWaste + " residuos", screens.ObjectiveText);
         StringAssert.Contains("meta", screens.ObjectiveText);
 
@@ -209,7 +209,7 @@ public class GoalAndScreensPlayModeTests
         Assert.IsFalse(screens.LoseShown, "Falling no longer shows the lose screen.");
     }
 
-    // Nothing in Level01 loses any more, but the lose screen stays for game modes that do.
+    // In Level01 only the clock loses (LevelTimerPlayModeTests); any other loss says the player fell.
     [UnityTest]
     public IEnumerator Losing_ShowsTheLoseScreen()
     {
@@ -218,6 +218,7 @@ public class GoalAndScreensPlayModeTests
 
         Assert.AreEqual(GameState.Lost, GameManager.Instance.Session.State);
         Assert.IsTrue(screens.LoseShown, "¡Inténtalo de nuevo! must show on a loss.");
+        Assert.AreEqual(GameScreens.FallDetail, screens.LoseDetailText);
         Assert.IsFalse(screens.WinShown);
     }
 }

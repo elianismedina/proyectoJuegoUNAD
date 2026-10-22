@@ -11,6 +11,8 @@ using UnityEngine.UI;
 /// llega a la meta") for a few seconds and then fades out. When a zone of the forest is recovered
 /// (<see cref="ForestRecovery.ZoneRecovered"/>), "¡Zona recuperada!" shows for about 2 s with a short chime, below the
 /// goal arrow and above the objective banner and the other notices, so it never covers them.
+/// With a time limit (<see cref="LevelTimer"/>), the banner names it ("… en 2:00"), the lose screen says
+/// "¡Se acabó el tiempo!" when the clock runs out, and the win screen says how long the player took.
 /// Listens to the <see cref="GameSession"/> owned by the <see cref="GameManager"/>; holds no game rules itself.
 /// </summary>
 public class GameScreens : MonoBehaviour
@@ -20,6 +22,7 @@ public class GameScreens : MonoBehaviour
     [SerializeField] private Button winRestartButton;
 
     [SerializeField] private GameObject losePanel;
+    [SerializeField] private Text loseDetail;
     [SerializeField] private Button loseRestartButton;
 
     [SerializeField] private GameObject pausePanel;
@@ -67,6 +70,8 @@ public class GameScreens : MonoBehaviour
     public bool ObjectiveShown => objectiveBanner.gameObject.activeSelf;
     public string ObjectiveText => objectiveText.text;
     public bool ZoneNoticeShown => zoneNotice != null && zoneNotice.gameObject.activeSelf;
+    public string WinDetailText => winDetail.text;
+    public string LoseDetailText => loseDetail != null ? loseDetail.text : null;
 
     /// <summary>How many times the zone-recovered chime played since the level loaded.</summary>
     public int ZoneNoticeSoundsPlayed { get; private set; }
@@ -77,9 +82,26 @@ public class GameScreens : MonoBehaviour
     /// <summary>The notice shown when the player falls and reappears at the start of the zone with their waste.</summary>
     public const string RespawnNotice = "¡Te caíste! Vuelves al inicio de la zona con tus residuos.";
 
+    /// <summary>What the lose screen says when the clock runs out.</summary>
+    public const string TimeUpDetail = "¡Se acabó el tiempo!";
+
+    /// <summary>What the lose screen says for any other loss (a fall in a level without checkpoints).</summary>
+    public const string FallDetail = "Te caíste del recorrido.";
+
     /// <summary>The goal line the banner shows when the level starts, e.g. "Recoge 10 residuos y llega a la meta".</summary>
     public static string FormatObjective(int targetWaste) =>
         "Recoge " + targetWaste + (targetWaste == 1 ? " residuo" : " residuos") + " y llega a la meta";
+
+    /// <summary>The goal line with the time limit, e.g. "Recoge 10 residuos y llega a la meta en 2:00" (no limit: none).</summary>
+    public static string FormatObjective(int targetWaste, float timeLimitSeconds) =>
+        timeLimitSeconds > 0f
+            ? FormatObjective(targetWaste) + " en " + LevelTimer.FormatTime(timeLimitSeconds)
+            : FormatObjective(targetWaste);
+
+    /// <summary>The win screen's detail, e.g. "Recogiste 10 residuos en 1:42." (without a time limit, no time).</summary>
+    public static string FormatWinDetail(int collected, float elapsedSeconds, bool timed) =>
+        "Recogiste " + collected + (collected == 1 ? " residuo" : " residuos")
+        + (timed ? " en " + LevelTimer.FormatTime(elapsedSeconds) : "") + ".";
 
     private void Awake()
     {
@@ -105,7 +127,7 @@ public class GameScreens : MonoBehaviour
         session.GoalReachedWithMissingWaste += OnGoalReachedWithMissingWaste;
         KillPlane.PlayerRespawned += OnPlayerRespawned;
         ForestRecovery.ZoneRecovered += OnZoneRecovered;
-        ShowObjective(session.TargetWaste);
+        ShowObjective(session.TargetWaste, session.TimeLimit);
     }
 
     private void OnDestroy()
@@ -151,9 +173,9 @@ public class GameScreens : MonoBehaviour
         zoneNotice.alpha = zoneNoticeFadeSeconds > 0f ? Mathf.Clamp01(left / zoneNoticeFadeSeconds) : 1f;
     }
 
-    private void ShowObjective(int targetWaste)
+    private void ShowObjective(int targetWaste, float timeLimitSeconds)
     {
-        objectiveText.text = FormatObjective(targetWaste);
+        objectiveText.text = FormatObjective(targetWaste, timeLimitSeconds);
         objectiveBanner.alpha = 1f;
         objectiveBanner.gameObject.SetActive(true);
         objectiveHideTime = Time.time + objectiveSeconds;
@@ -185,7 +207,7 @@ public class GameScreens : MonoBehaviour
             objectiveBanner.gameObject.SetActive(false);
             if (zoneNotice != null) zoneNotice.gameObject.SetActive(false);
             missingNotice.SetActive(false);
-            winDetail.text = "Recogiste " + session.CollectedWaste + " residuos.";
+            winDetail.text = FormatWinDetail(session.CollectedWaste, session.ElapsedTime, session.HasTimeLimit);
             Show(winPanel, winRestartButton);
         }
         else if (state == GameState.Lost)
@@ -193,6 +215,7 @@ public class GameScreens : MonoBehaviour
             objectiveBanner.gameObject.SetActive(false);
             if (zoneNotice != null) zoneNotice.gameObject.SetActive(false);
             missingNotice.SetActive(false);
+            if (loseDetail != null) loseDetail.text = session.LoseReason == LoseReason.TimeUp ? TimeUpDetail : FallDetail;
             Show(losePanel, loseRestartButton);
         }
     }

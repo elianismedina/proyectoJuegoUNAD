@@ -152,4 +152,97 @@ public class GameSessionTests
         Assert.AreEqual(0, session.CollectedWaste);
         Assert.AreEqual(GameState.Paused, session.State);
     }
+
+    [Test]
+    public void WithoutATimeLimit_TheClockNeverLoses()
+    {
+        var session = new GameSession(10);
+
+        Assert.IsFalse(session.HasTimeLimit);
+        Assert.IsFalse(session.Tick(10000f));
+        Assert.AreEqual(GameState.Playing, session.State);
+        Assert.AreEqual(10000f, session.ElapsedTime, 0.001f);
+    }
+
+    [Test]
+    public void Tick_CountsDownWhilePlaying()
+    {
+        var session = new GameSession(10, 120f);
+        float reported = -1f;
+        session.TimeChanged += t => reported = t;
+
+        Assert.IsTrue(session.HasTimeLimit);
+        Assert.AreEqual(120f, session.TimeRemaining);
+
+        session.Tick(1.5f);
+
+        Assert.AreEqual(118.5f, session.TimeRemaining, 0.001f);
+        Assert.AreEqual(1.5f, session.ElapsedTime, 0.001f);
+        Assert.AreEqual(118.5f, reported, 0.001f);
+        Assert.AreEqual(GameState.Playing, session.State);
+    }
+
+    [Test]
+    public void Tick_WhilePaused_DoesNotMoveTheClock()
+    {
+        var session = new GameSession(10, 120f);
+        session.Pause();
+
+        session.Tick(30f);
+
+        Assert.AreEqual(120f, session.TimeRemaining);
+        Assert.AreEqual(0f, session.ElapsedTime);
+        session.Resume();
+        session.Tick(1f);
+        Assert.AreEqual(119f, session.TimeRemaining, 0.001f);
+    }
+
+    [Test]
+    public void RunningOutOfTime_LosesOnceWithTimeUp()
+    {
+        var session = new GameSession(10, 2f);
+        int ranOut = 0;
+        GameState? changed = null;
+        session.TimeRanOut += () => ranOut++;
+        session.StateChanged += s => changed = s;
+
+        Assert.IsFalse(session.Tick(1f));
+        Assert.IsTrue(session.Tick(5f), "The tick that empties the clock loses the game.");
+        Assert.IsFalse(session.Tick(1f));
+
+        Assert.AreEqual(GameState.Lost, session.State);
+        Assert.AreEqual(GameState.Lost, changed);
+        Assert.AreEqual(LoseReason.TimeUp, session.LoseReason);
+        Assert.AreEqual(0f, session.TimeRemaining, "The clock never goes below zero.");
+        Assert.AreEqual(1, ranOut);
+    }
+
+    [Test]
+    public void AfterAWin_TheClockStops()
+    {
+        var session = new GameSession(1, 120f);
+        session.AddWaste();
+        session.ReachGoal();
+        session.Tick(10f);
+
+        Assert.AreEqual(GameState.Won, session.State);
+        Assert.AreEqual(120f, session.TimeRemaining);
+        Assert.AreEqual(LoseReason.None, session.LoseReason);
+    }
+
+    [Test]
+    public void Lose_WithoutAReason_IsOther()
+    {
+        var session = new GameSession(10, 120f);
+
+        session.Lose();
+
+        Assert.AreEqual(LoseReason.Other, session.LoseReason);
+    }
+
+    [Test]
+    public void Constructor_TreatsANegativeLimitAsNone()
+    {
+        Assert.IsFalse(new GameSession(10, -5f).HasTimeLimit);
+    }
 }
