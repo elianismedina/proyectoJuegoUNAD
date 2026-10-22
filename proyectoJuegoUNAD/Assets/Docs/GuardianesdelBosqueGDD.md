@@ -551,7 +551,7 @@ Los obstáculos principales son:
 
 - **Taludes y arroyos** del propio terreno 
 
-- **Peligros dinámicos:** tronco que rueda (Zona 2), zona de lodo (Zona 2) y piedra que cae, anunciada antes por una sombra en el suelo (Zona 3) 
+- **Peligros dinámicos:** troncos que ruedan (Zonas 2 y 3), zona de lodo (Zona 2) y piedra que cae, anunciada antes por una sombra en el suelo (Zona 3). Hay cuatro troncos rodantes, cada uno en su propio tramo libre del camino y ninguno en la Zona 1, que enseña lo básico. En la Zona 2, uno cruza el camino de lado a lado en el claro antes del lodo (s ≈ 115) y otro rueda a lo largo del camino entre la roca de s 147 y la hilera de tocones (s ≈ 158, con una botella colgando encima). En la Zona 3, uno rueda a lo largo de la cima del último talud (s ≈ 222) y otro cruza el camino entre la roca de s 240 y el tronco tendido de s 250 (s ≈ 244,5). Nada sólido, ningún residuo, punto de control ni otro peligro queda en su recorrido. 
 
 Además de los obstáculos sueltos, hay **barreras que cierran el paso**: un tronco atravesado en el camino, una cerca de tres troncos que cubre todo el corredor (solo se pasa saltando) e hileras de rocas o tocones con huecos más estrechos que el jugador. Todos miden 1,2 m o menos. Hay 13 obstáculos sólidos en la Zona 1, 14 en la Zona 2 y 16 en la Zona 3 (incluidas seis rocas que colocó Jhon).
 

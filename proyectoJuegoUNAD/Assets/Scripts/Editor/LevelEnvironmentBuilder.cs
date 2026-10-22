@@ -156,7 +156,17 @@ public static class LevelEnvironmentBuilder
     };
 
     // Hazards already in the scene (by name prefix), moved onto the trail and turned to follow it.
-    private const float MudS = 121f, RollingLogS = 158f, FallingRockS = 206f;
+    private const float MudS = 121f, FallingRockS = 206f;
+
+    // Rolling logs, one per RollingLog_Hazard in the scene (taken in name order): trail distance, total run, and whether it
+    // rolls across the path (long side along the trail) instead of up and down it. None in Zone 1, which teaches; two in
+    // Zone 2 and two in Zone 3, each in a stretch with nothing else on the path for its whole run: across in the clearing
+    // before the mud, along between the rock at s 147 and the stump row at s 176 (the bottle at s 161 hangs over it), along
+    // the top of the last bank (s 215–229) and across between the rock at s 240 and the log lying along the path at s 250.
+    private static readonly (float s, float travel, bool across)[] RollingLogs =
+    {
+        (115f, 9f, true), (158f, 14f, false), (222f, 9f, false), (244.5f, 9f, true),
+    };
     private const float MudWidthScale = 1.5f; // The mud slab is 3 m deep; 4.5 m covers the 4 m path.
 
     // Waste: type, trail distance, sideways offset, height above the ground below it (or above the ledge it sits on).
@@ -658,6 +668,13 @@ public static class LevelEnvironmentBuilder
             return;
         }
 
+        var logs = new List<Transform>();
+        foreach (Transform h in hazards.transform)
+            if (h.name.StartsWith("RollingLog")) logs.Add(h);
+        logs.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+        if (logs.Count > RollingLogs.Length)
+            Debug.LogWarning("LevelEnvironmentBuilder: " + logs.Count + " rolling logs but only " + RollingLogs.Length + " spots; the extra ones were not moved.");
+
         foreach (Transform h in hazards.transform)
         {
             Undo.RecordObject(h, "Move hazard onto the trail");
@@ -668,15 +685,25 @@ public static class LevelEnvironmentBuilder
             }
             else if (h.name.StartsWith("RollingLog"))
             {
-                // Rolls up and down the path; its centre (y = radius) sits on the ground.
-                h.SetPositionAndRotation(OnTrail(trail, RollingLogS, 0f, CorridorHeight(RollingLogS) + 0.5f), Frame(trail, RollingLogS));
+                int index = logs.IndexOf(h);
+                if (index >= RollingLogs.Length) continue;
+                var (s, travel, across) = RollingLogs[index];
+                // Its centre (y = radius) sits on the ground; it rolls along its local X: the trail, or across it.
+                var rotation = Frame(trail, s) * (across ? Quaternion.Euler(0f, 90f, 0f) : Quaternion.identity);
+                h.SetPositionAndRotation(OnTrail(trail, s, 0f, CorridorHeight(s) + 0.5f), rotation);
                 var log = h.GetComponent<RollingLog>();
                 if (log != null)
                 {
                     var so = new SerializedObject(log);
-                    so.FindProperty("travel").floatValue = 14f;
+                    so.FindProperty("travel").floatValue = travel;
                     so.ApplyModifiedProperties();
                 }
+                // Keep scenery, flowers and animals off the whole run, not just its middle.
+                Vector3 run = h.right;
+                run.y = 0f;
+                run.Normalize();
+                for (float d = -travel * 0.5f; d <= travel * 0.5f; d += 1f)
+                    Reserve(reserved, h.position + run * d);
             }
             else if (h.name.StartsWith("FallingRock"))
             {
