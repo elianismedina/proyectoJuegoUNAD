@@ -87,6 +87,36 @@ public class HazardPlayModeTests
         Assert.IsTrue(stumbled, "Touching the rolling log must stumble the player.");
     }
 
+    // Jhon's log sounds, on the RollingLog_Hazard prefab: a 3D knocking loop while it rolls, and a thud at each end of its run.
+    [UnityTest]
+    public IEnumerator RollingLog_KnocksWhileRollingAndThudsAtEachEnd()
+    {
+        var log = Object.FindFirstObjectByType<RollingLog>();
+        Assert.IsNotNull(log, "Level01 needs a RollingLog.");
+        Assert.IsNotNull(log.RollSound, "The rolling log needs its rolling sound.");
+        Assert.AreEqual("GolpesTronco", log.RollSound.clip.name);
+        Assert.IsTrue(log.RollSound.loop);
+        Assert.AreEqual(1f, log.RollSound.spatialBlend, "The knocking comes from the log (3D).");
+        Assert.IsNotNull(log.BumpSound, "The rolling log needs its end-of-run thud.");
+        Assert.AreEqual("impactWood02", log.BumpSound.clip.name);
+        Assert.AreEqual(1f, log.BumpSound.spatialBlend);
+        yield return null;
+        Assert.IsTrue(log.RollSound.isPlaying, "The knocking plays while the log rolls.");
+
+        // 14 m at 3 m/s from the middle: the first end comes after about 2.3 s.
+        yield return new WaitForSeconds(2.8f);
+        Assert.GreaterOrEqual(log.BumpsPlayed, 1, "Turning round at an end of the run makes a thud.");
+
+        Time.timeScale = 0f;
+        yield return null;
+        yield return null;
+        Assert.IsFalse(log.RollSound.isPlaying, "The knocking pauses with the game.");
+        Time.timeScale = 1f;
+        yield return null;
+        yield return null;
+        Assert.IsTrue(log.RollSound.isPlaying, "...and resumes with it.");
+    }
+
     [UnityTest]
     public IEnumerator RollingLog_IsSolid_PlayerCannotWalkThroughIt()
     {

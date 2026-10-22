@@ -10,6 +10,8 @@ using UnityEngine;
 /// While the player is in a polluted zone (<see cref="ForestRecovery"/>), <see cref="pollutedClip"/> (bosque_contaminado_sound)
 /// loops instead; when that zone is recovered, or the player walks into a recovered one, the two fade into each other over
 /// <see cref="zoneFadeSeconds"/>. Without a ForestRecovery in the scene the forest always sounds alive.
+/// The living forest also has <see cref="recoveredLayerClips"/> (Naturaleza-02 and the birds of Avez), each looping on its
+/// own source on top of it and fading with it, so a recovered zone sounds fuller and a polluted one has none of them.
 /// The pickup sound plays on <see cref="Collectible.Collected"/> with a slight pitch variation.
 /// All are 2D (non-spatial), so they sound the same wherever the camera is. Pausing the game lowers the
 /// ambience instead of cutting it, and so does the end of the game, so the win / lose sound stands out;
@@ -36,6 +38,11 @@ public class LevelAudio : MonoBehaviour
 
     [SerializeField, Min(0.1f), Tooltip("Seconds the fade between polluted and living-forest ambience takes.")]
     private float zoneFadeSeconds = 3f;
+
+    [SerializeField, Tooltip("Extra loops layered on the living forest (nature, birds); silent in a polluted zone.")]
+    private AudioClip[] recoveredLayerClips;
+
+    [SerializeField, Range(0f, 1f)] private float recoveredLayerVolume = 0.1f;
 
     [Header("Pickup")]
     [SerializeField] private AudioClip pickupClip;
@@ -71,6 +78,7 @@ public class LevelAudio : MonoBehaviour
     private AudioSource sfxSource;
     private AudioSource eventSource;
     private AudioSource pollutedSource;
+    private AudioSource[] layerSources;
     private GameSession session;
     private ForestTrail trail;
     private Transform player;
@@ -104,6 +112,20 @@ public class LevelAudio : MonoBehaviour
     /// <summary>Current volume of the polluted ambience.</summary>
     public float PollutedAmbienceVolume => pollutedSource != null ? pollutedSource.volume : 0f;
 
+    public AudioClip[] RecoveredLayerClips => recoveredLayerClips;
+
+    /// <summary>Current volume of the recovered-forest layers (the playing ones together).</summary>
+    public float RecoveredLayerVolume
+    {
+        get
+        {
+            float volume = 0f;
+            foreach (var source in layerSources)
+                if (source.isPlaying) volume += source.volume;
+            return volume;
+        }
+    }
+
     /// <summary>Current volume of the living-forest ambience (its playing crossfade sources together).</summary>
     public float LivingAmbienceVolume
     {
@@ -126,6 +148,15 @@ public class LevelAudio : MonoBehaviour
         eventSource = CreateSource("Event SFX");
         pollutedSource = CreateSource("Polluted Ambience");
         pollutedSource.loop = true;
+
+        int layers = recoveredLayerClips != null ? recoveredLayerClips.Length : 0;
+        layerSources = new AudioSource[layers];
+        for (int i = 0; i < layers; i++)
+        {
+            layerSources[i] = CreateSource("Recovered Layer " + (i + 1));
+            layerSources[i].loop = true;
+            layerSources[i].volume = 0f;
+        }
     }
 
     private void OnEnable()
@@ -164,6 +195,14 @@ public class LevelAudio : MonoBehaviour
             pollutedSource.Play();
         }
 
+        for (int i = 0; i < layerSources.Length; i++)
+        {
+            if (recoveredLayerClips[i] == null) continue;
+            layerSources[i].clip = recoveredLayerClips[i];
+            layerSources[i].volume = recoveredLayerVolume * (1f - pollutedMix);
+            layerSources[i].Play();
+        }
+
         if (ambientClips == null || ambientClips.Length == 0) return;
 
         AudioSource source = ambientSources[activeSource];
@@ -186,6 +225,7 @@ public class LevelAudio : MonoBehaviour
         UpdatePollutedMix();
         float living = ambientVolume * volumeScale * (1f - pollutedMix);
         if (pollutedClip != null) pollutedSource.volume = pollutedVolume * volumeScale * pollutedMix;
+        foreach (var layer in layerSources) layer.volume = recoveredLayerVolume * volumeScale * (1f - pollutedMix);
 
         if (ambientClips == null || ambientClips.Length == 0) return;
         if (ambientClips.Length == 1)
