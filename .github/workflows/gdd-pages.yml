@@ -1,7 +1,9 @@
-# Publishes the GDD (proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md) as a web page on GitHub Pages, so the
-# whole team (and the UNAD tutor) can read the latest version without opening the repository. It rebuilds whenever the
-# GDD, the page style or this workflow changes on main, and can be run by hand from the Actions tab. Runs on other
-# branches only build the page (to check it), they never publish it.
+# Publishes the GDD (proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md) as a website on GitHub Pages, so the
+# whole team (and the UNAD tutor) can read the latest version without opening the repository. The site uses Material
+# for MkDocs: .github/gdd-site/build_site.py splits the GDD into one page per chapter and adds a home page; the style is
+# .github/gdd-site/extra.css. It rebuilds whenever the GDD, its images, the site files or this workflow change on main,
+# and can be run by hand from the Actions tab. Runs on other branches only build the site (to check it), they never
+# publish it.
 name: GDD web page
 
 on:
@@ -9,6 +11,7 @@ on:
     branches: [main]
     paths:
       - 'proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md'
+      - 'proyectoJuegoUNAD/Assets/Docs/GDDImages/**'
       - '.github/gdd-site/**'
       - '.github/workflows/gdd-pages.yml'
   workflow_dispatch:
@@ -28,47 +31,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # The Unity project is large; only the GDD and the page files are needed.
+          # The Unity project is large; only the GDD and the site files are needed.
           sparse-checkout: |
             proyectoJuegoUNAD/Assets/Docs
             .github
           sparse-checkout-cone-mode: false
 
-      - name: Install pandoc
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq pandoc
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Build the page
+      - name: Install Material for MkDocs
+        run: pip install "mkdocs-material==9.5.39"
+
+      - name: Build the site
         env:
-          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
-          SHA: ${{ github.sha }}
-          REF: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
         run: |
-          mkdir -p _site
-          cp .github/gdd-site/style.css _site/
           updated="$(TZ=America/Bogota date '+%Y-%m-%d %H:%M') (hora de Colombia)"
-          gdd="proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md"
-          cat > header.html <<EOF
-          <div class="banner">
-            <strong>Guardianes del Bosque · Documento de diseño (GDD)</strong><br>
-            Última actualización: ${updated} · rama <code>${REF}</code> · versión
-            <a href="${REPO_URL}/commit/${SHA}"><code>${SHA:0:7}</code></a> ·
-            <a href="${REPO_URL}/commits/main/${gdd}">historial de cambios</a> ·
-            <a href="${REPO_URL}/blob/main/${gdd}">ver en GitHub</a>
-          </div>
-          EOF
-          pandoc "$gdd" \
-            --from gfm \
-            --to html5 \
-            --standalone \
-            --toc --toc-depth=2 \
-            --metadata title="Guardianes del Bosque — GDD" \
-            --metadata lang=es \
-            --css style.css \
-            --include-before-body header.html \
-            --output _site/index.html
-          ls -la _site
+          python .github/gdd-site/build_site.py proyectoJuegoUNAD/Assets/Docs/GuardianesdelBosqueGDD.md gdd-work "$updated" "$COMMIT_URL"
+          cd gdd-work && mkdocs build --strict --site-dir ../_site
 
       - uses: actions/upload-pages-artifact@v3
         with:

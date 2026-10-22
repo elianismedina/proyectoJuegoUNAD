@@ -1,0 +1,75 @@
+# Template for the GDD web page; build_site.py fills in the chapter list and the update date and writes the real mkdocs.yml.
+site_name: Guardianes del Bosque · GDD
+site_description: Documento de diseño del videojuego educativo Guardianes del Bosque
+site_url: https://elianismedina.github.io/proyectoJuegoUNAD/
+repo_url: https://github.com/elianismedina/proyectoJuegoUNAD
+repo_name: proyectoJuegoUNAD
+edit_uri: ""
+copyright: "Guardianes del Bosque · Última actualización: {{UPDATED}}"
+
+theme:
+  name: material
+  language: es
+  icon:
+    logo: material/pine-tree
+    repo: fontawesome/brands/github
+  favicon: GDDImages/portada.jpg
+  font:
+    text: Nunito
+    code: JetBrains Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Cambiar a modo oscuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Cambiar a modo claro
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search:
+      lang: es
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/elianismedina/proyectoJuegoUNAD
+      name: Repositorio en GitHub
+
+markdown_extensions:
+  - tables
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+      toc_depth: 3
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Inicio: index.md
+{{NAV}}
