@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: ForestGuardian::LevelConfig
   targetWaste: 10
   killPlaneY: -2
+  timeLimitSeconds: 120
+  timeWarningSeconds: 30

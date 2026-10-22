@@ -139,9 +139,9 @@ Cuando el jugador alcanza la cantidad objetivo de residuos y llega a la meta al 
 
 # 5. Objetivo y reglas
 ## 5.1 Objetivo principal
-El objetivo del jugador es recorrer el bosque, **recoger 10 residuos** y **llegar a la meta** al final del recorrido para completar la limpieza del espacio natural y finalizar exitosamente el nivel. Si llega a la meta con residuos pendientes, el juego le indica cuántos le faltan y puede volver a buscarlos.
+El objetivo del jugador es recorrer el bosque, **recoger 10 residuos** y **llegar a la meta** al final del recorrido **antes de que pasen 2 minutos**, para completar la limpieza del espacio natural y finalizar exitosamente el nivel. Si llega a la meta con residuos pendientes, el juego le indica cuántos le faltan y puede volver a buscarlos mientras le quede tiempo.
 
-La cantidad de residuos será un parámetro ajustable, por lo que posteriormente podremos cambiar 10 por otra cantidad sin modificar toda la lógica del juego.
+La cantidad de residuos y el tiempo límite son parámetros ajustables (`LevelConfig`), por lo que posteriormente podremos cambiar 10 residuos o 2 minutos por otros valores sin modificar la lógica del juego. Con un tiempo de 0 el reloj desaparece y el nivel no tiene límite.
 
 ## 5.2 Reglas principales
 
@@ -153,6 +153,7 @@ La cantidad de residuos será un parámetro ajustable, por lo que posteriormente
 | Progreso | El jugador continúa recorriendo las tres zonas y recogiendo residuos. | El HUD actualiza el contador, por ejemplo: **7/10**. | Cantidad de residuos |
 | Victoria | El contador alcanza la cantidad objetivo y el jugador llega a la meta. | Se muestra **“ ¡Bosque limpio!”**. | Objetivo = 10 |
 | Meta sin completar | El jugador llega a la meta con menos residuos que el objetivo. | Se muestra **“Te faltan N residuos”** y el juego continúa. | Objetivo = 10 |
+| Tiempo | El reloj del HUD cuenta 2:00 hacia atrás mientras se juega; se detiene en la pausa y no se reinicia al caer. | En los últimos 30 s el reloj se pone naranja y suena un aviso corto una vez. Al llegar a 0:00 se pierde: **“¡Inténtalo de nuevo!”** con **“¡Se acabó el tiempo!”**. | Tiempo límite = 120 s, aviso = 30 s |
 | Caída | El personaje cae fuera del recorrido (a un arroyo, por debajo de la altura límite del nivel). | Reaparece en el punto de control del inicio de la zona actual, mirando hacia adelante, con los residuos ya recogidos. Se muestra unos segundos **“¡Te caíste! Vuelves al inicio de la zona con tus residuos.”** y suena el sonido de error. | Un punto de control por zona |
 ## 5.3 Condiciones de victoria y derrota
 Victoria:
@@ -161,7 +162,11 @@ residuosRecogidos >= objetivo  Y  jugador llega a la meta        ¡Bosque limpio
 
 Derrota:
 
-No hay derrota en el nivel actual. Si el jugador cae fuera del recorrido (altura del personaje < límite del nivel, y = −2), reaparece en el punto de control de su zona y conserva los residuos. La pantalla **“¡Inténtalo de nuevo!”** queda lista para futuras reglas de derrota.
+tiempo restante = 0  (antes de ganar)        ¡Inténtalo de nuevo! — ¡Se acabó el tiempo!
+
+Caer no hace perder: si el jugador cae fuera del recorrido (altura del personaje < límite del nivel, y = −2), reaparece en el punto de control de su zona y conserva los residuos, pero el reloj sigue corriendo, así que la caída le cuesta unos segundos. **Reintentar** vuelve a cargar el nivel con 2:00.
+
+Como el sendero mide unos 281 m y el personaje corre a 6 m/s (unos 47 s sin detenerse), 2 minutos dejan margen para los saltos, desvíos y tropiezos de un recorrido completo; el valor se ajustará tras las pruebas con estudiantes.
 
 **5.4 Límites del juego**
 
@@ -170,8 +175,6 @@ Para mantener el proyecto dentro del alcance definido, el juego no tendrá:
 - Vidas. 
 
 - Barra de salud. 
-
-- Temporizador. 
 
 - Combate. 
 
@@ -792,6 +795,10 @@ Bajo el contador hay una barra que muestra cuánto se ha recuperado el bosque: e
 
 Cuando el jugador recoge el último residuo de una zona aparece “¡Zona recuperada!” en verde sobre un panel oscuro, unos 2 s, y se desvanece al final, acompañado de un sonido corto (`sonido_zona_recuperada.wav`, provisional). Está en el centro, entre la flecha hacia la meta y el banner del objetivo, a la derecha del contador, así que no tapa ninguno de ellos ni los demás avisos.
 
+**Reloj**
+
+En la esquina superior derecha, bajo la flecha de la meta, se lee **“Tiempo: 2:00”**, que baja segundo a segundo mientras se juega (redondeado hacia arriba, así que solo marca 0:00 cuando el tiempo se acabó). Se congela en la pausa. En los últimos 30 s el texto pasa a naranja y suena una vez un aviso corto de dos notas (`sonido_tiempo_aviso.wav`, provisional); nada parpadea y el número sigue a la vista, así que el color nunca es la única señal. Se oculta en las pantallas de victoria y derrota. El banner del inicio lo anuncia: “Objetivo: Recoge 10 residuos y llega a la meta en 2:00”.
+
 **Indicador de dirección hacia la meta**
 
 Una flecha pequeña y discreta en el centro de la parte superior de la pantalla señala, desde el punto de vista de la cámara, hacia dónde queda la meta siguiendo el sendero: apunta a un punto unos 10 m más adelante en el camino, así que en las curvas sigue el sendero en lugar de señalar a través de los árboles, y al final apunta a la meta misma. Gira suavemente, sin saltos.
@@ -832,7 +839,7 @@ se mostrará:
 
  **¡Bosque limpio!**
 
-con el detalle “Recogiste N residuos.” y una opción:
+con el detalle “Recogiste N residuos en m:ss.” (el tiempo que tardó) y una opción:
 
  **Jugar de nuevo**
 
@@ -840,11 +847,11 @@ La pantalla de victoria indicará claramente que el objetivo fue completado.
 
 **Aviso de residuos pendientes:** si el jugador llega a la meta sin el objetivo, aparece unos segundos “Te faltan N residuos. ¡Vuelve a buscarlos!” y el juego continúa.
 ## 10.6 Pantalla de derrota
-Caer fuera del recorrido ya no la muestra: el jugador reaparece en el punto de control de la zona con un aviso breve (ver 5.2). La pantalla queda preparada para una regla de derrota futura:
+Aparece cuando el reloj llega a 0:00 antes de ganar (caer fuera del recorrido no la muestra: el jugador reaparece en el punto de control de la zona con un aviso breve, ver 5.2):
 
  **¡Inténtalo de nuevo!**
 
-con el detalle “Te caíste del recorrido.” y una opción:
+con el detalle “¡Se acabó el tiempo!” y una opción:
 
  **Reintentar**
 
@@ -916,7 +923,7 @@ Uso de tipografías Sans-Serif de alta legibilidad (ej. Atkinson Hyperlegible o 
 
 Instrucciones breves con opción de Lectura en Voz Alta (Text-to-Speech) para 	estudiantes con dislexia o en proceso de afianzamiento lectoescritor.   
 
-Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inventarios, estadísticas de salud o temporizadores de cuenta regresiva) que generen ansiedad o desvíen del objetivo de aprendizaje.
+Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inventarios ni estadísticas de salud) que desvíen del objetivo de aprendizaje. El único reto de tiempo es el reloj de 2 minutos (ver 5.2 y 10.2), pensado para no generar ansiedad: siempre está a la vista en el mismo sitio, se congela en la pausa, avisa una sola vez a los 30 s sin parpadear, caer no lo reinicia ni hace perder, y reintentar es inmediato. Es un parámetro ajustable: el docente puede darle más tiempo o desactivarlo (0) en `LevelConfig`.
 
 # 12. Alcance y limitaciones
 ## 12.1 Alcance del proyecto
@@ -962,8 +969,6 @@ Para mantener el proyecto manejable, no se implementarán:
 - Sistema de vidas. 
 
 - Barra de salud. 
-
-- Temporizador. 
 
 - Monedas. 
 
@@ -1031,6 +1036,7 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Sonidos de entorno (aporte de Jhon, PR #39) | Río en los arroyos, golpes del tronco rodante, naturaleza y aves del bosque recuperado | MP3 | `Assets/Sound/Ambient/river.mp3`, `GolpesTronco.mp3`, `impactWood02.mp3`, `Naturaleza-02.mp3` y `Avez.mp3`: origen por verificar | Por verificar |
 | Sonidos de salto (aporte de Jhon, PR #41) | Uno al azar en cada salto | MP3 | `Assets/Sound/SFX/JumpAudio1.mp3`, `jumpAudio2.mp3` y `JumpAudio3.mp3`: origen por verificar | Por verificar |
 | Sonido “¡Zona recuperada!” | Aviso al recuperar una zona | WAV | `Assets/Sound/SFX/sonido_zona_recuperada.wav`, generado para el proyecto (provisional) | Propio |
+| Sonido de aviso de tiempo | Últimos 30 s del reloj | WAV | `Assets/Sound/SFX/sonido_tiempo_aviso.wav`, generado para el proyecto (provisional) | Propio |
 ## 13.2 Criterios para seleccionar recursos
 La webconferencia propone fuentes como:
 

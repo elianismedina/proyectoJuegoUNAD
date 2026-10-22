@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 /// Scene-level owner of the <see cref="GameSession"/>. Other systems (player, UI, audio, hazards)
 /// talk to the session through <see cref="Instance"/> and subscribe to its events.
 /// Pausing freezes <see cref="Time.timeScale"/>; leaving the scene always restores it.
+/// It also runs the session's clock (<see cref="LevelConfig.timeLimitSeconds"/>) with game time, so a pause stops it.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
@@ -24,10 +25,12 @@ public class GameManager : MonoBehaviour
         }
 
         Instance = this;
-        Session = new GameSession(config != null ? config.targetWaste : 10);
+        Session = config != null ? new GameSession(config.targetWaste, config.timeLimitSeconds) : new GameSession(10);
         Session.StateChanged += OnStateChanged;
         Time.timeScale = 1f;
     }
+
+    private void Update() => Session.Tick(Time.deltaTime);
 
     private void OnDestroy()
     {
@@ -42,6 +45,9 @@ public class GameManager : MonoBehaviour
     public void ReachGoal() => Session.ReachGoal();
     public void Win() => Session.Win();
     public void Lose() => Session.Lose();
+
+    /// <summary>Runs the clock out at once, as if the time limit had passed (for tests).</summary>
+    public void RunOutOfTime() => Session.Tick(Session.TimeRemaining);
 
     public void TogglePause()
     {
