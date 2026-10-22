@@ -15,26 +15,24 @@
 
 **Concepto en una frase**
 
-*En un bosque contaminado, el jugador* *controla un personaje encargado de* *asumir* *el papel de un guardián que explora diferentes zonas, supera obstáculos y* *clasifica y* *recoge residuos para recuperar progresivamente el entorno* *del ecosistema* *y avanzar hacia nuevas áreas del bosque.*
+*En un bosque contaminado, el jugador asume el papel de un guardián que recorre tres zonas, supera obstáculos y recoge residuos, contra el reloj, para recuperar progresivamente el ecosistema.*
 
-- *La idea no solo es recoger basura sino convertir el reciclaje en una* *mecánica* *de juego por ejemplo* *así:* 
+- *El ciclo de juego es:* *identificar → recoger → recuperar la zona → llegar a la meta antes de que se acabe el tiempo.*
 
-- *Identificar -> recoger->clasificar->reciclar->recuperar todo el ecosistema*
+- *Clasificar y reciclar los residuos fue una idea inicial que quedó fuera del alcance (ver 12.2); el juego actual no la incluye.*
 
 ![Concepto general: el guardián recoge residuos y el bosque pasa de contaminado a restaurado; boceto del nivel 1](GDDImages/concepto_general.jpg)
 
 ![Arte de portada: Guardianes del Bosque, «Pequeñas acciones, grandes cambios»](GDDImages/portada.jpg)
 
 # 2. Propósito social
- Promover la conciencia ambiental mediante una experiencia interactiva para enseñar de manera entretenida la importancia de separar correctamente los residuos y conservar os ecosistemas
+ Promover la conciencia ambiental mediante una experiencia interactiva para enseñar de manera entretenida la importancia de no dejar residuos en la naturaleza y de conservar los ecosistemas
 
-- Este juego busca que el jugador comprenda que sus decisiones tienen consecuencias sobre el entorno.
-
-- Ejemplo si el jugador coloca una botella de plástico en el contenedor correcto se le puede generar puntos los cuales llamaremos “de reciclaje”
-
-- Pero si este jugador clasifica incorrectamente estos residuos tendría que perder puntos o se genera alguna consecuencia negativa al ecosistema
+- Este juego busca que el jugador comprenda que sus acciones tienen consecuencias sobre el entorno: cada residuo recogido hace brotar flores donde estaba, y al limpiar una zona el bosque recupera su color, sus flores y sus animales (ver 6.1.4).
 
 - Promover la conservación de los ecosistemas con letreros del juego 
+
+*Idea inicial fuera del alcance:* dar puntos “de reciclaje” por depositar cada residuo en el contenedor correcto y restarlos por clasificar mal. No se implementó (ver 12.2).
 
 *Guardianes del Bosque* busca sensibilizar a estudiantes de 10 a 14 años sobre el cuidado de los espacios naturales mediante la recolección responsable de residuos.
 
@@ -50,13 +48,9 @@
 
 **Objetivo del primer nivel**
 
-El jugador tendrá que recoger y clasificar correctamente una cantidad determinada de residuos.
+El jugador tendrá que recoger una cantidad determinada de residuos y llegar a la meta antes de que se acabe el tiempo.
 
-**Por ejemplo:**
-
-**Objetivo: recoger 15 residuos.**
-
-**Objetivo secundario:** terminar el nivel con menos de 3 errores de clasificación.
+**Objetivo: recoger 10 residuos (de los 12 que hay en el nivel) y llegar a la meta en 2 minutos** (ver 5.1).
 
 **Estructura**
 
@@ -76,9 +70,9 @@ Nivel	Ecosistema	Problema
 
 Completar el nivel.
 
-Completar el nivel con pocos errores.
+Completar el nivel con tiempo de sobra.
 
-Completar el nivel sin errores.
+Completar el nivel recogiendo los 12 residuos y recuperando las tres zonas.
 
 Progresión
 
@@ -578,7 +572,7 @@ Su función no es causar daño mediante un sistema de salud, sino interrumpir el
 
 Los obstáculos no hacen caer al jugador por sí solos. Caer a un arroyo no hace perder: el jugador vuelve al punto de control de la zona.
 ## 8.4 Distribución de residuos
-Se utilizarán ocho tipos de residuos y se clasificaran de la siguiente manera:
+Se utilizan ocho tipos de residuos:
 
 - Botellas. 
 
@@ -713,8 +707,6 @@ Recolección y Limpieza:
 
 Sonido de recolección de basura.
 
-Sonido de depósito o clasificación correcta de residuos en contenedores.
-
 Sonido de retroalimentación positiva al recuperar una sección del bosque (un jingle breve 	o stinger).
 
 4. Interfaz de usuario
@@ -734,12 +726,11 @@ Clics en botones, pausa, sonidos de confirmación y error al interactuar con el 
 | Acciones del jugador | SFX_Salto | Sonido al ejecutar un salto en plataformas. | .wav |
 | Acciones del jugador | SFX_Aterrizaje | Sonido al hacer contacto con el suelo tras un salto o caída. | .wav |
 | Acciones del jugador | SFX_Recoger_Basura | Feedback sonoro inmediato al recoger un residuo del suelo. | .wav |
-| Acciones del jugador | SFX_Clasificacion_Correcta | Confirmación auditiva al depositar un residuo en el contenedor adecuado. | .wav |
 | Acciones del jugador | SFX_Recuperacion_Zona | Jingle breve (stinger) de retroalimentación positiva al limpiar una sección completa. | .wav |
 | Interfaz de usuario | UI_Boton_Click | Sonido sutil al presionar un botón del menú o la interfaz. | .wav |
 | Interfaz de usuario | UI_Pausa | Indicador sonoro al abrir o cerrar el menú de pausa. | .wav |
 | Interfaz de usuario | UI_Confirmacion | Retroalimentación al seleccionar opciones o interactuar con el mapa educativo. | .wav |
-| Interfaz de usuario | UI_Error | Alerta auditiva cuando se realiza una acción inválida o error de clasificación. | .wav |
+| Interfaz de usuario | UI_Error | Alerta auditiva cuando se realiza una acción inválida en el menú. | .wav |
 **Estado actual del audio:** el ambiente sigue la recuperación del bosque: `bosque_contaminado_sound` en las zonas contaminadas y `sonido_bosque_recuperado` en las recuperadas, con un fundido entre ambos (los dos en `Assets/Sound/Ambient/`; las pistas anteriores `ambient_sound_one` y `ambient_sound_two` ya no se usan), el sonido de recolección de residuos (`Assets/Sound/SFX/collectible_pickup_sound.wav`, con una ligera variación de tono) los pasos y el aterrizaje del paquete Starter Assets y el sonido de salto: en cada salto suena, al azar, uno de los tres sonidos que aportó Jhon (`JumpAudio1`, `jumpAudio2` y `JumpAudio3`, en `Assets/Sound/SFX/`), en 2D (ver 6.1.4 para el fundido por zona). Al recuperar una zona suena un sonido corto con el aviso “¡Zona recuperada!”, y al brotar flores tras recoger un residuo suena `flowers_sound`. En las zonas recuperadas, sobre `sonido_bosque_recuperado`, se suman suavemente `Naturaleza-02` y los pájaros de `Avez`, que se apagan con el mismo fundido en una zona contaminada. Cada arroyo suena a agua corriendo (`river`), y se oye al acercarse al cruce. Cada uno de los cuatro troncos rodantes suena mientras rueda (`GolpesTronco`) y da un golpe seco (`impactWood02`) cada vez que llega a un extremo y se da la vuelta; con la pausa se detiene. Al pausar, el ambiente baja de volumen. El ambiente y los efectos del jugador son 2D; el río y los troncos son 3D. Faltan la música y los sonidos de interfaz.
 
 ## 9.3 Recursos de interfaz
@@ -752,6 +743,8 @@ Elementos:
 - Indicador de contaminación: la barra “Recuperación del bosque”, bajo el contador (ver 10.2)
 
 - Icono de residuos. 
+
+- Reloj de la cuenta regresiva (“Tiempo: 2:00”, ver 10.2). 
 
 - Botón de pausa (por ahora la pausa es con Esc, ver 6.6). 
 
@@ -939,15 +932,15 @@ Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inve
 
 - **Obstáculos:** troncos, rocas, taludes, arroyos y barreras que cierran el paso (cercas de troncos e hileras de rocas o tocones), más tres tipos de peligros dinámicos (cuatro troncos que ruedan, piedra que cae y zona de lodo). 
 
-- **1 objetivo principal:** recoger 10 residuos (hay 12 en el nivel) y llegar a la meta. 
+- **1 objetivo principal:** recoger 10 residuos (hay 12 en el nivel) y llegar a la meta antes de 2 minutos. 
 
 - **1 sistema de progreso:** contador de residuos y barra “Recuperación del bosque”; cada zona se recupera por separado (vegetación sana, flores y animales). 
 
 - **1 condición de victoria:** alcanzar la cantidad objetivo y llegar a la meta. 
 
-- **Sin derrota:** caer fuera del recorrido (a un arroyo) devuelve al jugador al punto de control de la zona, con sus residuos. 
+- **1 condición de derrota:** se acaba el tiempo (2:00). Caer fuera del recorrido (a un arroyo) no hace perder: devuelve al jugador al punto de control de la zona, con sus residuos, y el reloj sigue corriendo. 
 
-- **HUD básico:** contador y barra de recuperación; aviso “¡Zona recuperada!”; flecha hacia la meta con aviso de sentido contrario; pausa con Esc. 
+- **HUD básico:** contador y barra de recuperación; reloj de 2 minutos; aviso “¡Zona recuperada!”; flecha hacia la meta con aviso de sentido contrario; pausa con Esc. 
 
 - **Menú principal y menú de pausa.** 
 
