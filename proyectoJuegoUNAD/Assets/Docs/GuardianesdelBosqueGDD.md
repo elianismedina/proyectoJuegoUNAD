@@ -1008,7 +1008,9 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Frascos de vidrio | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Jar`) | Propio (creado por el equipo) |
 | Pilas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Battery`) | Propio (creado por el equipo) |
 | Iconos del HUD | Interfaz | PNG / SVG | Por verificar | Por verificar |
-| Sonidos de ambiente y de recolección | Ambiente del bosque y SFX al recoger | WAV | `Assets/Sound/Ambient/ambient_sound_one.wav`, `ambient_sound_two.wav` y `Assets/Sound/SFX/collectible_pickup_sound.wav`: origen por verificar | Por verificar |
+| Sonidos de ambiente | Ambiente del bosque contaminado y recuperado | WAV | `Assets/Sound/Ambient/bosque_contaminado_sound.wav` y `sonido_bosque_recuperado.wav`: origen por verificar | Por verificar |
+| Efectos de sonido | Recoger, flores, tropiezo, ganar, caer | WAV | `Assets/Sound/SFX/collectible_pickup_sound.wav`, `flowers_sound.wav`, `sonido_tropezar.wav`, `sonido_ganar.wav` y `sonido_perder.wav`: origen por verificar | Por verificar |
+| Sonido “¡Zona recuperada!” | Aviso al recuperar una zona | WAV | `Assets/Sound/SFX/sonido_zona_recuperada.wav`, generado para el proyecto (provisional) | Propio |
 ## 13.2 Criterios para seleccionar recursos
 La webconferencia propone fuentes como:
 
