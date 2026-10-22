@@ -160,6 +160,7 @@ MonoBehaviour:
   SpeedChangeRate: 10
   RotationSmoothTime: 0.15
   InputDeadZone: 0.2
+  MovementReference: {fileID: 0}
   JumpHeight: 1.7
   Gravity: -20
   CoyoteTime: 0.2
@@ -175,6 +176,14 @@ MonoBehaviour:
   StumbleKnockbackSpeed: 5
   StumbleHop: 3
   StumbleImmunity: 1
+  StumbleSlowMultiplier: 0.5
+  StumbleSlowDuration: 1.5
+  ObstacleHitSpeed: 3
+  JumpAudioClips:
+  - {fileID: 8300000, guid: cc64b28ffa57f594f9835314e4061a50, type: 3}
+  - {fileID: 8300000, guid: 240b276387b5b3f40a8ac725f99af625, type: 3}
+  - {fileID: 8300000, guid: 7a1dc4de316c46e4d8263909c3022371, type: 3}
+  JumpAudioVolume: 0.7
   LandingAudioClip: {fileID: 8300000, guid: ff697d3070687ce4583faa0561a145a2, type: 3}
   FootstepAudioClips:
   - {fileID: 8300000, guid: 72f526a6a9890f643a88e85a61c86c8a, type: 3}

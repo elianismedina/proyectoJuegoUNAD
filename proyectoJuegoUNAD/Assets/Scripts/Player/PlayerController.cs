@@ -10,6 +10,7 @@ using UnityEngine;
 /// Hazards call <see cref="Stumble"/>, and so does running head-on into an <see cref="Obstacle"/>; every stumble is
 /// followed by a short slowdown. Mud zones use <see cref="AddSpeedModifier"/>. Input is disabled
 /// automatically whenever the <see cref="GameManager"/> session is not in the Playing state.
+/// Every jump plays one of <see cref="JumpAudioClips"/> at random on a 2D source.
 /// </summary>
 [RequireComponent(typeof(CharacterController), typeof(StarterAssetsInputs))]
 public class PlayerController : MonoBehaviour
@@ -78,6 +79,9 @@ public class PlayerController : MonoBehaviour
     public float ObstacleHitSpeed = 3f;
 
     [Header("Audio")]
+    [Tooltip("Jump sounds (Jhon's JumpAudio1-3); one is picked at random on every jump and played in 2D.")]
+    public AudioClip[] JumpAudioClips;
+    [Range(0f, 1f)] public float JumpAudioVolume = 0.7f;
     public AudioClip LandingAudioClip;
     public AudioClip[] FootstepAudioClips;
     [Range(0f, 1f)] public float FootstepAudioVolume = 0.5f;
@@ -101,6 +105,12 @@ public class PlayerController : MonoBehaviour
 
     /// <summary>True while the player is reeling from a hazard hit and cannot steer.</summary>
     public bool IsStumbling => Time.time < _stumbleEndTime;
+
+    /// <summary>How many jump sounds were played since the level loaded.</summary>
+    public int JumpSoundsPlayed { get; private set; }
+
+    /// <summary>The jump sound played last, or null.</summary>
+    public AudioClip LastJumpClip { get; private set; }
 
     /// <summary>True during the slowdown after a stumble: <see cref="StumbleSlowDuration"/> seconds once control returns.</summary>
     public bool IsSlowedByStumble => !IsStumbling && Time.time < _stumbleEndTime + StumbleSlowDuration;
@@ -136,6 +146,7 @@ public class PlayerController : MonoBehaviour
     private int _animIDSlow;
     private int _animIDStumble;
     private int _animIDVictory;
+    private AudioSource _jumpAudio;
 
     private void Awake()
     {
@@ -152,7 +163,17 @@ public class PlayerController : MonoBehaviour
         _animIDSlow = Animator.StringToHash("Slow");
         _animIDStumble = Animator.StringToHash("Stumble");
         _animIDVictory = Animator.StringToHash("Victory");
+
+        // 2D, like the level's other player sounds (pickup, stumble), so the jump sounds the same whatever the camera does.
+        var jumpAudio = new GameObject("Jump Audio");
+        jumpAudio.transform.SetParent(transform, false);
+        _jumpAudio = jumpAudio.AddComponent<AudioSource>();
+        _jumpAudio.playOnAwake = false;
+        _jumpAudio.spatialBlend = 0f;
     }
+
+    /// <summary>The 2D source the jump sounds play on.</summary>
+    public AudioSource JumpAudioSource => _jumpAudio;
 
     private void Start()
     {
@@ -326,6 +347,7 @@ public class PlayerController : MonoBehaviour
             _lastGroundedTime = float.NegativeInfinity;
 
             if (_hasAnimator) _animator.SetBool(_animIDJump, true);
+            PlayJumpSound();
         }
 
         if (_verticalVelocity > -TerminalVelocity)
@@ -370,6 +392,17 @@ public class PlayerController : MonoBehaviour
         float yaw = reference != null ? reference.eulerAngles.y : 0f;
         Vector3 local = new Vector3(input.x, 0f, input.y).normalized;
         return Quaternion.Euler(0f, yaw, 0f) * local;
+    }
+
+    // A different one of the jump sounds each time, at random.
+    private void PlayJumpSound()
+    {
+        if (JumpAudioClips == null || JumpAudioClips.Length == 0) return;
+        AudioClip clip = JumpAudioClips[Random.Range(0, JumpAudioClips.Length)];
+        if (clip == null) return;
+        _jumpAudio.PlayOneShot(clip, JumpAudioVolume);
+        LastJumpClip = clip;
+        JumpSoundsPlayed++;
     }
 
     /// <summary>Called by <see cref="PlayerAnimationEvents"/> from the run/walk clips.</summary>

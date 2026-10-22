@@ -77,6 +77,30 @@ public class PlayerPlayModeTests
         Assert.IsTrue(controller.Grounded, "Player should land again.");
     }
 
+    // Jhon's jump sounds (PR #41), set on the Player prefab: every jump plays one of the three, picked at random, in 2D.
+    [UnityTest]
+    public IEnumerator Jump_PlaysOneOfTheJumpSoundsIn2D()
+    {
+        CollectionAssert.AreEquivalent(new[] { "JumpAudio1", "jumpAudio2", "JumpAudio3" },
+            System.Array.ConvertAll(controller.JumpAudioClips, c => c.name), "The Player prefab needs Jhon's three jump sounds.");
+        Assert.IsNotNull(controller.JumpAudioSource);
+        Assert.AreEqual(0f, controller.JumpAudioSource.spatialBlend, "The jump sounds the same wherever the camera is (2D).");
+        Assert.AreEqual(0, controller.JumpSoundsPlayed);
+
+        var heard = new System.Collections.Generic.HashSet<AudioClip>();
+        for (int i = 0; i < 8; i++)
+        {
+            inputs.jump = true;
+            yield return new WaitForSeconds(0.1f);
+            Assert.AreEqual(i + 1, controller.JumpSoundsPlayed, "Each jump plays exactly one sound.");
+            CollectionAssert.Contains(controller.JumpAudioClips, controller.LastJumpClip);
+            heard.Add(controller.LastJumpClip);
+            yield return new WaitUntil(() => controller.Grounded);
+            yield return new WaitForSeconds(0.1f);
+        }
+        Assert.Greater(heard.Count, 1, "The jump sound is picked at random, so eight jumps use more than one of them.");
+    }
+
     [UnityTest]
     public IEnumerator JumpShadow_StaysOnTheGroundBelowThePlayerAndShrinksInTheAir()
     {
