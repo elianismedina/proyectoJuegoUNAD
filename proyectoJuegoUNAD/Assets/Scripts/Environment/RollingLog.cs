@@ -38,6 +38,15 @@ public class RollingLog : MonoBehaviour
     private float direction = 1f;
 
     public AudioSource RollSound => rollSound;
+
+    /// <summary>Total length of the run, centred on <see cref="Origin"/>.</summary>
+    public float Travel => travel;
+
+    /// <summary>The middle of the run (where the log was placed).</summary>
+    public Vector3 Origin => origin;
+
+    /// <summary>Horizontal direction of the run.</summary>
+    public Vector3 RunAxis => axis;
     public AudioSource BumpSound => bumpSound;
 
     /// <summary>How many end-of-run thuds were played since the level loaded.</summary>

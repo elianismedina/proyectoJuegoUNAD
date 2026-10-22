@@ -87,6 +87,45 @@ public class HazardPlayModeTests
         Assert.IsTrue(stumbled, "Touching the rolling log must stumble the player.");
     }
 
+    // The rolling logs each have their own stretch (they used to be stacked in one spot): none in Zone 1, which teaches,
+    // some in Zones 2 and 3, well apart, and nothing solid, no waste, checkpoint or other hazard anywhere along a run.
+    [Test]
+    public void RollingLogs_AreSpreadOutAndRunClear()
+    {
+        var trail = Object.FindFirstObjectByType<ForestTrail>();
+        var logs = Object.FindObjectsByType<RollingLog>();
+        Assert.GreaterOrEqual(logs.Length, 4, "Level01 has four rolling logs.");
+
+        var zones = new int[ForestTrail.ZoneCount];
+        foreach (var log in logs)
+        {
+            float s = trail.Project(log.Origin, out float lateral);
+            Assert.Less(Mathf.Abs(lateral), 0.5f, log.name + " must sit on the path.");
+            zones[trail.ZoneAt(s)]++;
+            foreach (var other in logs)
+                if (other != log)
+                    Assert.Greater(Mathf.Abs(trail.Project(other.Origin, out _) - s), 10f, log.name + " and " + other.name + " are too close.");
+
+            Vector3 along = Vector3.Cross(Vector3.up, log.RunAxis).normalized; // the log's long side
+            for (float d = -log.Travel * 0.5f; d <= log.Travel * 0.5f; d += 0.5f)
+            {
+                Vector3 c = log.Origin + log.RunAxis * d;
+                foreach (var hit in Physics.OverlapCapsule(c - along * 1.55f, c + along * 1.55f, 0.45f, ~0, QueryTriggerInteraction.Collide))
+                {
+                    if (hit.name == "ForestFloor" || hit.CompareTag("Player")) continue;
+                    var owner = hit.GetComponentInParent<RollingLog>();
+                    if (owner == log) continue;
+                    bool blocks = !hit.isTrigger || owner != null || hit.GetComponentInParent<Collectible>() != null
+                                  || hit.GetComponentInParent<Checkpoint>() != null || hit.GetComponentInParent<PlayerHazard>() != null;
+                    Assert.IsFalse(blocks, log.name + " runs into " + hit.name + " " + d.ToString("0.0") + " m from its middle.");
+                }
+            }
+        }
+        Assert.AreEqual(0, zones[0], "Zone 1 teaches the basics: no rolling log there.");
+        Assert.Greater(zones[1], 0, "Zone 2 needs a rolling log.");
+        Assert.Greater(zones[2], 0, "Zone 3 needs a rolling log.");
+    }
+
     // Jhon's log sounds, on the RollingLog_Hazard prefab: a 3D knocking loop while it rolls, and a thud at each end of its run.
     [UnityTest]
     public IEnumerator RollingLog_KnocksWhileRollingAndThudsAtEachEnd()
