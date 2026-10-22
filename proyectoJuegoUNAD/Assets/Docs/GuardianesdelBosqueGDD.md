@@ -209,9 +209,9 @@ Los obstáculos son:
 
 - Arroyos que cruzan el sendero y hay que saltar (caer en uno devuelve al jugador al inicio de la zona). 
 
-- Peligros dinámicos: tronco que rueda, piedra que cae y zona de lodo (ver 7.4).
+- Peligros dinámicos: cuatro troncos que ruedan (Zonas 2 y 3), piedra que cae y zona de lodo (ver 7.4 y 8.3).
 
-Las cercas siguen previstas, pero todavía no están en el nivel.
+- Barreras que cierran el paso: tronco atravesado, cerca de tres troncos que cubre todo el corredor e hileras de rocas o tocones (ver 8.3). Un modelo propio de cerca sigue previsto.
 
 Algunos residuos estarán ubicados en posiciones que requieren superar estos obstáculos.
 ### 6.1.3. Recoger residuos
@@ -243,7 +243,7 @@ La recolección produce:
 
 Por ahora el cambio es un cambio de material provisional (el mismo atlas de la vegetación teñido de pardo). Geordany puede reemplazarlo por su arte sin tocar código. El suelo no cambia, porque es una sola malla para todo el sendero. Quedan pendientes el desbloqueo del siguiente tramo y una animación del personaje al recuperar una zona.
 
-**Sonido de la zona:** mientras el jugador está en una zona contaminada suena el ambiente `bosque_contaminado_sound` (en bucle). Al recuperar esa zona, o al pasar a una zona ya recuperada, se hace un fundido de unos 3 s al ambiente de bosque recuperado (`sonido_bosque_recuperado`, en bucle); al entrar de nuevo en una zona contaminada, el fundido va al revés. Como la Zona 1 empieza contaminada, el nivel arranca con el ambiente contaminado.
+**Sonido de la zona:** mientras el jugador está en una zona contaminada suena el ambiente `bosque_contaminado_sound` (en bucle). Al recuperar esa zona, o al pasar a una zona ya recuperada, se hace un fundido de unos 3 s al ambiente de bosque recuperado (`sonido_bosque_recuperado`, en bucle); al entrar de nuevo en una zona contaminada, el fundido va al revés. En las zonas recuperadas se suman, más suaves, `Naturaleza-02` y los pájaros de `Avez`, que siguen el mismo fundido. Como la Zona 1 empieza contaminada, el nivel arranca con el ambiente contaminado.
 
 Diseño original:
 
@@ -474,6 +474,10 @@ El videojuego se desarrolla en un **bosque natural en estado de contaminación**
 
 - Montañas. 
 
+- Arroyos, que suenan a agua corriendo al acercarse. 
+
+- Flores y animales (ciervo, perro, gato, gallina y caballo) que aparecen al recuperar cada zona (ver 6.1.4). 
+
 - Otros elementos propios de un entorno boscoso. 
 
 **Elementos interactivos**
@@ -522,7 +526,7 @@ Características y elementos: Aprecen botllas, latas, papeles y otros residuos
 
 - Menor espacio entre algunos elementos. 
 
-- Primer arroyo, zona de lodo y tronco que rueda. 
+- Primer arroyo, zona de lodo y dos troncos que ruedan. 
 
 Aquí el jugador debe empezar a tomar decisiones sobre cuándo desplazarse y cuándo saltar.
 
@@ -538,7 +542,7 @@ Características:
 
 - Recorrido más exigente. 
 
-- Combinación de diferentes obstáculos: dos arroyos, el talud más alto (1,2 m) y la piedra que cae. 
+- Combinación de diferentes obstáculos: dos arroyos, el talud más alto (1,2 m), dos troncos que ruedan y la piedra que cae. 
 
 Al superar esta zona y alcanzar la cantidad necesaria de residuos, el jugador puede completar el objetivo.
 
@@ -635,7 +639,7 @@ Los residuos usan colores claros y saturados que no aparecen en la naturaleza de
 
 - Rocas 
 
-- Cercas (previstas) 
+- Cercas de troncos (un modelo propio de cerca sigue previsto) 
 
 Los obstáculos y peligros usan un material oscuro, para que se distingan de los residuos claros y brillantes.
 
@@ -664,7 +668,9 @@ Esta sección define **qué recursos necesitamos para construir el videojuego** 
 | Vasos desechables | Residuos recolectables | FBX / Prefab |
 | Frascos de vidrio | Residuos recolectables | FBX / Prefab |
 | Pilas | Residuos recolectables | FBX / Prefab |
-| Elemento de recuperación de zona (vegetación nueva, agua limpia) | Representar visualmente que una zona pasó de contaminda a recuperada | FBX / Prefab |
+| Elemento de recuperación de zona (vegetación nueva, agua limpia) | Representar visualmente que una zona pasó de contaminada a recuperada (hoy: cambio de material, flores y animales) | FBX / Prefab + material |
+| Flores de recuperación | Brotan al recoger cada residuo y al recuperar una zona | FBX / Prefab |
+| Animales del bosque | Aparecen al recuperar una zona, paseando o en reposo | FBX / Prefab + animaciones |
 | Icono de residuos | Identificación del contador | PNG / SVG |
 | Indicador de contaminación | Mostrar el avance de la limpieza (barra o medidor) | PNG / SVG |
 | Icono de pausa | Botón de pausa | PNG / SVG |
@@ -719,7 +725,7 @@ Clics en botones, pausa, sonidos de confirmación y error al interactuar con el 
 | Interfaz de usuario | UI_Pausa | Indicador sonoro al abrir o cerrar el menú de pausa. | .wav |
 | Interfaz de usuario | UI_Confirmacion | Retroalimentación al seleccionar opciones o interactuar con el mapa educativo. | .wav |
 | Interfaz de usuario | UI_Error | Alerta auditiva cuando se realiza una acción inválida o error de clasificación. | .wav |
-**Estado actual del audio:** el ambiente sigue la recuperación del bosque: `bosque_contaminado_sound` en las zonas contaminadas y `sonido_bosque_recuperado` en las recuperadas, con un fundido entre ambos (los dos en `Assets/Sound/Ambient/`; las pistas anteriores `ambient_sound_one` y `ambient_sound_two` ya no se usan), el sonido de recolección de residuos (`Assets/Sound/SFX/collectible_pickup_sound.wav`, con una ligera variación de tono) y los pasos y el aterrizaje del paquete Starter Assets. En las zonas contaminadas suena `bosque_contaminado_sound` y, al recuperarlas, un fundido lleva al ambiente de bosque vivo (ver 6.1.4). Al recuperar una zona suena un sonido corto con el aviso “¡Zona recuperada!”, y al brotar flores tras recoger un residuo suena `flowers_sound`. En las zonas recuperadas, sobre `sonido_bosque_recuperado`, se suman suavemente `Naturaleza-02` y los pájaros de `Avez`, que se apagan con el mismo fundido en una zona contaminada. Cada arroyo suena a agua corriendo (`river`), y se oye al acercarse al cruce. El tronco rodante suena mientras rueda (`GolpesTronco`) y da un golpe seco (`impactWood02`) cada vez que llega a un extremo y se da la vuelta; con la pausa se detiene. Al pausar, el ambiente baja de volumen. El ambiente y los efectos del jugador son 2D; el río y el tronco son 3D. Faltan la música, el salto y los sonidos de interfaz.
+**Estado actual del audio:** el ambiente sigue la recuperación del bosque: `bosque_contaminado_sound` en las zonas contaminadas y `sonido_bosque_recuperado` en las recuperadas, con un fundido entre ambos (los dos en `Assets/Sound/Ambient/`; las pistas anteriores `ambient_sound_one` y `ambient_sound_two` ya no se usan), el sonido de recolección de residuos (`Assets/Sound/SFX/collectible_pickup_sound.wav`, con una ligera variación de tono) y los pasos y el aterrizaje del paquete Starter Assets (ver 6.1.4 para el fundido por zona). Al recuperar una zona suena un sonido corto con el aviso “¡Zona recuperada!”, y al brotar flores tras recoger un residuo suena `flowers_sound`. En las zonas recuperadas, sobre `sonido_bosque_recuperado`, se suman suavemente `Naturaleza-02` y los pájaros de `Avez`, que se apagan con el mismo fundido en una zona contaminada. Cada arroyo suena a agua corriendo (`river`), y se oye al acercarse al cruce. Cada uno de los cuatro troncos rodantes suena mientras rueda (`GolpesTronco`) y da un golpe seco (`impactWood02`) cada vez que llega a un extremo y se da la vuelta; con la pausa se detiene. Al pausar, el ambiente baja de volumen. El ambiente y los efectos del jugador son 2D; el río y los troncos son 3D. Faltan la música, el salto y los sonidos de interfaz.
 
 ## 9.3 Recursos de interfaz
 La interfaz será sencilla y contendrá únicamente la información necesaria para que el jugador conozca su progreso.
@@ -912,23 +918,23 @@ Enfoque Sin Distractores: Ausencia de mecánicas secundarias complejas (sin inve
 
 - **8 tipos de residuos:** botellas, latas, papeles, bolsas plásticas, cajas de jugo, vasos desechables, frascos de vidrio y pilas. 
 
-- **Obstáculos:** troncos, rocas, taludes y arroyos, más tres peligros dinámicos (tronco que rueda, piedra que cae y zona de lodo). Las cercas siguen previstas. 
+- **Obstáculos:** troncos, rocas, taludes, arroyos y barreras que cierran el paso (cercas de troncos e hileras de rocas o tocones), más tres tipos de peligros dinámicos (cuatro troncos que ruedan, piedra que cae y zona de lodo). 
 
 - **1 objetivo principal:** recoger 10 residuos (hay 12 en el nivel) y llegar a la meta. 
 
-- **1 sistema de progreso:** contador de residuos. 
+- **1 sistema de progreso:** contador de residuos y barra “Recuperación del bosque”; cada zona se recupera por separado (vegetación sana, flores y animales). 
 
 - **1 condición de victoria:** alcanzar la cantidad objetivo y llegar a la meta. 
 
 - **Sin derrota:** caer fuera del recorrido (a un arroyo) devuelve al jugador al punto de control de la zona, con sus residuos. 
 
-- **HUD básico:** contador; flecha hacia la meta con aviso de sentido contrario; pausa con Esc. 
+- **HUD básico:** contador y barra de recuperación; aviso “¡Zona recuperada!”; flecha hacia la meta con aviso de sentido contrario; pausa con Esc. 
 
 - **Menú principal y menú de pausa.** 
 
 - **Cámara en tercera persona** que sigue al personaje. 
 
-- **Sistema de audio básico:** ambiente y efectos de las acciones principales. 
+- **Sistema de audio básico:** ambiente que cambia entre zona contaminada y recuperada, río en los arroyos, troncos rodantes y efectos de las acciones principales. 
 
 - **Estilo visual:** 3D low-poly. 
 
@@ -996,7 +1002,7 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Rocas (y suelo) | Entorno | FBX / Prefab | Unity Asset Store: "Low-Poly Simple Nature Pack" (JustCreate), v1.24, en `Assets/SimpleNaturePack`: https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153 | Standard Unity Asset Store EULA (Extension Asset) |
 | Montañas | Entorno | FBX / Prefab | Colinas del paquete "Low-Poly Simple Nature Pack" (JustCreate), pieza `Ground_02` escalada; ver enlace en la fila de árboles | Standard Unity Asset Store EULA (Extension Asset) |
 | Troncos | Obstáculos | FBX / Prefab | Tocón, tronco y rama del paquete "Low-Poly Simple Nature Pack" (JustCreate), ver enlace en la fila de árboles; el tronco que rueda usa la rama `Branch_01` del mismo paquete | Standard Unity Asset Store EULA (Extension Asset) (solo las piezas del paquete) |
-| Cercas | Obstáculos | FBX / Prefab | Aún no se usan en el nivel | — |
+| Cercas | Obstáculos | FBX / Prefab | Cerca de tres troncos armada con el tronco del paquete "Low-Poly Simple Nature Pack" (ver fila de troncos); un modelo propio de cerca sigue previsto | Standard Unity Asset Store EULA (Extension Asset) |
 | Animales de recuperación | Entorno (animales que aparecen al recuperar una zona) | FBX / Prefab / Animación | Unity Asset Store: "Animals FREE - Animated Low Poly 3D Models" (ithappy), en `Assets/ithappy/Animals_FREE` (ciervo, perro, gato, gallina y caballo con sus animaciones de reposo y paseo, usados a través de las variantes de `Assets/Prefabs/Environment/RecoveryAnimals`; los archivos del paquete no se modifican). Enlace por verificar | Standard Unity Asset Store EULA (por verificar) |
 | Flores de recuperación | Entorno (vegetación que aparece al recuperar una zona) | FBX / Prefab | Unity Asset Store: "Low Poly Flower Pack" (Emilulz), versión demo, en `Assets/Emilulz_Assets/DEMOLowPolyFlowers` (margarita, diente de león, jacinto azul y rosa roja, usadas a través de las variantes de `Assets/Prefabs/Environment/Recovery`). Enlace por verificar | Standard Unity Asset Store EULA (por verificar) |
 | Botellas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Bottle`) | Propio (creado por el equipo) |
