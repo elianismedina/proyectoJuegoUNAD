@@ -14,6 +14,8 @@ using UnityEngine;
 /// own material per asset later. <c>LevelEnvironmentBuilder</c> adds this to the <c>Environment</c> root.
 /// The flowers under <see cref="recoveryPropsRoot"/> (Low Poly Flower Pack, placed by the builder) are hidden while their
 /// zone is polluted and grow in, one after another, when it is recovered (GDD §6.1.4, "aparición de vegetación").
+/// The animals under <see cref="animalsRoot"/> (<see cref="RecoveryAnimal"/>, Animals FREE pack) stay inactive while
+/// their zone is polluted and are switched on, growing in the same way, when it is recovered.
 /// </summary>
 public class ForestRecovery : MonoBehaviour
 {
@@ -28,6 +30,9 @@ public class ForestRecovery : MonoBehaviour
 
     [SerializeField, Tooltip("Parent of the flowers that appear when a zone is recovered (each child is one flower).")]
     private Transform recoveryPropsRoot;
+
+    [SerializeField, Tooltip("Parent of the animals that appear when a zone is recovered (one child per zone, each holding its animals).")]
+    private Transform animalsRoot;
 
     [SerializeField, Min(0.05f), Tooltip("Seconds one flower takes to grow in.")]
     private float growSeconds = 0.6f;
@@ -47,6 +52,7 @@ public class ForestRecovery : MonoBehaviour
     private readonly Dictionary<Collectible, int> zoneOfWaste = new Dictionary<Collectible, int>();
     private List<Renderer>[] zoneRenderers;
     private List<Transform>[] zoneProps;
+    private List<RecoveryAnimal>[] zoneAnimals;
     private readonly Dictionary<Transform, Vector3> fullScale = new Dictionary<Transform, Vector3>();
     private readonly List<(Transform prop, float start)> growing = new List<(Transform, float)>();
     private GameSession session;
@@ -77,6 +83,25 @@ public class ForestRecovery : MonoBehaviour
     {
         foreach (var prop in zoneProps[zone])
             if (prop.localScale != Vector3.zero) return false;
+        return true;
+    }
+
+    /// <summary>The animals that appear when the zone is recovered.</summary>
+    public IReadOnlyList<RecoveryAnimal> AnimalsInZone(int zone) => zoneAnimals[zone];
+
+    /// <summary>True when every animal of the zone is out and fully grown in.</summary>
+    public bool AnimalsShown(int zone)
+    {
+        foreach (var animal in zoneAnimals[zone])
+            if (!animal.gameObject.activeSelf || animal.transform.localScale != fullScale[animal.transform]) return false;
+        return true;
+    }
+
+    /// <summary>True while none of the zone's animals is out.</summary>
+    public bool AnimalsHidden(int zone)
+    {
+        foreach (var animal in zoneAnimals[zone])
+            if (animal.gameObject.activeSelf) return false;
         return true;
     }
 
@@ -135,11 +160,23 @@ public class ForestRecovery : MonoBehaviour
             }
         }
 
+        zoneAnimals = new List<RecoveryAnimal>[ForestTrail.ZoneCount];
+        for (int z = 0; z < zoneAnimals.Length; z++) zoneAnimals[z] = new List<RecoveryAnimal>();
+        if (animalsRoot != null)
+        {
+            foreach (var animal in animalsRoot.GetComponentsInChildren<RecoveryAnimal>(true))
+            {
+                zoneAnimals[trail.ZoneAt(trail.Project(animal.PointA, out _))].Add(animal);
+                fullScale[animal.transform] = animal.transform.localScale;
+            }
+        }
+
         for (int z = 0; z < zoneRenderers.Length; z++)
         {
             if (Tracker.IsRecovered(z)) continue;
             SetLook(z, healthyMaterial, pollutedMaterial);
             foreach (var prop in zoneProps[z]) prop.localScale = Vector3.zero;
+            foreach (var animal in zoneAnimals[z]) animal.gameObject.SetActive(false);
         }
 
         if (GameManager.Instance != null)
@@ -177,6 +214,13 @@ public class ForestRecovery : MonoBehaviour
     {
         SetLook(zone, pollutedMaterial, healthyMaterial);
         foreach (var prop in zoneProps[zone]) growing.Add((prop, Time.time + UnityEngine.Random.value * growSpread));
+        foreach (var animal in zoneAnimals[zone])
+        {
+            if (animal.gameObject.activeSelf) continue;
+            animal.transform.localScale = Vector3.zero;
+            animal.gameObject.SetActive(true);
+            growing.Add((animal.transform, Time.time + UnityEngine.Random.value * growSpread));
+        }
         ZoneRecovered?.Invoke(zone);
     }
 

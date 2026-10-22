@@ -33,6 +33,7 @@ public static class LevelEnvironmentBuilder
     // same atlas tinted dull brown. Geordany can replace the polluted material's art without touching any code.
     private const string NatureMaterialPath = "Assets/SimpleNaturePack/Materials/SimpleNaturePack_Texture_01.mat";
     private const string PollutedMaterialPath = "Assets/Materials/Recovery/Nature_Polluted.mat";
+    private const string FlowersSoundPath = "Assets/Sound/SFX/flowers_sound.wav"; // played when pickup flowers sprout
     private static readonly Color PollutedTint = new Color(0.6f, 0.47f, 0.3f, 1f);
     private const string LevelConfigPath = "Assets/Config/LevelConfig_Level01.asset";
 
@@ -187,6 +188,17 @@ public static class LevelEnvironmentBuilder
     private const float FlowerScaleMin = 1.2f, FlowerScaleMax = 1.6f; // on top of the variants' 0.55: 0.5–1.4 m tall
     private const float FlowerClear = 1f; // metres kept from waste, checkpoints, obstacles and hazards
 
+    // Animals that come out when a zone is recovered (ForestRecovery, RecoveryAnimal; GDD 6.1.4), from the "Animals FREE"
+    // pack (Assets/ithappy/Animals_FREE) through the variants in Prefabs/Environment/RecoveryAnimals (no collider, no
+    // player scripts). A few per zone, in the corridor where the player sees them but well off the path; about half pace a
+    // short stretch, the rest rest. Each one keeps AnimalClear metres from waste, checkpoints, obstacles and hazards.
+    private static readonly string[] RecoveryAnimalNames = { "Deer", "Dog", "Kitty", "Chicken", "Horse" };
+    private const int AnimalsPerZone = 4;
+    private const float AnimalWalkLength = 3f;   // length of a walker's stretch, along the trail
+    private const float AnimalPathMargin = 1.5f; // extra metres between the path's edge and any part of the stretch
+    private const float AnimalClear = 2f;
+    private const float AnimalBodyRadius = 0.7f;
+
     private static readonly string[] SmallFoliage = { "Grass_01", "Grass_02", "Flowers_01", "Flowers_02", "Mushroom_01", "Mushroom_02", "Rock_02", "Rock_03" };
 
     private static readonly string[] ZoneNames = { "Zone1_Learning", "Zone2_Development", "Zone3_Challenge" };
@@ -241,6 +253,7 @@ public static class LevelEnvironmentBuilder
 
         BuildScenery(Child(root.transform, "Scenery"), trail, floorCollider, reserved);
         BuildRecoveryFlowers(Child(root.transform, "Recovery"), trail, floorCollider, reserved);
+        BuildRecoveryAnimals(Child(root.transform, "RecoveryAnimals"), trail, floorCollider, reserved);
         BuildFarAway(Child(root.transform, "FarAway"), trail);
         AddForestRecovery(root);
         UpdateLevelConfig();
@@ -748,6 +761,7 @@ public static class LevelEnvironmentBuilder
         so.FindProperty("healthyMaterial").objectReferenceValue = healthy;
         so.FindProperty("pollutedMaterial").objectReferenceValue = healthy != null ? PollutedMaterial(healthy) : null;
         so.FindProperty("recoveryPropsRoot").objectReferenceValue = root.transform.Find("Recovery");
+        so.FindProperty("animalsRoot").objectReferenceValue = root.transform.Find("RecoveryAnimals");
         so.ApplyModifiedPropertiesWithoutUndo();
 
         // Flowers that sprout where each waste item is picked up, from the same recovery flower variants.
@@ -756,6 +770,7 @@ public static class LevelEnvironmentBuilder
         prefabs.arraySize = RecoveryFlowerNames.Length;
         for (int i = 0; i < RecoveryFlowerNames.Length; i++)
             prefabs.GetArrayElementAtIndex(i).objectReferenceValue = Prefab("Recovery_" + RecoveryFlowerNames[i], "Recovery");
+        bloom.FindProperty("bloomClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(FlowersSoundPath);
         bloom.ApplyModifiedPropertiesWithoutUndo();
     }
 
@@ -867,6 +882,88 @@ public static class LevelEnvironmentBuilder
                 cluster++;
             }
         }
+    }
+
+    // One child per zone ("Zone1".."Zone3") holding that zone's animals, with their own random stream (seed 13). A walker's
+    // stretch runs along the trail from its spot; it is checked at both ends and in between, and must stay on fairly level
+    // ground (the animal glides between the two heights). If no stretch fits, the animal rests instead.
+    private static void BuildRecoveryAnimals(Transform root, ForestTrail trail, Collider floor, List<Vector2> reserved)
+    {
+        var rng = new Random(13);
+        var raycastSet = new HashSet<Collider> { floor };
+        float length = trail.Length, zoneLength = length / ForestTrail.ZoneCount;
+        Physics.SyncTransforms();
+
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+        {
+            var parent = Child(root, "Zone" + (zone + 1));
+            var placed = new List<Vector2>();
+            for (int n = 0, attempts = 0; n < AnimalsPerZone && attempts < AnimalsPerZone * 60; attempts++)
+            {
+                float s = zone * zoneLength + (0.08f + Next(rng) * 0.84f) * zoneLength;
+                int side = rng.Next(2) == 0 ? -1 : 1;
+                float minLateral = TrailHalfWidth + AnimalPathMargin + AnimalBodyRadius;
+                float maxLateral = HalfWidth(s, side, length) - 1f;
+                if (trail.IsOverStream(s) || maxLateral <= minLateral) continue;
+                Vector3 a = OnTrail(trail, s, side * Mathf.Lerp(minLateral, maxLateral, Next(rng)), 0f);
+                if (!AnimalSpotIsFree(a, trail, raycastSet, reserved, placed, out float ya)) continue;
+                a.y = ya;
+
+                Vector3 b = a;
+                bool walks = n % 2 == 0;
+                if (walks)
+                {
+                    walks = false;
+                    Vector3 step = trail.TangentAt(s) * (rng.Next(2) == 0 ? -1f : 1f);
+                    step.y = 0f;
+                    Vector3 end = a + step.normalized * AnimalWalkLength;
+                    var heights = new float[5];
+                    heights[0] = ya;
+                    bool clear = true;
+                    for (int k = 1; k <= 4 && clear; k++)
+                        clear = AnimalSpotIsFree(Vector3.Lerp(a, end, k / 4f), trail, raycastSet, reserved, placed, out heights[k]);
+                    for (int k = 1; k < 4 && clear; k++)
+                        clear = Mathf.Abs(heights[k] - Mathf.Lerp(ya, heights[4], k / 4f)) < 0.2f;
+                    if (clear && Mathf.Abs(heights[4] - ya) < 0.4f)
+                    {
+                        walks = true;
+                        b = new Vector3(end.x, heights[4], end.z);
+                    }
+                }
+
+                string kind = RecoveryAnimalNames[(zone + n) % RecoveryAnimalNames.Length];
+                var go = Spawn(Prefab("RecoveryAnimal_" + kind, "RecoveryAnimals"), parent);
+                go.transform.position = a;
+                Vector3 look = walks ? b - a : -side * trail.LeftAt(s) + trail.TangentAt(s) * (Next(rng) - 0.5f) * 2f;
+                look.y = 0f;
+                go.transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
+                go.GetComponent<RecoveryAnimal>().Configure(a, b, walks);
+                EditorUtility.SetDirty(go.GetComponent<RecoveryAnimal>());
+
+                placed.Add(new Vector2(a.x, a.z));
+                if (walks) placed.Add(new Vector2(b.x, b.z));
+                n++;
+            }
+        }
+    }
+
+    // Like a flower spot, but with room for a whole animal: farther from the path, from reserved spots and other animals.
+    private static bool AnimalSpotIsFree(Vector3 p, ForestTrail trail, HashSet<Collider> raycastSet, List<Vector2> reserved,
+        List<Vector2> animals, out float y)
+    {
+        y = 0f;
+        trail.Project(p, out float fromCentre);
+        if (Mathf.Abs(fromCentre) < TrailHalfWidth + AnimalPathMargin + AnimalBodyRadius) return false;
+        if (!TryGroundY(p.x, p.z, raycastSet, out y)) return false;
+        var point = new Vector2(p.x, p.z);
+        foreach (var r in reserved)
+            if ((r - point).sqrMagnitude < AnimalClear * AnimalClear) return false;
+        foreach (var other in animals)
+            if ((other - point).sqrMagnitude < 4f * 4f) return false;
+        foreach (var hit in Physics.OverlapCapsule(new Vector3(p.x, y + AnimalBodyRadius + 0.1f, p.z), new Vector3(p.x, y + 1.8f, p.z),
+                     AnimalBodyRadius, ~0, QueryTriggerInteraction.Ignore))
+            if (!raycastSet.Contains(hit)) return false; // obstacle, trunk, wall or hazard body
+        return true;
     }
 
     // Off the path, on the forest floor (not over a stream), and with nothing solid or reserved close by.

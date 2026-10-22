@@ -7,7 +7,7 @@ using UnityEngine.TestTools;
 
 /// <summary>
 /// Flowers sprouting where waste is picked up in Level01: a few grow in with a short animation, beside the path for an
-/// item above it and on the bank for one over a stream, never on the path, never solid.
+/// item above it and on the bank for one over a stream, never on the path, never solid, each time with flowers_sound.
 /// </summary>
 public class PickupBloomPlayModeTests
 {
@@ -29,6 +29,8 @@ public class PickupBloomPlayModeTests
         player = GameObject.FindGameObjectWithTag("Player");
         characterController = player.GetComponent<CharacterController>();
         Assert.IsNotNull(bloom, "Level01 needs a PickupBloom (Forest Guardian > Level > Build Level01 Environment).");
+        Assert.IsNotNull(bloom.BloomClip, "The sprouting needs its sound (Assets/Sound/SFX/flowers_sound.wav).");
+        Assert.AreEqual("flowers_sound", bloom.BloomClip.name);
     }
 
     private Collectible FindWaste(System.Func<float, float, bool> where)
@@ -62,6 +64,7 @@ public class PickupBloomPlayModeTests
         Assert.IsTrue(item.IsCollected);
         Assert.GreaterOrEqual(bloom.Spawned.Count, 3, "Picking up waste must sprout some flowers.");
         Assert.IsTrue(bloom.IsGrowing, "The flowers grow in, they do not just appear.");
+        Assert.AreEqual(1, bloom.BloomSoundsPlayed, "flowers_sound plays once when the flowers sprout.");
 
         yield return new WaitForSeconds(1.2f);
         Assert.IsFalse(bloom.IsGrowing, "The grow animation is short.");
@@ -90,6 +93,7 @@ public class PickupBloomPlayModeTests
 
         Assert.IsTrue(item.IsCollected);
         Assert.GreaterOrEqual(bloom.Spawned.Count, 3);
+        Assert.AreEqual(1, bloom.BloomSoundsPlayed, "One pickup, one flowers_sound.");
         foreach (var flower in bloom.Spawned)
         {
             float s = trail.Project(flower.position, out _);

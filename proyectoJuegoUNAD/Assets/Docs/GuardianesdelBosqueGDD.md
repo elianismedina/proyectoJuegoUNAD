@@ -235,12 +235,15 @@ La recolección produce:
 - Al empezar el nivel, la vegetación de las tres zonas (árboles, arbustos, hierba y flores) se ve **contaminada**: un tono pardo y apagado.
 - Cada residuo recogido hace brotar unas flores en ese punto (ver 10.4).
 - Cuando una zona se recupera, además de volver al verde, **florece**: aparecen grupos de flores (margaritas, dientes de león, jacintos azules y rosas rojas) junto al camino, que crecen una tras otra en algo más de un segundo. Hay unas 80 a 90 flores por zona, en manchas de 4 a 7 de la misma especie, fuera del camino y sin estorbar residuos ni puntos de control. Al ganar florece todo el bosque.
+- También **vuelven los animales**: en cada zona recuperada aparecen cuatro animales del paquete *Animals FREE* (ciervo, perro, gato, gallina y caballo, según la zona), que crecen igual que las flores. Unos pasean despacio de ida y vuelta por un tramo corto de unos 3 m y descansan un momento en cada extremo; los demás se quedan quietos con su animación de reposo. Son solo decoración: no tienen colisión, están dentro del bosque pero a más de 1,5 m del borde del camino (también en todo su paseo) y a 2 m o más de los residuos, los puntos de control y los obstáculos. Al ganar aparecen en todo el bosque.
 - Cuando el jugador recoge **todos los residuos de una zona** (3 en la Zona 1, 4 en la Zona 2 y 5 en la Zona 3), la zona queda **recuperada** y su vegetación vuelve a verse **sana**, con sus colores normales. Las demás zonas no cambian.
 - Al ganar (**“¡Bosque limpio!”**), todo el bosque se ve sano, aunque haya quedado algún residuo sin recoger.
 - La barra **“Recuperación del bosque”** del HUD muestra el avance (ver 10.2).
 - Al recuperarse una zona aparece unos 2 s en el HUD el aviso **“¡Zona recuperada!”**, en verde, con un sonido corto (dos notas ascendentes). Al ganar no aparece, porque ya lo dice la pantalla de victoria.
 
-Por ahora el cambio es un cambio de material provisional (el mismo atlas de la vegetación teñido de pardo). Geordany puede reemplazarlo por su arte sin tocar código. El suelo no cambia, porque es una sola malla para todo el sendero. Quedan pendientes el desbloqueo del siguiente tramo, el sonido de ambiente de zona contaminada / limpia y una animación del personaje al recuperar una zona.
+Por ahora el cambio es un cambio de material provisional (el mismo atlas de la vegetación teñido de pardo). Geordany puede reemplazarlo por su arte sin tocar código. El suelo no cambia, porque es una sola malla para todo el sendero. Quedan pendientes el desbloqueo del siguiente tramo y una animación del personaje al recuperar una zona.
+
+**Sonido de la zona:** mientras el jugador está en una zona contaminada suena el ambiente `bosque_contaminado_sound` (en bucle). Al recuperar esa zona, o al pasar a una zona ya recuperada, se hace un fundido de unos 3 s al ambiente de bosque recuperado (`sonido_bosque_recuperado`, en bucle); al entrar de nuevo en una zona contaminada, el fundido va al revés. Como la Zona 1 empieza contaminada, el nivel arranca con el ambiente contaminado.
 
 Diseño original:
 
@@ -716,7 +719,7 @@ Clics en botones, pausa, sonidos de confirmación y error al interactuar con el 
 | Interfaz de usuario | UI_Pausa | Indicador sonoro al abrir o cerrar el menú de pausa. | .wav |
 | Interfaz de usuario | UI_Confirmacion | Retroalimentación al seleccionar opciones o interactuar con el mapa educativo. | .wav |
 | Interfaz de usuario | UI_Error | Alerta auditiva cuando se realiza una acción inválida o error de clasificación. | .wav |
-**Estado actual del audio:** ya suenan dos pistas de ambiente de bosque (`Assets/Sound/Ambient/`) que se alternan con un fundido, el sonido de recolección de residuos (`Assets/Sound/SFX/collectible_pickup_sound.wav`, con una ligera variación de tono) y los pasos y el aterrizaje del paquete Starter Assets. Al pausar, el ambiente baja de volumen. Todo el sonido es 2D. Faltan la música, el ambiente de zona contaminada, el salto, el jingle de recuperación de zona y los sonidos de interfaz.
+**Estado actual del audio:** el ambiente sigue la recuperación del bosque: `bosque_contaminado_sound` en las zonas contaminadas y `sonido_bosque_recuperado` en las recuperadas, con un fundido entre ambos (los dos en `Assets/Sound/Ambient/`; las pistas anteriores `ambient_sound_one` y `ambient_sound_two` ya no se usan), el sonido de recolección de residuos (`Assets/Sound/SFX/collectible_pickup_sound.wav`, con una ligera variación de tono) y los pasos y el aterrizaje del paquete Starter Assets. En las zonas contaminadas suena `bosque_contaminado_sound` y, al recuperarlas, un fundido lleva al ambiente de bosque vivo (ver 6.1.4). Al recuperar una zona suena un sonido corto con el aviso “¡Zona recuperada!”, y al brotar flores tras recoger un residuo suena `flowers_sound`. Al pausar, el ambiente baja de volumen. Todo el sonido es 2D. Faltan la música, el salto y los sonidos de interfaz.
 
 ## 9.3 Recursos de interfaz
 La interfaz será sencilla y contendrá únicamente la información necesaria para que el jugador conozca su progreso.
@@ -801,7 +804,7 @@ Cuando el jugador recoja un residuo:
 
 *Jugador toca residuo*  *Residuo desaparece*  *♻️* *+1*  *Sonido de recolección*  *Brotan flores*
 
-**Flores donde estaba el residuo:** al recogerlo brotan unas 5 flores del *Low Poly Flower Pack* (margaritas, dientes de león, jacintos azules y rosas rojas) en el suelo bajo ese punto, una tras otra con una animación corta de crecimiento (medio segundo cada una, con un pequeño rebote). No tienen colisión y nunca quedan sobre el camino: si el residuo estaba encima del camino brotan a ambos lados, y si estaba sobre un arroyo, en la orilla más cercana. Así el recorrido va quedando marcado por las flores de lo que se ha limpiado.
+**Flores donde estaba el residuo:** al recogerlo brotan unas 5 flores del *Low Poly Flower Pack* (margaritas, dientes de león, jacintos azules y rosas rojas) en el suelo bajo ese punto, una tras otra con una animación corta de crecimiento (medio segundo cada una, con un pequeño rebote), acompañadas del sonido `flowers_sound` (una vez por residuo). No tienen colisión y nunca quedan sobre el camino: si el residuo estaba encima del camino brotan a ambos lados, y si estaba sobre un arroyo, en la orilla más cercana. Así el recorrido va quedando marcado por las flores de lo que se ha limpiado.
 ## 10.5 Pantalla de victoria
 Cuando:
 
@@ -994,6 +997,7 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Montañas | Entorno | FBX / Prefab | Colinas del paquete "Low-Poly Simple Nature Pack" (JustCreate), pieza `Ground_02` escalada; ver enlace en la fila de árboles | Standard Unity Asset Store EULA (Extension Asset) |
 | Troncos | Obstáculos | FBX / Prefab | Tocón, tronco y rama del paquete "Low-Poly Simple Nature Pack" (JustCreate), ver enlace en la fila de árboles; el tronco que rueda usa la rama `Branch_01` del mismo paquete | Standard Unity Asset Store EULA (Extension Asset) (solo las piezas del paquete) |
 | Cercas | Obstáculos | FBX / Prefab | Aún no se usan en el nivel | — |
+| Animales de recuperación | Entorno (animales que aparecen al recuperar una zona) | FBX / Prefab / Animación | Unity Asset Store: "Animals FREE - Animated Low Poly 3D Models" (ithappy), en `Assets/ithappy/Animals_FREE` (ciervo, perro, gato, gallina y caballo con sus animaciones de reposo y paseo, usados a través de las variantes de `Assets/Prefabs/Environment/RecoveryAnimals`; los archivos del paquete no se modifican). Enlace por verificar | Standard Unity Asset Store EULA (por verificar) |
 | Flores de recuperación | Entorno (vegetación que aparece al recuperar una zona) | FBX / Prefab | Unity Asset Store: "Low Poly Flower Pack" (Emilulz), versión demo, en `Assets/Emilulz_Assets/DEMOLowPolyFlowers` (margarita, diente de león, jacinto azul y rosa roja, usadas a través de las variantes de `Assets/Prefabs/Environment/Recovery`). Enlace por verificar | Standard Unity Asset Store EULA (por verificar) |
 | Botellas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Bottle`) | Propio (creado por el equipo) |
 | Latas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Can`) | Propio (creado por el equipo) |
@@ -1004,7 +1008,9 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Frascos de vidrio | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Jar`) | Propio (creado por el equipo) |
 | Pilas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Battery`) | Propio (creado por el equipo) |
 | Iconos del HUD | Interfaz | PNG / SVG | Por verificar | Por verificar |
-| Sonidos de ambiente y de recolección | Ambiente del bosque y SFX al recoger | WAV | `Assets/Sound/Ambient/ambient_sound_one.wav`, `ambient_sound_two.wav` y `Assets/Sound/SFX/collectible_pickup_sound.wav`: origen por verificar | Por verificar |
+| Sonidos de ambiente | Ambiente del bosque contaminado y recuperado | WAV | `Assets/Sound/Ambient/bosque_contaminado_sound.wav` y `sonido_bosque_recuperado.wav`: origen por verificar | Por verificar |
+| Efectos de sonido | Recoger, flores, tropiezo, ganar, caer | WAV | `Assets/Sound/SFX/collectible_pickup_sound.wav`, `flowers_sound.wav`, `sonido_tropezar.wav`, `sonido_ganar.wav` y `sonido_perder.wav`: origen por verificar | Por verificar |
+| Sonido “¡Zona recuperada!” | Aviso al recuperar una zona | WAV | `Assets/Sound/SFX/sonido_zona_recuperada.wav`, generado para el proyecto (provisional) | Propio |
 ## 13.2 Criterios para seleccionar recursos
 La webconferencia propone fuentes como:
 

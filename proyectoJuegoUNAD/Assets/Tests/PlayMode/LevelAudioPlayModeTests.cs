@@ -7,6 +7,8 @@ using UnityEngine.TestTools;
 /// <summary>
 /// Level01 sound: the ambience starts with the level and picking up waste plays the pickup sound once per item.
 /// Stumbling, reaching the goal with waste missing, winning and losing each play their own sound.
+/// A polluted zone sounds polluted (bosque_contaminado_sound); recovering it fades to the recovered forest
+/// (sonido_bosque_recuperado).
 /// </summary>
 public class LevelAudioPlayModeTests
 {
@@ -39,6 +41,7 @@ public class LevelAudioPlayModeTests
     public void Ambience_StartsWithTheLevel()
     {
         Assert.IsNotNull(levelAudio.CurrentAmbientClip, "LevelAudio needs at least one ambient clip.");
+        Assert.AreEqual("sonido_bosque_recuperado", levelAudio.CurrentAmbientClip.name, "A recovered forest sounds like sonido_bosque_recuperado.");
         Assert.IsNotNull(levelAudio.PickupClip, "LevelAudio needs the pickup clip.");
         Assert.IsNotNull(levelAudio.StumbleClip, "LevelAudio needs the stumble clip.");
         Assert.IsNotNull(levelAudio.GoalMissingClip, "LevelAudio needs the goal-with-waste-missing clip.");
@@ -99,6 +102,45 @@ public class LevelAudioPlayModeTests
 
         Assert.AreEqual(GameState.Lost, GameManager.Instance.Session.State);
         Assert.AreEqual(levelAudio.LoseClip, levelAudio.LastEventClip);
+    }
+
+    [UnityTest]
+    public IEnumerator PollutedZone_SoundsPollutedUntilItIsRecoveredThenFadesToTheLivingForest()
+    {
+        Assert.IsNotNull(levelAudio.PollutedClip, "LevelAudio needs the polluted ambience.");
+        Assert.AreEqual("bosque_contaminado_sound", levelAudio.PollutedClip.name);
+        yield return null;
+
+        // Zone 1 starts polluted.
+        Assert.AreEqual(1f, levelAudio.PollutedMix, 0.001f, "A polluted zone plays the polluted ambience.");
+        Assert.Greater(levelAudio.PollutedAmbienceVolume, 0f);
+        Assert.AreEqual(0f, levelAudio.LivingAmbienceVolume, 0.001f, "The living forest is silent in a polluted zone.");
+
+        // Recover Zone 1: collect all of its waste, then stand at its checkpoint.
+        var trail = Object.FindFirstObjectByType<ForestTrail>();
+        foreach (var c in Object.FindObjectsByType<Collectible>())
+        {
+            if (trail.ZoneAt(trail.Project(c.transform.position, out _)) != 0) continue;
+            Teleport(c.transform.position);
+            yield return new WaitForSeconds(0.15f);
+        }
+        var zone1 = Checkpoint.ForZone(0);
+        player.GetComponent<PlayerController>().Respawn(zone1.transform.position, zone1.transform.rotation);
+        Assert.IsTrue(ForestRecovery.Current.Tracker.IsRecovered(0));
+
+        yield return new WaitForSecondsRealtime(1f);
+        Assert.That(levelAudio.PollutedMix, Is.InRange(0.05f, 0.95f), "The switch is a fade, not a cut.");
+
+        yield return new WaitForSecondsRealtime(2.5f);
+        Assert.AreEqual(0f, levelAudio.PollutedMix, 0.001f, "Once recovered, the zone sounds like a living forest.");
+        Assert.Greater(levelAudio.LivingAmbienceVolume, 0f);
+        Assert.AreEqual(0f, levelAudio.PollutedAmbienceVolume, 0.001f);
+
+        // Walking on into Zone 2, still polluted, fades back.
+        var zone2 = Checkpoint.ForZone(1);
+        player.GetComponent<PlayerController>().Respawn(zone2.transform.position, zone2.transform.rotation);
+        yield return new WaitForSecondsRealtime(3.5f);
+        Assert.AreEqual(1f, levelAudio.PollutedMix, 0.001f, "Zone 2 is still polluted.");
     }
 
     [UnityTest]

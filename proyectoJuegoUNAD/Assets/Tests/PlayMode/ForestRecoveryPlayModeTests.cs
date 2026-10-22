@@ -8,7 +8,8 @@ using UnityEngine.TestTools;
 /// <summary>
 /// The forest's recovery in Level01: every zone starts polluted; collecting all of a zone's waste recovers that zone
 /// (its scenery goes back to the healthy material), fills Jhon's "Recuperación del bosque" bar and shows "¡Zona recuperada!"
-/// for about 2 s with a chime; winning recovers all without the notice.
+/// for about 2 s with a chime; winning recovers all without the notice. A recovered zone's flowers bloom and its animals
+/// come out, animated, off the path.
 /// </summary>
 public class ForestRecoveryPlayModeTests
 {
@@ -59,6 +60,8 @@ public class ForestRecoveryPlayModeTests
             Assert.IsFalse(forest.Tracker.IsRecovered(zone));
             Assert.GreaterOrEqual(forest.FlowersInZone(zone).Count, 30, "Zone " + (zone + 1) + " needs flowers to bloom when it recovers.");
             Assert.IsTrue(forest.FlowersHidden(zone), "Zone " + (zone + 1) + "'s flowers must not show while it is polluted.");
+            Assert.GreaterOrEqual(forest.AnimalsInZone(zone).Count, 3, "Zone " + (zone + 1) + " needs a few animals to come out when it recovers.");
+            Assert.IsTrue(forest.AnimalsHidden(zone), "Zone " + (zone + 1) + "'s animals must not show while it is polluted.");
         }
         Assert.AreEqual(0f, counter.BarFill, 0.001f, "The recovery bar starts empty.");
     }
@@ -98,6 +101,8 @@ public class ForestRecoveryPlayModeTests
 
             Assert.IsTrue(forest.FlowersBloomed(0), "Zone 1's flowers must have grown in by now.");
             Assert.IsTrue(forest.FlowersHidden(1) && forest.FlowersHidden(2), "The other zones' flowers stay hidden.");
+            Assert.IsTrue(forest.AnimalsShown(0), "Zone 1's animals must be out by now.");
+            Assert.IsTrue(forest.AnimalsHidden(1) && forest.AnimalsHidden(2), "The other zones' animals stay hidden.");
         }
         finally
         {
@@ -122,7 +127,71 @@ public class ForestRecoveryPlayModeTests
 
         yield return new WaitForSeconds(2f);
         for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+        {
             Assert.IsTrue(forest.FlowersBloomed(zone), "¡Bosque limpio! Zone " + (zone + 1) + "'s flowers must bloom.");
+            Assert.IsTrue(forest.AnimalsShown(zone), "¡Bosque limpio! Zone " + (zone + 1) + "'s animals must come out.");
+        }
+    }
+
+    // Once out, each animal plays its animation: walkers pace their stretch (walk loop) without leaving it, the rest idle.
+    [UnityTest]
+    public IEnumerator Animals_AreAnimatedAndWalkersPaceTheirStretch()
+    {
+        forest.Tracker.RecoverAll();
+        var walkers = new List<RecoveryAnimal>();
+        var moved = new HashSet<RecoveryAnimal>();
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+            foreach (var animal in forest.AnimalsInZone(zone))
+                if (animal.Walks) walkers.Add(animal);
+        Assert.IsNotEmpty(walkers, "Some animals should walk about.");
+
+        for (float t = 0f; t < 8f; t += Time.deltaTime)
+        {
+            foreach (var animal in walkers)
+            {
+                if (animal.IsMoving) moved.Add(animal);
+                Vector3 p = Flat(animal.transform.position), a = Flat(animal.PointA), b = Flat(animal.PointB);
+                float along = Vector3.Dot(p - a, (b - a).normalized);
+                Assert.That(along, Is.InRange(-0.05f, Vector3.Distance(a, b) + 0.05f), animal.name + " walked off its stretch.");
+                Assert.Less(Vector3.Distance(p, a + (b - a).normalized * along), 0.05f, animal.name + " walked off its stretch.");
+            }
+            yield return null;
+        }
+        CollectionAssert.AreEquivalent(walkers, moved, "Every walker should set off within a few seconds.");
+
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+        {
+            foreach (var animal in forest.AnimalsInZone(zone))
+            {
+                var animator = animal.GetComponentInChildren<Animator>();
+                Assert.IsTrue(animator.isActiveAndEnabled && animator.runtimeAnimatorController != null, animal.name + " must be animated.");
+                Assert.Greater(animator.GetCurrentAnimatorStateInfo(0).normalizedTime, 0f, animal.name + "'s animation must be playing.");
+            }
+        }
+    }
+
+    // The animals are decoration too: no colliders, and neither where they stand nor anywhere along a walker's stretch is
+    // on the path or crowding waste or checkpoints.
+    [Test]
+    public void Animals_StayOffThePathAndBlockNothing()
+    {
+        for (int zone = 0; zone < ForestTrail.ZoneCount; zone++)
+        {
+            foreach (var animal in forest.AnimalsInZone(zone))
+            {
+                Assert.IsEmpty(animal.GetComponentsInChildren<Collider>(true), animal.name + " must not block the player.");
+                for (int k = 0; k <= 4; k++)
+                {
+                    Vector3 p = Vector3.Lerp(animal.PointA, animal.PointB, k / 4f);
+                    trail.Project(p, out float lateral);
+                    Assert.Greater(Mathf.Abs(lateral), 3f, animal.name + " gets onto the path.");
+                    foreach (var c in Object.FindObjectsByType<Checkpoint>())
+                        Assert.Greater(Vector3.Distance(Flat(c.transform.position), Flat(p)), 1.5f, animal.name + " crowds " + c.name);
+                    foreach (var w in Object.FindObjectsByType<Collectible>())
+                        Assert.Greater(Vector3.Distance(Flat(w.transform.position), Flat(p)), 1.5f, animal.name + " covers " + w.name);
+                }
+            }
+        }
     }
 
     // The flowers are decoration: off the dirt path, never solid, and not in front of waste or checkpoints.
