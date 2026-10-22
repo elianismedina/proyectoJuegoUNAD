@@ -16892,7 +16892,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 0ba481f3d0562ff4d96914a73a9f01d4, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.708
+  m_Volume: 0.453
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -37905,7 +37905,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 0ba481f3d0562ff4d96914a73a9f01d4, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.701
+  m_Volume: 0.475
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -116665,14 +116665,14 @@ MonoBehaviour:
   ambientClips:
   - {fileID: 8300000, guid: 685c5e1b964286649bb20eca2a4c8389, type: 3}
   - {fileID: 8300000, guid: 7ce9571d7e0f9b64dbb7bf30f55e3f33, type: 3}
-  ambientVolume: 0.265
+  ambientVolume: 0.152
   crossfadeDuration: 2
   pausedVolumeScale: 0.4
   pickupClip: {fileID: 8300000, guid: 9f463ca2dddd60b4aad9e563bec0461a, type: 3}
-  pickupVolume: 0.8
+  pickupVolume: 0.351
   pickupPitchVariation: 0.06
   stumbleClip: {fileID: 8300000, guid: 9c882f7710825254c8662bca5d9d0202, type: 3}
-  stumbleVolume: 0.8
+  stumbleVolume: 0.364
   goalMissingClip: {fileID: 8300000, guid: 51034601df76a1544b85937c6f8a5b57, type: 3}
   goalMissingVolume: 0.9
   winClip: {fileID: 8300000, guid: 8f4dcf519b0bf7a41be60740d514e532, type: 3}
@@ -122872,7 +122872,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 0ba481f3d0562ff4d96914a73a9f01d4, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.716
+  m_Volume: 0.512
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -138981,6 +138981,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6236654408347516562, guid: 24bb60280327fd2498f05472b2bb6914, type: 3}
+      propertyPath: JumpAudioClip
+      value: 
+      objectReference: {fileID: 8300000, guid: cc64b28ffa57f594f9835314e4061a50, type: 3}
+    - target: {fileID: 6236654408347516562, guid: 24bb60280327fd2498f05472b2bb6914, type: 3}
+      propertyPath: JumpAudioClips.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6236654408347516562, guid: 24bb60280327fd2498f05472b2bb6914, type: 3}
+      propertyPath: 'JumpAudioClips.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: cc64b28ffa57f594f9835314e4061a50, type: 3}
+    - target: {fileID: 6236654408347516562, guid: 24bb60280327fd2498f05472b2bb6914, type: 3}
+      propertyPath: 'JumpAudioClips.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 240b276387b5b3f40a8ac725f99af625, type: 3}
+    - target: {fileID: 6236654408347516562, guid: 24bb60280327fd2498f05472b2bb6914, type: 3}
+      propertyPath: 'JumpAudioClips.Array.data[2]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 7a1dc4de316c46e4d8263909c3022371, type: 3}
     - target: {fileID: 6853864229214909659, guid: 24bb60280327fd2498f05472b2bb6914, type: 3}
       propertyPath: m_LocalPosition.x
       value: -8.001993

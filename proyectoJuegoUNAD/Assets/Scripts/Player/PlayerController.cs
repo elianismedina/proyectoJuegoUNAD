@@ -76,8 +76,13 @@ public class PlayerController : MonoBehaviour
 
     [Tooltip("Speed in m/s toward an obstacle above which running into it counts as a hit (MoveSpeed is 6).")]
     public float ObstacleHitSpeed = 3f;
-
+    /// <summary>
+    /// Sound game
+    /// </summary>
     [Header("Audio")]
+    public AudioClip[] JumpAudioClips;
+    [Range(0f, 1f)] public float JumpAudioVolume = 0.7f;
+
     public AudioClip LandingAudioClip;
     public AudioClip[] FootstepAudioClips;
     [Range(0f, 1f)] public float FootstepAudioVolume = 0.5f;
@@ -326,6 +331,24 @@ public class PlayerController : MonoBehaviour
             _lastGroundedTime = float.NegativeInfinity;
 
             if (_hasAnimator) _animator.SetBool(_animIDJump, true);
+            //player jump variation
+
+            if (JumpAudioClips != null && JumpAudioClips.Length > 0)
+            {
+                AudioClip jumpClip = JumpAudioClips[
+                    Random.Range(0, JumpAudioClips.Length)
+                ];
+
+                if (jumpClip != null)
+                {
+                    AudioSource.PlayClipAtPoint(
+                        jumpClip,
+                        transform.TransformPoint(_controller.center),
+                        JumpAudioVolume
+                    );
+                }
+            }
+
         }
 
         if (_verticalVelocity > -TerminalVelocity)
