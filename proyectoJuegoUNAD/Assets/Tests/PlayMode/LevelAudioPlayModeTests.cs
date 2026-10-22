@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 /// Level01 sound: the ambience starts with the level and picking up waste plays the pickup sound once per item.
 /// Stumbling, reaching the goal with waste missing, winning and losing each play their own sound.
 /// A polluted zone sounds polluted (bosque_contaminado_sound); recovering it fades to the recovered forest
-/// (sonido_bosque_recuperado).
+/// (sonido_bosque_recuperado), with Jhon's Naturaleza-02 and Avez layered on top. Each stream has river.mp3 running.
 /// </summary>
 public class LevelAudioPlayModeTests
 {
@@ -115,6 +115,8 @@ public class LevelAudioPlayModeTests
         Assert.AreEqual(1f, levelAudio.PollutedMix, 0.001f, "A polluted zone plays the polluted ambience.");
         Assert.Greater(levelAudio.PollutedAmbienceVolume, 0f);
         Assert.AreEqual(0f, levelAudio.LivingAmbienceVolume, 0.001f, "The living forest is silent in a polluted zone.");
+        CollectionAssert.AreEquivalent(new[] { "Naturaleza-02", "Avez" }, System.Array.ConvertAll(levelAudio.RecoveredLayerClips, c => c.name));
+        Assert.AreEqual(0f, levelAudio.RecoveredLayerVolume, 0.001f, "The nature and bird layers are silent in a polluted zone.");
 
         // Recover Zone 1: collect all of its waste, then stand at its checkpoint.
         var trail = Object.FindFirstObjectByType<ForestTrail>();
@@ -135,12 +137,33 @@ public class LevelAudioPlayModeTests
         Assert.AreEqual(0f, levelAudio.PollutedMix, 0.001f, "Once recovered, the zone sounds like a living forest.");
         Assert.Greater(levelAudio.LivingAmbienceVolume, 0f);
         Assert.AreEqual(0f, levelAudio.PollutedAmbienceVolume, 0.001f);
+        Assert.AreEqual("sonido_bosque_recuperado", levelAudio.CurrentAmbientClip.name, "The recovered-zone ambience still plays.");
+        Assert.Greater(levelAudio.RecoveredLayerVolume, 0f, "Naturaleza-02 and Avez join the recovered forest.");
 
         // Walking on into Zone 2, still polluted, fades back.
         var zone2 = Checkpoint.ForZone(1);
         player.GetComponent<PlayerController>().Respawn(zone2.transform.position, zone2.transform.rotation);
         yield return new WaitForSecondsRealtime(3.5f);
         Assert.AreEqual(1f, levelAudio.PollutedMix, 0.001f, "Zone 2 is still polluted.");
+    }
+
+    [UnityTest]
+    public IEnumerator EveryStream_SoundsOfRunningWater()
+    {
+        yield return null;
+        var trail = Object.FindFirstObjectByType<ForestTrail>();
+        Assert.AreEqual(trail.StreamSpans.Length, GameObject.Find("Environment/Streams").transform.childCount, "One water body per stream.");
+        foreach (Transform stream in GameObject.Find("Environment/Streams").transform)
+        {
+            var river = stream.Find("RiverSound");
+            Assert.IsNotNull(river, stream.name + " needs its RiverSound (LevelEnvironmentBuilder).");
+            var source = river.GetComponent<AudioSource>();
+            Assert.AreEqual("river", source.clip.name);
+            Assert.IsTrue(source.loop && source.isPlaying, stream.name + "'s water must run all the time.");
+            Assert.AreEqual(1f, source.spatialBlend, "The river is heard at the crossing (3D), not everywhere.");
+            trail.Project(river.position, out float lateral);
+            Assert.Less(Mathf.Abs(lateral), 0.5f, "The water is heard where the path crosses it.");
+        }
     }
 
     [UnityTest]

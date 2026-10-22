@@ -8,6 +8,8 @@ using UnityEngine;
 /// the player from walking through the log and pushes them aside when the log rolls into them (a moving
 /// kinematic collider does not push a <see cref="CharacterController"/> on its own). Rolling stops with the
 /// game (it follows <see cref="Time.deltaTime"/>, which is zero while paused).
+/// Sound (3D, on the prefab): <see cref="rollSound"/> loops the log's knocking (GolpesTronco) while it rolls and pauses
+/// with the game; <see cref="bumpSound"/> plays a wooden thud (impactWood02) each time the log stops at an end of its run.
 /// </summary>
 public class RollingLog : MonoBehaviour
 {
@@ -22,12 +24,24 @@ public class RollingLog : MonoBehaviour
     [Tooltip("Solid (non-trigger) capsule that covers the whole log, on a child so the stumble trigger can be larger.")]
     [SerializeField] private CapsuleCollider body;
 
+    [Tooltip("Looping knock of the rolling log (3D).")]
+    [SerializeField] private AudioSource rollSound;
+
+    [Tooltip("Thud played when the log turns round at an end of its run (3D).")]
+    [SerializeField] private AudioSource bumpSound;
+
     private readonly Collider[] overlaps = new Collider[8];
     private Vector3 origin;
     private Vector3 axis;      // World direction of the run (the placed local X); the log's own spin must not change it.
     private Vector3 spinAxis;  // Rolling toward +axis spins around up × axis (right-hand rule).
     private float offset;
     private float direction = 1f;
+
+    public AudioSource RollSound => rollSound;
+    public AudioSource BumpSound => bumpSound;
+
+    /// <summary>How many end-of-run thuds were played since the level loaded.</summary>
+    public int BumpsPlayed { get; private set; }
 
     private void Awake()
     {
@@ -43,8 +57,14 @@ public class RollingLog : MonoBehaviour
         float half = travel * 0.5f;
         offset += direction * speed * Time.deltaTime;
 
-        if (offset >= half) { offset = half; direction = -1f; }
-        else if (offset <= -half) { offset = -half; direction = 1f; }
+        if (offset >= half) { offset = half; direction = -1f; Bump(); }
+        else if (offset <= -half) { offset = -half; direction = 1f; Bump(); }
+
+        if (rollSound != null)
+        {
+            if (Time.deltaTime <= 0f) rollSound.Pause();
+            else if (!rollSound.isPlaying) rollSound.UnPause();
+        }
 
         transform.position = origin + axis * offset;
 
@@ -53,6 +73,13 @@ public class RollingLog : MonoBehaviour
         transform.Rotate(spinAxis, degrees, Space.World);
 
         PushOutCharacters();
+    }
+
+    private void Bump()
+    {
+        if (bumpSound == null || bumpSound.clip == null) return;
+        bumpSound.PlayOneShot(bumpSound.clip);
+        BumpsPlayed++;
     }
 
     /// <summary>Moves any character the log has rolled into out of the solid body.</summary>

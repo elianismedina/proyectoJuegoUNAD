@@ -34,6 +34,11 @@ public static class LevelEnvironmentBuilder
     private const string NatureMaterialPath = "Assets/SimpleNaturePack/Materials/SimpleNaturePack_Texture_01.mat";
     private const string PollutedMaterialPath = "Assets/Materials/Recovery/Nature_Polluted.mat";
     private const string FlowersSoundPath = "Assets/Sound/SFX/flowers_sound.wav"; // played when pickup flowers sprout
+    // From Jhon's sound pass: running water at each stream, and two layers on top of the recovered-forest ambience.
+    private const string RiverSoundPath = "Assets/Sound/Ambient/river.mp3";
+    private static readonly string[] RecoveredLayerPaths = { "Assets/Sound/Ambient/Naturaleza-02.mp3", "Assets/Sound/Ambient/Avez.mp3" };
+    private const float RecoveredLayerVolume = 0.1f;
+    private const float RiverVolume = 0.7f, RiverMinDistance = 4f, RiverMaxDistance = 12f;
     private static readonly Color PollutedTint = new Color(0.6f, 0.47f, 0.3f, 1f);
     private const string LevelConfigPath = "Assets/Config/LevelConfig_Level01.asset";
 
@@ -256,6 +261,7 @@ public static class LevelEnvironmentBuilder
         BuildRecoveryAnimals(Child(root.transform, "RecoveryAnimals"), trail, floorCollider, reserved);
         BuildFarAway(Child(root.transform, "FarAway"), trail);
         AddForestRecovery(root);
+        ConfigureLevelAudio();
         UpdateLevelConfig();
 
         EditorSceneManager.MarkSceneDirty(scene);
@@ -574,6 +580,20 @@ public static class LevelEnvironmentBuilder
             water.transform.localScale = new Vector3(width, 0.1f, 2f * (CorridorHalfWidth + FloorMargin + FloorFalloff));
             water.GetComponent<MeshRenderer>().sharedMaterial = material;
             MakeStatic(water);
+
+            // The water you hear as you come to the crossing: 3D, on a child at the path so the stream's scale does not matter.
+            var sound = new GameObject("RiverSound").AddComponent<AudioSource>();
+            sound.transform.SetParent(parent, false);
+            sound.transform.position = OnTrail(trail, center, 0f, 0f);
+            sound.clip = AssetDatabase.LoadAssetAtPath<AudioClip>(RiverSoundPath);
+            sound.loop = true;
+            sound.playOnAwake = true;
+            sound.volume = RiverVolume;
+            sound.spatialBlend = 1f;
+            sound.rolloffMode = AudioRolloffMode.Linear;
+            sound.minDistance = RiverMinDistance;
+            sound.maxDistance = RiverMaxDistance;
+            sound.transform.SetParent(water.transform, true);
         }
     }
 
@@ -772,6 +792,25 @@ public static class LevelEnvironmentBuilder
             prefabs.GetArrayElementAtIndex(i).objectReferenceValue = Prefab("Recovery_" + RecoveryFlowerNames[i], "Recovery");
         bloom.FindProperty("bloomClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(FlowersSoundPath);
         bloom.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // The recovered-forest layers live on the level's LevelAudio (outside Environment), so a rebuild sets them too.
+    private static void ConfigureLevelAudio()
+    {
+        var audio = Object.FindAnyObjectByType<LevelAudio>();
+        if (audio == null)
+        {
+            Debug.LogWarning("LevelEnvironmentBuilder: no LevelAudio in Level01; the recovered-forest layers were not set.");
+            return;
+        }
+
+        var so = new SerializedObject(audio);
+        var layers = so.FindProperty("recoveredLayerClips");
+        layers.arraySize = RecoveredLayerPaths.Length;
+        for (int i = 0; i < RecoveredLayerPaths.Length; i++)
+            layers.GetArrayElementAtIndex(i).objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(RecoveredLayerPaths[i]);
+        so.FindProperty("recoveredLayerVolume").floatValue = RecoveredLayerVolume;
+        so.ApplyModifiedProperties();
     }
 
     // Created once from the healthy material; after that it is left alone, so hand-made art put in its place survives rebuilds.
