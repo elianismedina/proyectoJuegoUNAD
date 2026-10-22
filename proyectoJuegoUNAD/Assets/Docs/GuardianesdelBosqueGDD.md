@@ -526,7 +526,7 @@ Características y elementos: Aprecen botllas, latas, papeles y otros residuos
 
 - Menor espacio entre algunos elementos. 
 
-- Primer arroyo, zona de lodo y tronco que rueda. 
+- Primer arroyo, zona de lodo y dos troncos que ruedan. 
 
 Aquí el jugador debe empezar a tomar decisiones sobre cuándo desplazarse y cuándo saltar.
 
@@ -542,7 +542,7 @@ Características:
 
 - Recorrido más exigente. 
 
-- Combinación de diferentes obstáculos: dos arroyos, el talud más alto (1,2 m) y la piedra que cae. 
+- Combinación de diferentes obstáculos: dos arroyos, el talud más alto (1,2 m), dos troncos que ruedan y la piedra que cae. 
 
 Al superar esta zona y alcanzar la cantidad necesaria de residuos, el jugador puede completar el objetivo.
 
@@ -1002,7 +1002,7 @@ Para *Guardianes del Bosque* se llevará un registro de los recursos externos ut
 | Rocas (y suelo) | Entorno | FBX / Prefab | Unity Asset Store: "Low-Poly Simple Nature Pack" (JustCreate), v1.24, en `Assets/SimpleNaturePack`: https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153 | Standard Unity Asset Store EULA (Extension Asset) |
 | Montañas | Entorno | FBX / Prefab | Colinas del paquete "Low-Poly Simple Nature Pack" (JustCreate), pieza `Ground_02` escalada; ver enlace en la fila de árboles | Standard Unity Asset Store EULA (Extension Asset) |
 | Troncos | Obstáculos | FBX / Prefab | Tocón, tronco y rama del paquete "Low-Poly Simple Nature Pack" (JustCreate), ver enlace en la fila de árboles; el tronco que rueda usa la rama `Branch_01` del mismo paquete | Standard Unity Asset Store EULA (Extension Asset) (solo las piezas del paquete) |
-| Cercas | Obstáculos | FBX / Prefab | Aún no se usan en el nivel | — |
+| Cercas | Obstáculos | FBX / Prefab | Cerca de tres troncos armada con el tronco del paquete "Low-Poly Simple Nature Pack" (ver fila de troncos); un modelo propio de cerca sigue previsto | Standard Unity Asset Store EULA (Extension Asset) |
 | Animales de recuperación | Entorno (animales que aparecen al recuperar una zona) | FBX / Prefab / Animación | Unity Asset Store: "Animals FREE - Animated Low Poly 3D Models" (ithappy), en `Assets/ithappy/Animals_FREE` (ciervo, perro, gato, gallina y caballo con sus animaciones de reposo y paseo, usados a través de las variantes de `Assets/Prefabs/Environment/RecoveryAnimals`; los archivos del paquete no se modifican). Enlace por verificar | Standard Unity Asset Store EULA (por verificar) |
 | Flores de recuperación | Entorno (vegetación que aparece al recuperar una zona) | FBX / Prefab | Unity Asset Store: "Low Poly Flower Pack" (Emilulz), versión demo, en `Assets/Emilulz_Assets/DEMOLowPolyFlowers` (margarita, diente de león, jacinto azul y rosa roja, usadas a través de las variantes de `Assets/Prefabs/Environment/Recovery`). Enlace por verificar | Standard Unity Asset Store EULA (por verificar) |
 | Botellas | Residuos | FBX / Prefab | Modelo propio del equipo en Blender (`Coleccionables.blend`, objeto `Waste_Bottle`) | Propio (creado por el equipo) |
