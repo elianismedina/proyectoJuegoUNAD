@@ -5,7 +5,7 @@ site_url: https://elianismedina.github.io/proyectoJuegoUNAD/
 repo_url: https://github.com/elianismedina/proyectoJuegoUNAD
 repo_name: proyectoJuegoUNAD
 edit_uri: ""
-copyright: "Guardianes del Bosque · Última actualización: {{UPDATED}}"
+copyright: 'Guardianes del Bosque · Última actualización: {{UPDATED}} · <a href="/proyectoJuegoUNAD/{{DOCX}}" download>Descargar en Word (.docx)</a>'
 
 theme:
   name: material
