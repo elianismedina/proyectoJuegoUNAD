@@ -140,23 +140,32 @@ public class GameScreens : MonoBehaviour
         }
     }
 
+   private void ShowObjective(int targetWaste)
+    {
+    objectiveText.text =
+        "El bosque está en peligro por la contaminación. " +
+        "Tu misión es recorrer sus senderos, recoger los residuos " +
+        "y recuperar las zonas afectadas. Cada acción cuenta " +
+        "para devolverle la vida a la naturaleza.";
+
+    objectiveBanner.alpha = 1f;
+    objectiveBanner.gameObject.SetActive(true);
+    objectiveHideTime = Time.time + objectiveSeconds;
+    }
+
     private void UpdateZoneNotice()
     {
         float left = zoneNoticeHideTime - Time.unscaledTime;
+
         if (left <= 0f)
         {
             zoneNotice.gameObject.SetActive(false);
             return;
         }
-        zoneNotice.alpha = zoneNoticeFadeSeconds > 0f ? Mathf.Clamp01(left / zoneNoticeFadeSeconds) : 1f;
-    }
 
-    private void ShowObjective(int targetWaste)
-    {
-        objectiveText.text = FormatObjective(targetWaste);
-        objectiveBanner.alpha = 1f;
-        objectiveBanner.gameObject.SetActive(true);
-        objectiveHideTime = Time.time + objectiveSeconds;
+        zoneNotice.alpha = zoneNoticeFadeSeconds > 0f
+            ? Mathf.Clamp01(left / zoneNoticeFadeSeconds)
+            : 1f;
     }
 
     // Game time, not unscaled: pausing (timeScale 0) holds the banner so it is still there after "Continuar".

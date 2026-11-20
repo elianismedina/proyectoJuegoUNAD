@@ -1,12 +1,16 @@
+
 using UnityEngine;
 
 /// <summary>
-/// Makes a trigger collider stumble the player on contact (knockback away from the hazard on the ground plane, no damage).
-/// Used by rolling logs and falling rocks; static obstacles are plain solid colliders instead.
+/// Handles player contact with hazards.
+/// Lethal hazards end the game; non-lethal hazards cause a stumble.
 /// </summary>
 [RequireComponent(typeof(Collider))]
 public class PlayerHazard : MonoBehaviour
 {
+    [Header("Hazard Settings")]
+    [SerializeField] private bool isLethal = false;
+
     private void Reset()
     {
         GetComponent<Collider>().isTrigger = true;
@@ -14,13 +18,23 @@ public class PlayerHazard : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.TryGetComponent(out PlayerController player)) return;
+        if (!other.TryGetComponent(out PlayerController player))
+            return;
 
-        // Push the player straight away from the nearest part of the hazard (Stumble keeps only the
-        // ground-plane part), so hitting the end of a long log does not throw the player along it.
+        if (isLethal)
+        {
+            if (GameManager.Instance != null)
+                GameManager.Instance.Lose();
+
+            return;
+        }
+
         Vector3 position = player.transform.position;
         Vector3 away = position - GetComponent<Collider>().ClosestPoint(position);
-        if (away.sqrMagnitude < 0.0001f) away = position - transform.position;
+
+        if (away.sqrMagnitude < 0.0001f)
+            away = position - transform.position;
+
         player.Stumble(away);
     }
 }
